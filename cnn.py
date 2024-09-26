@@ -56,7 +56,7 @@ criterion = nn.CrossEntropyLoss()  # 交叉熵损失
 optimizer = optim.SGD(net.parameters(), lr=0.001, momentum=0.9)  # SGD 优化器
 
 # 训练网络
-for epoch in range(10):  # 迭代 10 个 epoch
+for epoch in range(15):  # 迭代 10 个 epoch
     running_loss = 0.0
     for i, data in enumerate(trainloader, 0):
         # 获取输入数据
