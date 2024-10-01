@@ -95,4 +95,4 @@ with torch.no_grad():  # 在测试阶段不需要计算梯度
 print(f'Accuracy on the test images: {100 * correct / total:.2f}%')
 
 # 保存模型
-torch.save(net.state_dict(), 'cnn_model.pth')
+torch.save(net.state_dict(), 'simple_cnn_model.pth')
