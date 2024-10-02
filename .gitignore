@@ -1,3 +1,4 @@
 data
 .idea
 *.pth
+.DS_Store
