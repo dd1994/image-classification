@@ -1,3 +1,4 @@
+import os
 import torch
 import torch.nn as nn
 import torch.optim as optim
@@ -44,15 +45,16 @@ def main():
         transforms.Normalize((0.485, 0.456, 0.406), (0.229, 0.224, 0.225))
     ])
 
+    
     # 加载 iNaturalist 2021-mini 数据集
-    trainset = INaturalist(root='./data', version='2021_train_mini', download=True, transform=transform)
+    trainset = INaturalist(root='./data', version='2021_train_mini', download=False, transform=transform)
     trainloader = torch.utils.data.DataLoader(trainset, batch_size=16, shuffle=True, num_workers=num_workers, pin_memory=True)
 
-    testset = INaturalist(root='./data', version='2021_valid', download=True, transform=transform)
+    testset = INaturalist(root='./data', version='2021_valid', download=False, transform=transform)
     testloader = torch.utils.data.DataLoader(testset, batch_size=16, shuffle=False, num_workers=num_workers, pin_memory=True)
 
     # 获取类别数量
-    num_classes = len(trainset.categories)
+    num_classes = 10000
 
     # 初始化网络
     net = SimpleCNN(num_classes)
