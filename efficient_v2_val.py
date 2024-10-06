@@ -4,27 +4,25 @@ import torchvision.transforms as transforms
 from torchvision import models
 from PIL import Image
 import torch.nn as nn
+from constant import NUM_CLASSES, INPUT_SIZE
 
 # 设置设备
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
-num_classes = 3  # iNaturalist 2021_train_mini 的类别数
 
-# 定义图像预处理
-input_size = 224
 transform = transforms.Compose([
     transforms.Resize(256),
-    transforms.CenterCrop(input_size),
+    transforms.CenterCrop(INPUT_SIZE),
     transforms.ToTensor(),
     transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
 ])
 
 
 # 加载模型
-model = models.efficientnet_v2_s(num_classes)
+model = models.efficientnet_v2_s(NUM_CLASSES)
 num_features = model.classifier[1].in_features
 # 替换模型的分类头，适应 iNaturalist 数据集的类别数
-model.classifier[1] = nn.Linear(num_features, num_classes)
+model.classifier[1] = nn.Linear(num_features, NUM_CLASSES)
 model.load_state_dict(torch.load('efficientnet_v2_inat_model.pth', map_location=device))
 model.to(device)
 model.eval()

@@ -7,20 +7,19 @@ from torchvision.models import EfficientNet_V2_S_Weights
 from torchvision.datasets import INaturalist
 import multiprocessing
 
-# iNaturalist 图像大小通常较大，我们保持 EfficientNetV2 的默认输入大小
-input_size = 224
+from constant import NUM_CLASSES, INPUT_SIZE
 
 # 定义数据增强和预处理
 transform = {
     'train': transforms.Compose([
-        transforms.RandomResizedCrop(input_size),
+        transforms.RandomResizedCrop(INPUT_SIZE),
         transforms.RandomHorizontalFlip(),
         transforms.ToTensor(),
         transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
     ]),
     'val': transforms.Compose([
         transforms.Resize(256),
-        transforms.CenterCrop(input_size),
+        transforms.CenterCrop(INPUT_SIZE),
         transforms.ToTensor(),
         transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
     ])
@@ -29,8 +28,7 @@ transform = {
 # 加载 iNaturalist 数据集
 data_dir = './data'  # 数据集的根目录
 batch_size = 32  # 减小批量大小以适应更大的数据集
-num_epochs = 6
-num_classes = 3  # iNaturalist 2021_train_mini 的类别数
+num_epochs = 10
 
 def main():
     # 设置设备和并行
@@ -46,7 +44,7 @@ def main():
     num_features = model.classifier[1].in_features
 
     # 替换模型的分类头，适应 iNaturalist 数据集的类别数
-    model.classifier[1] = nn.Linear(num_features, num_classes)
+    model.classifier[1] = nn.Linear(num_features, NUM_CLASSES)
 
     # 将模型移动到设备上
     model = model.to(device)
