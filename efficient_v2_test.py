@@ -29,7 +29,7 @@ transform = {
 # 加载 iNaturalist 数据集
 data_dir = './data'  # 数据集的根目录
 batch_size = 16  # 减小批量大小以适应更大的数据集
-num_epochs = 3
+num_epochs = 5
 num_classes = 3  # iNaturalist 2021_train_mini 的类别数
 
 def main():
