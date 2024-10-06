@@ -28,7 +28,7 @@ transform = {
 # 加载 iNaturalist 数据集
 data_dir = './data'  # 数据集的根目录
 batch_size = 32  # 减小批量大小以适应更大的数据集
-num_epochs = 10
+num_epochs = 6
 
 def main():
     # 设置设备和并行
