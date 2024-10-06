@@ -82,9 +82,8 @@ def main():
             optimizer.step()
             
             running_loss += loss.item()
-            if i % 100 == 99:
-                print(f'[Epoch {epoch + 1}, Batch {i + 1}] loss: {running_loss / 100:.3f}')
-                running_loss = 0.0
+            print(f'[Epoch {epoch + 1}, Batch {i + 1}] loss: {running_loss / 100:.3f}')
+            running_loss = 0.0
 
         print(f'Epoch {epoch + 1} finished')
 
