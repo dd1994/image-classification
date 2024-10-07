@@ -8,7 +8,7 @@ INPUT_SIZE = 224
 DATA_DIR = './data'
 
 # 批量大小
-BATCH_SIZE = 32
+BATCH_SIZE = 16
 
 # 训练轮数
 NUM_EPOCHS = 3
