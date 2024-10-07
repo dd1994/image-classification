@@ -8,8 +8,26 @@ from torchvision.models import EfficientNet_V2_S_Weights
 from torchvision.datasets import INaturalist
 from torch.optim.lr_scheduler import CosineAnnealingLR
 
+NUM_CLASSES = 10
 
-from constant import BATCH_SIZE, DATA_DIR, LR, NUM_CLASSES, INPUT_SIZE, NUM_EPOCHS, NUM_WORKERS
+# 输入图像大小
+INPUT_SIZE = 224
+
+# 数据集的根目录
+DATA_DIR = './data'
+
+# 批量大小
+BATCH_SIZE = 32
+
+# 训练轮数
+NUM_EPOCHS = 5
+
+# 数据加载的进程数
+NUM_WORKERS = 3
+
+# 学习率
+LR = 0.001
+
 
 # 定义数据增强和预处理
 transform = {
@@ -65,7 +83,7 @@ def main():
 
     # 定义损失函数和优化器
     criterion = nn.CrossEntropyLoss()
-    optimizer = optim.AdamW(model.parameters(), lr=LR, weight_decay=1e-2)
+    optimizer = optim.AdamW(model.parameters(), lr=LR)
     # optimizer = optim.Adam(model.parameters(), lr=LR)
     scheduler = CosineAnnealingLR(optimizer, T_max=NUM_EPOCHS)
 
@@ -73,6 +91,14 @@ def main():
     # 加载 iNaturalist 数据集
     train_dataset = INaturalist(root=DATA_DIR, version='2021_train_mini', download=False, transform=transform['train'])
     val_dataset = INaturalist(root=DATA_DIR, version='2021_valid', download=False, transform=transform['val'])
+
+     # 只使用前10个类别的数据
+    def filter_dataset(dataset):
+        indices = [i for i, (_, label) in enumerate(dataset) if label < NUM_CLASSES]
+        return torch.utils.data.Subset(dataset, indices)
+
+    train_dataset = filter_dataset(train_dataset)
+    val_dataset = filter_dataset(val_dataset)
 
     train_loader = DataLoader(train_dataset, batch_size=BATCH_SIZE, shuffle=True, num_workers=NUM_WORKERS)
     val_loader = DataLoader(val_dataset, batch_size=BATCH_SIZE, shuffle=False, num_workers=NUM_WORKERS)
