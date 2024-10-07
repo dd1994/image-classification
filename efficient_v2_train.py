@@ -26,6 +26,22 @@ transform = {
     ])
 }
 
+def accuracy(output, target, topk=(1,)):
+    """Computes the accuracy over the k top predictions for the specified values of k"""
+    with torch.no_grad():
+        maxk = max(topk)
+        batch_size = target.size(0)
+
+        _, pred = output.topk(maxk, 1, True, True)
+        pred = pred.t()
+        correct = pred.eq(target.view(1, -1).expand_as(pred))
+
+        res = []
+        for k in topk:
+            correct_k = correct[:k].reshape(-1).float().sum(0, keepdim=True)
+            res.append(correct_k.mul_(100.0 / batch_size))
+        return res
+
 # 加载 iNaturalist 数据集
 
 def main():
@@ -104,7 +120,8 @@ def main():
     # 验证阶段
     model.eval()
     val_loss = 0.0
-    val_corrects = 0
+    val_top1_corrects = 0
+    val_top3_corrects = 0
 
     with torch.no_grad():
         for batch_idx, (inputs, labels) in enumerate(val_loader):
@@ -112,19 +129,25 @@ def main():
             labels = labels.to(device)
 
             outputs = model(inputs)
-            print(outputs)
             loss = criterion(outputs, labels)
-            _, preds = torch.max(outputs, 1)
+            # Compute top-1 and top-3 accuracy
+            acc1, acc3 = accuracy(outputs, labels, topk=(1, 3))
+            val_top1_corrects += acc1.item() * inputs.size(0) / 100
+            val_top3_corrects += acc3.item() * inputs.size(0) / 100
 
             val_loss += loss.item() * inputs.size(0)
-            val_corrects += torch.sum(preds == labels.data)
 
             batch_loss = val_loss / ((batch_idx + 1) * inputs.size(0))
-            batch_acc = val_corrects.double() / ((batch_idx + 1) * inputs.size(0))
-            print(f"Val Batch {batch_idx + 1}/{len(val_loader)}, Loss: {batch_loss:.4f}, Acc: {batch_acc:.4f}")
+            batch_top1_acc = val_top1_corrects / ((batch_idx + 1) * inputs.size(0))
+            batch_top3_acc = val_top3_corrects / ((batch_idx + 1) * inputs.size(0))
+            print(f"Val Batch {batch_idx + 1}/{len(val_loader)}, Loss: {batch_loss:.4f}, "
+                  f"Top-1 Acc: {batch_top1_acc:.4f}, Top-3 Acc: {batch_top3_acc:.4f}")
+
     epoch_val_loss = val_loss / len(val_loader.dataset)
-    epoch_val_acc = val_corrects.double() / len(val_loader.dataset)
-    print(f"Val Loss: {epoch_val_loss:.4f} Acc: {epoch_val_acc:.4f}")
+    epoch_val_top1_acc = val_top1_corrects / len(val_loader.dataset)
+    epoch_val_top3_acc = val_top3_corrects / len(val_loader.dataset)
+    print(f"Val Loss: {epoch_val_loss:.4f}, Top-1 Acc: {epoch_val_top1_acc:.4f}, "
+                   f"Top-3 Acc: {epoch_val_top3_acc:.4f}")
 
 
     # 保存模型
