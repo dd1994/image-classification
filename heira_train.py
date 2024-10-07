@@ -7,7 +7,27 @@ from torch.utils.data import DataLoader
 from torchvision.datasets import INaturalist
 from torch.optim.lr_scheduler import CosineAnnealingLR
 
-from constant import BATCH_SIZE, DATA_DIR, LR, NUM_CLASSES, INPUT_SIZE, NUM_EPOCHS, NUM_WORKERS
+# 训练的类别数
+NUM_CLASSES = 10
+
+# 输入图像大小
+INPUT_SIZE = 224
+
+# 数据集的根目录
+DATA_DIR = './data'
+
+# 批量大小
+BATCH_SIZE = 32
+
+# 训练轮数
+NUM_EPOCHS = 3
+
+# 数据加载的进程数
+NUM_WORKERS = 3
+
+# 学习率
+LR = 0.001
+
 
 # 定义数据增强和预处理
 transform = {
@@ -49,7 +69,7 @@ def main():
     # 设置设备和并行
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
-    model = torch.hub.load("facebookresearch/hiera", model="hiera_tiny_224", pretrained=True, checkpoint="mae_in1k_ft_in1k")
+    model = torch.hub.load("facebookresearch/hiera", model="hiera_tiny_224", pretrained=True, checkpoint="mae_in1k")
 
 
     print(model.head.projection.in_features)
@@ -63,9 +83,19 @@ def main():
     optimizer = optim.AdamW(model.parameters(), lr=LR)
     scheduler = CosineAnnealingLR(optimizer, T_max=NUM_EPOCHS)
 
-    # 加载 iNaturalist 数据集
+   # 加载 iNaturalist 数据集
     train_dataset = INaturalist(root=DATA_DIR, version='2021_train_mini', download=False, transform=transform['train'])
     val_dataset = INaturalist(root=DATA_DIR, version='2021_valid', download=False, transform=transform['val'])
+
+        # 只使用前10个类别的数据
+    def filter_dataset(dataset):
+        indices = [i for i, (_, label) in enumerate(dataset) if label < NUM_CLASSES]
+        return torch.utils.data.Subset(dataset, indices)
+    
+    print('filter start')
+    train_dataset = filter_dataset(train_dataset)
+    val_dataset = filter_dataset(val_dataset)
+    print('filter end')
 
     train_loader = DataLoader(train_dataset, batch_size=BATCH_SIZE, shuffle=True, num_workers=NUM_WORKERS)
     val_loader = DataLoader(val_dataset, batch_size=BATCH_SIZE, shuffle=False, num_workers=NUM_WORKERS)
