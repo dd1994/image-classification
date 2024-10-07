@@ -6,6 +6,7 @@ from torchvision import transforms, models
 from torch.utils.data import DataLoader
 from torchvision.models import EfficientNet_V2_S_Weights
 from torchvision.datasets import INaturalist
+from torch.optim.lr_scheduler import CosineAnnealingLR
 
 
 from constant import BATCH_SIZE, DATA_DIR, LR, NUM_CLASSES, INPUT_SIZE, NUM_EPOCHS, NUM_WORKERS
@@ -64,7 +65,9 @@ def main():
 
     # 定义损失函数和优化器
     criterion = nn.CrossEntropyLoss()
-    optimizer = optim.Adam(model.parameters(), lr=LR)
+    optimizer = optim.AdamW(model.parameters(), lr=LR, weight_decay=1e-2)
+    # optimizer = optim.Adam(model.parameters(), lr=LR)
+    scheduler = CosineAnnealingLR(optimizer, T_max=NUM_EPOCHS)
 
 
     # 加载 iNaturalist 数据集
@@ -104,7 +107,7 @@ def main():
     
             print(f"Train Batch {batch_idx + 1}/{len(train_loader)}, Loss: {batch_loss:.4f}, Acc: {batch_acc:.4f}")
         
-        
+        scheduler.step()
         epoch_end_time = time.time()  # 记录每个 epoch 结束时间
         epoch_duration = (epoch_end_time - epoch_start_time) / 60  # 转换为分钟
         print(f"Epoch {epoch} duration: {epoch_duration:.2f} minutes")
