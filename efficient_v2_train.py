@@ -7,7 +7,7 @@ from torchvision.models import EfficientNet_V2_S_Weights
 from torchvision.datasets import INaturalist
 import multiprocessing
 
-from constant import BATCH_SIZE, DATA_DIR, NUM_CLASSES, INPUT_SIZE, NUM_EPOCHS
+from constant import BATCH_SIZE, DATA_DIR, LOSS_FUNCTION, NUM_CLASSES, INPUT_SIZE, NUM_EPOCHS, NUM_WORKERS, OPTIMIZER
 
 # 定义数据增强和预处理
 transform = {
@@ -30,9 +30,6 @@ transform = {
 def main():
     # 设置设备和并行
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
-    num_workers = multiprocessing.cpu_count() // 4
-    print(f"Using device: {device}")
-    print(f"Number of workers: {num_workers}")
 
     # 加载 EfficientNetV2 预训练模型
     model = models.efficientnet_v2_s(weights=EfficientNet_V2_S_Weights.DEFAULT)
@@ -54,8 +51,8 @@ def main():
     train_dataset = INaturalist(root=DATA_DIR, version='2021_train_mini', download=False, transform=transform['train'])
     val_dataset = INaturalist(root=DATA_DIR, version='2021_valid', download=False, transform=transform['val'])
 
-    train_loader = DataLoader(train_dataset, batch_size=BATCH_SIZE, shuffle=True, num_workers=num_workers)
-    val_loader = DataLoader(val_dataset, batch_size=BATCH_SIZE, shuffle=False, num_workers=num_workers)
+    train_loader = DataLoader(train_dataset, batch_size=BATCH_SIZE, shuffle=True, num_workers=NUM_WORKERS)
+    val_loader = DataLoader(val_dataset, batch_size=BATCH_SIZE, shuffle=False, num_workers=NUM_WORKERS)
     for epoch in range(NUM_EPOCHS):
         print(f"Epoch {epoch}/{NUM_EPOCHS - 1}")
         print('-' * 10)

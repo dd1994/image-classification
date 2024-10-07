@@ -15,3 +15,12 @@ NUM_EPOCHS = 3
 
 # 数据加载的进程数
 NUM_WORKERS = 4
+
+# 学习率
+LR = 0.001
+
+# 优化器
+OPTIMIZER = 'Adam'
+
+# 损失函数
+LOSS_FUNCTION = 'CrossEntropyLoss'
