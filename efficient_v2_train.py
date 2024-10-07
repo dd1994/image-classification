@@ -1,3 +1,4 @@
+import time
 import torch
 import torch.nn as nn
 import torch.optim as optim
@@ -7,7 +8,7 @@ from torchvision.models import EfficientNet_V2_S_Weights
 from torchvision.datasets import INaturalist
 import multiprocessing
 
-from constant import BATCH_SIZE, DATA_DIR, LOSS_FUNCTION, NUM_CLASSES, INPUT_SIZE, NUM_EPOCHS, NUM_WORKERS, OPTIMIZER
+from constant import BATCH_SIZE, DATA_DIR, LR, NUM_CLASSES, INPUT_SIZE, NUM_EPOCHS, NUM_WORKERS
 
 # 定义数据增强和预处理
 transform = {
@@ -28,6 +29,8 @@ transform = {
 # 加载 iNaturalist 数据集
 
 def main():
+    start_time = time.time()  # 记录总训练开始时间
+
     # 设置设备和并行
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
@@ -45,7 +48,7 @@ def main():
 
     # 定义损失函数和优化器
     criterion = nn.CrossEntropyLoss()
-    optimizer = optim.Adam(model.parameters(), lr=0.001)
+    optimizer = optim.Adam(model.parameters(), lr=LR)
 
     # 加载 iNaturalist 数据集
     train_dataset = INaturalist(root=DATA_DIR, version='2021_train_mini', download=False, transform=transform['train'])
@@ -54,6 +57,7 @@ def main():
     train_loader = DataLoader(train_dataset, batch_size=BATCH_SIZE, shuffle=True, num_workers=NUM_WORKERS)
     val_loader = DataLoader(val_dataset, batch_size=BATCH_SIZE, shuffle=False, num_workers=NUM_WORKERS)
     for epoch in range(NUM_EPOCHS):
+        epoch_start_time = time.time()  # 记录每个 epoch 开始时间
         print(f"Epoch {epoch}/{NUM_EPOCHS - 1}")
         print('-' * 10)
 
@@ -79,13 +83,22 @@ def main():
 
             batch_loss = train_loss / ((batch_idx + 1) * inputs.size(0))
             batch_acc = train_corrects.double() / ((batch_idx + 1) * inputs.size(0))
-            print(f"Train Batch {batch_idx + 1}/{len(train_loader)}, Loss: {batch_loss:.4f}, Acc: {batch_acc:.4f}")
 
+    
+            print(f"Train Batch {batch_idx + 1}/{len(train_loader)}, Loss: {batch_loss:.4f}, Acc: {batch_acc:.4f}")
+        
+        
+        epoch_end_time = time.time()  # 记录每个 epoch 结束时间
+        epoch_duration = (epoch_end_time - epoch_start_time) / 60  # 转换为分钟
+        print(f"Epoch {epoch} duration: {epoch_duration:.2f} minutes")
+    
         epoch_train_loss = train_loss / len(train_loader.dataset)
         epoch_train_acc = train_corrects.double() / len(train_loader.dataset)
         print(f"Train Loss: {epoch_train_loss:.4f} Acc: {epoch_train_acc:.4f}")
 
-    print('Finished Training')
+    end_time = time.time()  # 记录总训练结束时间
+    total_duration = (end_time - start_time) / 60  # 转换为分钟
+    print(f'Finished Training. Total training time: {total_duration:.2f} minutes')
 
     # 验证阶段
     model.eval()
