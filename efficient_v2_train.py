@@ -7,7 +7,7 @@ from torchvision.models import EfficientNet_V2_S_Weights
 from torchvision.datasets import INaturalist
 import multiprocessing
 
-from constant import NUM_CLASSES, INPUT_SIZE
+from constant import BATCH_SIZE, DATA_DIR, NUM_CLASSES, INPUT_SIZE, NUM_EPOCHS
 
 # 定义数据增强和预处理
 transform = {
@@ -26,9 +26,6 @@ transform = {
 }
 
 # 加载 iNaturalist 数据集
-data_dir = './data'  # 数据集的根目录
-batch_size = 32  # 减小批量大小以适应更大的数据集
-num_epochs = 6
 
 def main():
     # 设置设备和并行
@@ -54,13 +51,13 @@ def main():
     optimizer = optim.Adam(model.parameters(), lr=0.001)
 
     # 加载 iNaturalist 数据集
-    train_dataset = INaturalist(root=data_dir, version='2021_train_mini', download=False, transform=transform['train'])
-    val_dataset = INaturalist(root=data_dir, version='2021_valid', download=False, transform=transform['val'])
+    train_dataset = INaturalist(root=DATA_DIR, version='2021_train_mini', download=False, transform=transform['train'])
+    val_dataset = INaturalist(root=DATA_DIR, version='2021_valid', download=False, transform=transform['val'])
 
-    train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True, num_workers=num_workers)
-    val_loader = DataLoader(val_dataset, batch_size=batch_size, shuffle=False, num_workers=num_workers)
-    for epoch in range(num_epochs):
-        print(f"Epoch {epoch}/{num_epochs - 1}")
+    train_loader = DataLoader(train_dataset, batch_size=BATCH_SIZE, shuffle=True, num_workers=num_workers)
+    val_loader = DataLoader(val_dataset, batch_size=BATCH_SIZE, shuffle=False, num_workers=num_workers)
+    for epoch in range(NUM_EPOCHS):
+        print(f"Epoch {epoch}/{NUM_EPOCHS - 1}")
         print('-' * 10)
 
         # 训练阶段
