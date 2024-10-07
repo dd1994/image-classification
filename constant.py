@@ -8,10 +8,10 @@ INPUT_SIZE = 224
 DATA_DIR = './data'
 
 # 批量大小
-BATCH_SIZE = 16
+BATCH_SIZE = 32
 
 # 训练轮数
-NUM_EPOCHS = 3
+NUM_EPOCHS = 20
 
 # 数据加载的进程数
 NUM_WORKERS = 3
