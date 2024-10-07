@@ -11,10 +11,10 @@ DATA_DIR = './data'
 BATCH_SIZE = 32
 
 # 训练轮数
-NUM_EPOCHS = 3
+NUM_EPOCHS = 10
 
 # 数据加载的进程数
-NUM_WORKERS = 4
+NUM_WORKERS = 3
 
 # 学习率
 LR = 0.001

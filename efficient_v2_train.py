@@ -6,7 +6,7 @@ from torchvision import transforms, models
 from torch.utils.data import DataLoader
 from torchvision.models import EfficientNet_V2_S_Weights
 from torchvision.datasets import INaturalist
-import multiprocessing
+
 
 from constant import BATCH_SIZE, DATA_DIR, LR, NUM_CLASSES, INPUT_SIZE, NUM_EPOCHS, NUM_WORKERS
 
@@ -49,6 +49,7 @@ def main():
     # 定义损失函数和优化器
     criterion = nn.CrossEntropyLoss()
     optimizer = optim.Adam(model.parameters(), lr=LR)
+
 
     # 加载 iNaturalist 数据集
     train_dataset = INaturalist(root=DATA_DIR, version='2021_train_mini', download=False, transform=transform['train'])
@@ -111,6 +112,7 @@ def main():
             labels = labels.to(device)
 
             outputs = model(inputs)
+            print(outputs)
             loss = criterion(outputs, labels)
             _, preds = torch.max(outputs, 1)
 
