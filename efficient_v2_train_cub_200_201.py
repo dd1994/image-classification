@@ -25,7 +25,7 @@ INPUT_SIZE = 224
 BATCH_SIZE = 32
 
 # 训练轮数
-NUM_EPOCHS = 5
+NUM_EPOCHS = 4
 
 # 数据加载的进程数
 NUM_WORKERS = 3
