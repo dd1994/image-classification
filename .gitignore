@@ -3,3 +3,4 @@ data
 *.pth
 .DS_Store
 test_img
+download_img_json
