@@ -15,7 +15,7 @@ import sys
 def is_colab():
   return 'google.colab' in sys.modules
 
-NUM_CLASSES = 200
+NUM_CLASSES = 10
 
 # 输入图像大小
 INPUT_SIZE = 224
@@ -25,7 +25,7 @@ INPUT_SIZE = 224
 BATCH_SIZE = 32
 
 # 训练轮数
-NUM_EPOCHS = 1
+NUM_EPOCHS = 5
 
 # 数据加载的进程数
 NUM_WORKERS = 3
@@ -38,6 +38,8 @@ DATA_DIR = './data/CUB_200_2011/CUB_200_2011'
 
 if is_colab():
   DATA_DIR = '/content/drive/MyDrive/data/CUB_200_2011/CUB_200_2011'
+  NUM_CLASSES = 200
+  NUM_EPOCHS = 30
 
 # 自定义数据集类
 class CUBDataset(Dataset):
@@ -69,8 +71,8 @@ class CUBDataset(Dataset):
             for line in f:
                 id, is_train = line.strip().split()
                 self.split[int(id)] = int(is_train)
-        
-        self.data = [(id, filename) for id, filename in self.images if self.split[id] == (1 if is_train else 0)]
+        self.data = [(id, filename) for id, filename in self.images if self.split[id] == (1 if is_train else 0) and self.labels[id] < NUM_CLASSES]
+        # self.data = [(id, filename) for id, filename in self.images if self.split[id] == (1 if is_train else 0)]
 
     def __len__(self):
         return len(self.data)
@@ -121,6 +123,10 @@ def accuracy(output, target, topk=(1,)):
 # 加载 iNaturalist 数据集
 
 def main():
+    best_val_acc = 0
+    patience = 5
+    no_improve_epochs = 0
+
     start_time = time.time()  # 记录总训练开始时间
 
     # 设置设备和并行
@@ -192,6 +198,20 @@ def main():
         epoch_train_loss = train_loss / len(train_loader.dataset)
         epoch_train_acc = train_corrects.double() / len(train_loader.dataset)
         print(f"Train Loss: {epoch_train_loss:.4f} Acc: {epoch_train_acc:.4f}")
+
+             # 检查是否有改善
+        if epoch_val_top1_acc > best_val_acc:
+            best_val_acc = epoch_val_top1_acc
+            no_improve_epochs = 0
+            # 保存最佳模型
+            torch.save(model.state_dict(), 'best_efficientnet_v2_cub200_model.pth')
+        else:
+            no_improve_epochs += 1
+
+        # 如果连续多个epoch没有改善，则提前停止
+        if no_improve_epochs >= patience:
+            print(f"Early stopping at epoch {epoch}")
+            break
 
     end_time = time.time()  # 记录总训练结束时间
     total_duration = (end_time - start_time) / 60  # 转换为分钟
