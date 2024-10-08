@@ -123,10 +123,6 @@ def accuracy(output, target, topk=(1,)):
 # 加载 iNaturalist 数据集
 
 def main():
-    best_val_acc = 0
-    patience = 5
-    no_improve_epochs = 0
-
     start_time = time.time()  # 记录总训练开始时间
 
     # 设置设备和并行
@@ -198,20 +194,6 @@ def main():
         epoch_train_loss = train_loss / len(train_loader.dataset)
         epoch_train_acc = train_corrects.double() / len(train_loader.dataset)
         print(f"Train Loss: {epoch_train_loss:.4f} Acc: {epoch_train_acc:.4f}")
-
-             # 检查是否有改善
-        if epoch_val_top1_acc > best_val_acc:
-            best_val_acc = epoch_val_top1_acc
-            no_improve_epochs = 0
-            # 保存最佳模型
-            torch.save(model.state_dict(), 'best_efficientnet_v2_cub200_model.pth')
-        else:
-            no_improve_epochs += 1
-
-        # 如果连续多个epoch没有改善，则提前停止
-        if no_improve_epochs >= patience:
-            print(f"Early stopping at epoch {epoch}")
-            break
 
     end_time = time.time()  # 记录总训练结束时间
     total_duration = (end_time - start_time) / 60  # 转换为分钟
