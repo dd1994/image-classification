@@ -10,6 +10,10 @@ from torchvision.datasets import INaturalist
 from torch.optim.lr_scheduler import CosineAnnealingLR
 from torch.utils.data import DataLoader, Dataset
 from PIL import Image
+import sys
+
+def is_colab():
+  return 'google.colab' in sys.modules
 
 NUM_CLASSES = 200
 
@@ -31,6 +35,9 @@ LR = 0.001
 
 # 数据集路径
 DATA_DIR = './data/CUB_200_2011/CUB_200_2011'
+
+if is_colab():
+  DATA_DIR = '/content/drive/MyDrive/data/CUB_200_2011/CUB_200_2011'
 
 # 自定义数据集类
 class CUBDataset(Dataset):
