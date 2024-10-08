@@ -1,3 +1,4 @@
+import os
 import time
 import torch
 import torch.nn as nn
@@ -7,26 +8,75 @@ from torch.utils.data import DataLoader
 from torchvision.models import EfficientNet_V2_S_Weights
 from torchvision.datasets import INaturalist
 from torch.optim.lr_scheduler import CosineAnnealingLR
+from torch.utils.data import DataLoader, Dataset
+from PIL import Image
 
-NUM_CLASSES = 10
+NUM_CLASSES = 200
 
 # 输入图像大小
 INPUT_SIZE = 224
 
-# 数据集的根目录
-DATA_DIR = './data'
 
 # 批量大小
 BATCH_SIZE = 32
 
 # 训练轮数
-NUM_EPOCHS = 6
+NUM_EPOCHS = 1
 
 # 数据加载的进程数
 NUM_WORKERS = 3
 
 # 学习率
 LR = 0.001
+
+# 数据集路径
+DATA_DIR = './data/CUB_200_2011/CUB_200_2011'
+
+# 自定义数据集类
+class CUBDataset(Dataset):
+    def __init__(self, root, is_train=True, transform=None):
+        self.root = root
+        self.is_train = is_train
+        self.transform = transform
+        
+        # 读取图像列表和标签
+        image_txt = os.path.join(root, 'images.txt')
+        label_txt = os.path.join(root, 'image_class_labels.txt')
+        train_test_txt = os.path.join(root, 'train_test_split.txt')
+        
+        self.images = []
+        self.labels = {}
+        self.split = {}
+        
+        with open(image_txt, 'r') as f:
+            for line in f:
+                id, filename = line.strip().split()
+                self.images.append((int(id), filename))
+        
+        with open(label_txt, 'r') as f:
+            for line in f:
+                id, label = line.strip().split()
+                self.labels[int(id)] = int(label) - 1  # 标签从0开始
+        
+        with open(train_test_txt, 'r') as f:
+            for line in f:
+                id, is_train = line.strip().split()
+                self.split[int(id)] = int(is_train)
+        
+        self.data = [(id, filename) for id, filename in self.images if self.split[id] == (1 if is_train else 0)]
+
+    def __len__(self):
+        return len(self.data)
+
+    def __getitem__(self, idx):
+        id, filename = self.data[idx]
+        image = Image.open(os.path.join(self.root, 'images', filename)).convert('RGB')
+        label = self.labels[id]
+        
+        if self.transform:
+            image = self.transform(image)
+        
+        return image, label
 
 
 # 定义数据增强和预处理
@@ -88,26 +138,14 @@ def main():
     scheduler = CosineAnnealingLR(optimizer, T_max=NUM_EPOCHS)
 
 
-    # 加载 iNaturalist 数据集
-    train_dataset = INaturalist(root=DATA_DIR, version='2019', download=False, transform=transform['train'])
-    val_dataset = INaturalist(root=DATA_DIR, version='2019', download=False, transform=transform['val'])
-
-    #  # 只使用前10个类别的数据
-    # def filter_dataset(dataset):
-    #     indices = [i for i, (_, label) in enumerate(dataset) if label < NUM_CLASSES]
-    #     return torch.utils.data.Subset(dataset, indices)
-
-    # 分割训练集和验证集
-    train_size = int(0.8 * len(train_dataset))
-    val_size = len(train_dataset) - train_size
-    train_dataset, val_dataset = torch.utils.data.random_split(train_dataset, [train_size, val_size])
-
-
-    # train_dataset = filter_dataset(train_dataset)
-    # val_dataset = filter_dataset(val_dataset)
+    # 加载数据集
+    train_dataset = CUBDataset(DATA_DIR, is_train=True, transform=transform['train'])
+    val_dataset = CUBDataset(DATA_DIR, is_train=False, transform=transform['val'])
 
     train_loader = DataLoader(train_dataset, batch_size=BATCH_SIZE, shuffle=True, num_workers=NUM_WORKERS)
     val_loader = DataLoader(val_dataset, batch_size=BATCH_SIZE, shuffle=False, num_workers=NUM_WORKERS)
+
+
     for epoch in range(NUM_EPOCHS):
         epoch_start_time = time.time()  # 记录每个 epoch 开始时间
         print(f"Epoch {epoch}/{NUM_EPOCHS - 1}")
