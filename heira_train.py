@@ -78,19 +78,6 @@ def main():
     in_features = model.head.projection.in_features
     model.head.projection = nn.Linear(in_features, NUM_CLASSES)
 
-    # 初始化新的分类层
-    nn.init.xavier_uniform_(model.head.projection.weight)
-    nn.init.zeros_(model.head.projection.bias)
-
-    # 解冻 head 中的所有层
-    for param in model.head.parameters():
-        print('param.requires_grad', param.requires_grad)
-        param.requires_grad = True
-
-    # 解冻最后的 LayerNorm 层（可选，取决于您是否想微调这一层）
-    model.norm.requires_grad = True
-    print('model.norm.requires_grad', model.norm)
-
     # 将模型移动到设备上
     model = model.to(device)
 

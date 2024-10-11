@@ -20,7 +20,7 @@ DATA_DIR = './data'
 BATCH_SIZE = 32
 
 # 训练轮数
-NUM_EPOCHS = 6
+NUM_EPOCHS = 10
 
 # 数据加载的进程数
 NUM_WORKERS = 3
