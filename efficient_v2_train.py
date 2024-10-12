@@ -22,7 +22,7 @@ DATA_DIR = './data'
 BATCH_SIZE = 32
 
 # 训练轮数
-NUM_EPOCHS = 10
+NUM_EPOCHS = 1
 
 # 数据加载的进程数
 NUM_WORKERS = 3
@@ -34,7 +34,9 @@ IN_COLAB = 'COLAB_GPU' in os.environ
 if IN_COLAB:
    DATA_DIR = '/content/drive/MyDrive'
    # 批量大小
-   BATCH_SIZE = 64
+   BATCH_SIZE = 16
+   INPUT_SIZE = 448
+   NUM_EPOCHS = 10
 
 
 # 定义数据增强和预处理
@@ -47,7 +49,7 @@ transform = {
         transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
     ]),
     'val': transforms.Compose([
-        transforms.Resize(256),
+        transforms.Resize(int(INPUT_SIZE * 1.2)),
         transforms.CenterCrop(INPUT_SIZE),
         transforms.ToTensor(),
         transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
