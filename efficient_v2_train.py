@@ -5,6 +5,7 @@ import torch.optim as optim
 from torchvision import transforms
 from torch.utils.data import DataLoader
 from torchvision.datasets import INaturalist
+from torch.optim.lr_scheduler import CosineAnnealingLR
 import os
 import timm
 
@@ -66,6 +67,7 @@ def main():
 
     criterion = nn.CrossEntropyLoss()
     optimizer = optim.AdamW(model.parameters(), lr=LR)
+    scheduler = CosineAnnealingLR(optimizer, T_max=NUM_EPOCHS)
 
     # 加载数据集
     full_dataset = INaturalist(root=DATA_DIR, version='2019', download=False, transform=transform['train'])
@@ -116,7 +118,8 @@ def main():
             batch_loss = train_loss / ((batch_idx + 1) * inputs.size(0))
             batch_acc = train_corrects.double() / ((batch_idx + 1) * inputs.size(0))
             print(f"Train Batch {batch_idx + 1}/{len(train_loader)}, Loss: {batch_loss:.4f}, Acc: {batch_acc:.4f}")
-
+        
+        scheduler.step()
         epoch_end_time = time.time()
         epoch_duration = (epoch_end_time - epoch_start_time) / 60
         print(f"Epoch {epoch} duration: {epoch_duration:.2f} minutes")
