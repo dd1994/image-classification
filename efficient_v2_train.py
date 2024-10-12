@@ -8,6 +8,7 @@ from torchvision.models import EfficientNet_V2_S_Weights
 from torchvision.datasets import INaturalist
 from torch.optim.lr_scheduler import CosineAnnealingLR
 import os
+import timm
 
 
 NUM_CLASSES = 11
@@ -36,7 +37,7 @@ if IN_COLAB:
    # 批量大小
    BATCH_SIZE = 16
    INPUT_SIZE = 448
-   NUM_EPOCHS = 10
+   NUM_EPOCHS = 15
 
 
 # 定义数据增强和预处理
@@ -81,13 +82,13 @@ def main():
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
     # 加载 EfficientNetV2 预训练模型
-    model = models.efficientnet_v2_s(weights=EfficientNet_V2_S_Weights.DEFAULT)
+    model = timm.create_model('tf_efficientnetv2_s.in21k', pretrained=True, num_classes=NUM_CLASSES)
 
     # 获取模型的最后一层输出特征数
-    num_features = model.classifier[1].in_features
+    # num_features = model.classifier[1].in_features
 
     # 替换模型的分类头，适应 iNaturalist 数据集的类别数
-    model.classifier[1] = nn.Linear(num_features, NUM_CLASSES)
+    # model.classifier[1] = nn.Linear(num_features, NUM_CLASSES)
 
     # 将模型移动到设备上
     model = model.to(device)
@@ -147,14 +148,14 @@ def main():
             batch_loss = train_loss / ((batch_idx + 1) * inputs.size(0))
             batch_acc = train_corrects.double() / ((batch_idx + 1) * inputs.size(0))
 
-    
+
             print(f"Train Batch {batch_idx + 1}/{len(train_loader)}, Loss: {batch_loss:.4f}, Acc: {batch_acc:.4f}")
-        
+
         scheduler.step()
         epoch_end_time = time.time()  # 记录每个 epoch 结束时间
         epoch_duration = (epoch_end_time - epoch_start_time) / 60  # 转换为分钟
         print(f"Epoch {epoch} duration: {epoch_duration:.2f} minutes")
-    
+
         epoch_train_loss = train_loss / len(train_loader.dataset)
         epoch_train_acc = train_corrects.double() / len(train_loader.dataset)
         print(f"Train Loss: {epoch_train_loss:.4f} Acc: {epoch_train_acc:.4f}")
