@@ -10,10 +10,10 @@ import os
 import timm
 
 NUM_CLASSES = 11
-INPUT_SIZE = 224
+INPUT_SIZE = 448
 DATA_DIR = './data'
 BATCH_SIZE = 32
-NUM_EPOCHS = 5
+NUM_EPOCHS = 20
 NUM_WORKERS = 3
 LR = 0.001
 PATIENCE = 3
@@ -74,15 +74,14 @@ def main():
 
     # 切分训练集、验证集和测试集，比例为 7:1:2
     train_size = int(0.8 * len(full_dataset))
-    val_size = int(0.1 * len(full_dataset))
-    test_size = len(full_dataset) - train_size - val_size
+    val_size = len(full_dataset) - train_size
+    # test_size = len(full_dataset) - train_size - val_size
 
-    train_dataset, val_dataset, test_dataset = torch.utils.data.random_split(
-        full_dataset, [train_size, val_size, test_size])
+    train_dataset, val_dataset = torch.utils.data.random_split(
+        full_dataset, [train_size, val_size])
 
     train_loader = DataLoader(train_dataset, batch_size=BATCH_SIZE, shuffle=True, num_workers=NUM_WORKERS)
     val_loader = DataLoader(val_dataset, batch_size=BATCH_SIZE, shuffle=False, num_workers=NUM_WORKERS)
-    test_loader = DataLoader(test_dataset, batch_size=BATCH_SIZE, shuffle=False, num_workers=NUM_WORKERS)
 
     # 添加早停机制
     patience = PATIENCE  # 设置容忍的epoch数量
@@ -173,35 +172,35 @@ def main():
             break
 
     # 所有 epoch 完成后验证测试集
-    print("\nTesting on test set...")
-    model.eval()
-    test_loss = 0.0
-    test_top1_corrects = 0
-    test_top3_corrects = 0
+    # print("\nTesting on test set...")
+    # model.eval()
+    # test_loss = 0.0
+    # test_top1_corrects = 0
+    # test_top3_corrects = 0
 
-    with torch.no_grad():
-        for batch_idx, (inputs, labels) in enumerate(test_loader):
-            inputs = inputs.to(device)
-            labels = labels.to(device)
+    # with torch.no_grad():
+    #     for batch_idx, (inputs, labels) in enumerate(test_loader):
+    #         inputs = inputs.to(device)
+    #         labels = labels.to(device)
 
-            outputs = model(inputs)
-            loss = criterion(outputs, labels)
-            acc1, acc3 = accuracy(outputs, labels, topk=(1, 3))
-            test_top1_corrects += acc1.item() * inputs.size(0) / 100
-            test_top3_corrects += acc3.item() * inputs.size(0) / 100
+    #         outputs = model(inputs)
+    #         loss = criterion(outputs, labels)
+    #         acc1, acc3 = accuracy(outputs, labels, topk=(1, 3))
+    #         test_top1_corrects += acc1.item() * inputs.size(0) / 100
+    #         test_top3_corrects += acc3.item() * inputs.size(0) / 100
 
-            test_loss += loss.item() * inputs.size(0)
-            batch_loss = test_loss / ((batch_idx + 1) * inputs.size(0))
-            batch_top1_acc = test_top1_corrects / ((batch_idx + 1) * inputs.size(0))
-            batch_top3_acc = test_top3_corrects / ((batch_idx + 1) * inputs.size(0))
+    #         test_loss += loss.item() * inputs.size(0)
+    #         batch_loss = test_loss / ((batch_idx + 1) * inputs.size(0))
+    #         batch_top1_acc = test_top1_corrects / ((batch_idx + 1) * inputs.size(0))
+    #         batch_top3_acc = test_top3_corrects / ((batch_idx + 1) * inputs.size(0))
 
-            print(f"Test Batch {batch_idx + 1}/{len(test_loader)}, Loss: {batch_loss:.4f}, "
-                  f"Top-1 Acc: {batch_top1_acc:.4f}, Top-3 Acc: {batch_top3_acc:.4f}")
+    #         print(f"Test Batch {batch_idx + 1}/{len(test_loader)}, Loss: {batch_loss:.4f}, "
+    #               f"Top-1 Acc: {batch_top1_acc:.4f}, Top-3 Acc: {batch_top3_acc:.4f}")
 
-    test_loss = test_loss / len(test_loader.dataset)
-    test_top1_acc = test_top1_corrects / len(test_loader.dataset)
-    test_top3_acc = test_top3_corrects / len(test_loader.dataset)
-    print(f"Test Loss: {test_loss:.4f}, Top-1 Acc: {test_top1_acc:.4f}, Top-3 Acc: {test_top3_acc:.4f}")
+    # test_loss = test_loss / len(test_loader.dataset)
+    # test_top1_acc = test_top1_corrects / len(test_loader.dataset)
+    # test_top3_acc = test_top3_corrects / len(test_loader.dataset)
+    # print(f"Test Loss: {test_loss:.4f}, Top-1 Acc: {test_top1_acc:.4f}, Top-3 Acc: {test_top3_acc:.4f}")
 
     end_time = time.time()
     total_duration = (end_time - start_time) / 60
