@@ -22,6 +22,7 @@ if IN_COLAB:
     BATCH_SIZE = 16
     INPUT_SIZE = 448
     NUM_EPOCHS = 20
+    PATIENCE = 3
 
 # 数据增强和预处理
 transform = {
@@ -70,8 +71,8 @@ def main():
     full_dataset = INaturalist(root=DATA_DIR, version='2019', download=False, transform=transform['train'])
 
     # 切分训练集、验证集和测试集，比例为 7:1:2
-    train_size = int(0.6 * len(full_dataset))
-    val_size = int(0.2 * len(full_dataset))
+    train_size = int(0.8 * len(full_dataset))
+    val_size = int(0.1 * len(full_dataset))
     test_size = len(full_dataset) - train_size - val_size
 
     train_dataset, val_dataset, test_dataset = torch.utils.data.random_split(
@@ -82,7 +83,7 @@ def main():
     test_loader = DataLoader(test_dataset, batch_size=BATCH_SIZE, shuffle=False, num_workers=NUM_WORKERS)
 
     # 添加早停机制
-    patience = 5  # 设置容忍的epoch数量
+    patience = PATIENCE  # 设置容忍的epoch数量
     best_val_acc = 0.0
     patience_counter = 0
 
