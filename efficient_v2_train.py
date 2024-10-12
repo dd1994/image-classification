@@ -5,7 +5,6 @@ import torch.optim as optim
 from torchvision import transforms
 from torch.utils.data import DataLoader
 from torchvision.datasets import INaturalist
-from torch.optim.lr_scheduler import CosineAnnealingLR
 import os
 import timm
 
@@ -66,13 +65,11 @@ def main():
 
     criterion = nn.CrossEntropyLoss()
     optimizer = optim.AdamW(model.parameters(), lr=LR)
-    scheduler = CosineAnnealingLR(optimizer, T_max=NUM_EPOCHS)
 
     # 加载数据集
     full_dataset = INaturalist(root=DATA_DIR, version='2019', download=False, transform=transform['train'])
 
-    # 切分训练集、验证集和测试集，比例为 6:2:2
-    # 如果数据量较大，可以改为 8:1:1
+    # 切分训练集、验证集和测试集，比例为 7:1:2
     train_size = int(0.6 * len(full_dataset))
     val_size = int(0.2 * len(full_dataset))
     test_size = len(full_dataset) - train_size - val_size
@@ -85,7 +82,7 @@ def main():
     test_loader = DataLoader(test_dataset, batch_size=BATCH_SIZE, shuffle=False, num_workers=NUM_WORKERS)
 
     # 添加早停机制
-    patience = 3  # 设置容忍的epoch数量，如果训练数据量较大，可以设置适当增加到 7
+    patience = 5  # 设置容忍的epoch数量
     best_val_acc = 0.0
     patience_counter = 0
 
@@ -118,8 +115,6 @@ def main():
             batch_loss = train_loss / ((batch_idx + 1) * inputs.size(0))
             batch_acc = train_corrects.double() / ((batch_idx + 1) * inputs.size(0))
             print(f"Train Batch {batch_idx + 1}/{len(train_loader)}, Loss: {batch_loss:.4f}, Acc: {batch_acc:.4f}")
-
-        scheduler.step()
 
         epoch_end_time = time.time()
         epoch_duration = (epoch_end_time - epoch_start_time) / 60
