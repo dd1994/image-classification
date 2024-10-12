@@ -13,7 +13,7 @@ NUM_CLASSES = 11
 INPUT_SIZE = 224
 DATA_DIR = './data'
 BATCH_SIZE = 32
-NUM_EPOCHS = 3
+NUM_EPOCHS = 5
 NUM_WORKERS = 3
 LR = 0.001
 
@@ -72,8 +72,8 @@ def main():
     full_dataset = INaturalist(root=DATA_DIR, version='2019', download=False, transform=transform['train'])
 
     # 切分训练集、验证集和测试集，比例为 7:1:2
-    train_size = int(0.7 * len(full_dataset))
-    val_size = int(0.1 * len(full_dataset))
+    train_size = int(0.6 * len(full_dataset))
+    val_size = int(0.2 * len(full_dataset))
     test_size = len(full_dataset) - train_size - val_size
 
     train_dataset, val_dataset, test_dataset = torch.utils.data.random_split(
@@ -82,6 +82,12 @@ def main():
     train_loader = DataLoader(train_dataset, batch_size=BATCH_SIZE, shuffle=True, num_workers=NUM_WORKERS)
     val_loader = DataLoader(val_dataset, batch_size=BATCH_SIZE, shuffle=False, num_workers=NUM_WORKERS)
     test_loader = DataLoader(test_dataset, batch_size=BATCH_SIZE, shuffle=False, num_workers=NUM_WORKERS)
+
+    # 添加早停机制
+    patience = 3  # 设置容忍的epoch数量
+    best_val_acc = 0.0
+    patience_counter = 0
+
 
     for epoch in range(NUM_EPOCHS):
         epoch_start_time = time.time()
@@ -152,6 +158,19 @@ def main():
         epoch_val_top3_acc = val_top3_corrects / len(val_loader.dataset)
         print(f"Val Loss: {epoch_val_loss:.4f}, Top-1 Acc: {epoch_val_top1_acc:.4f}, "
               f"Top-3 Acc: {epoch_val_top3_acc:.4f}")
+        # 检查是否提升
+        if epoch_val_top1_acc > best_val_acc:
+            best_val_acc = epoch_val_top1_acc
+            patience_counter = 0  # 重置计数器
+            print("Validation accuracy improved.")
+        else:
+            patience_counter += 1
+            print(f"No improvement in validation accuracy. Patience counter: {patience_counter}/{patience}")
+
+        # 如果达到容忍阈值，则终止训练
+        if patience_counter >= patience:
+            print("Early stopping triggered.")
+            break
 
     # 所有 epoch 完成后验证测试集
     print("\nTesting on test set...")
