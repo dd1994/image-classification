@@ -71,7 +71,8 @@ def main():
     # 加载数据集
     full_dataset = INaturalist(root=DATA_DIR, version='2019', download=False, transform=transform['train'])
 
-    # 切分训练集、验证集和测试集，比例为 7:1:2
+    # 切分训练集、验证集和测试集，比例为 6:2:2
+    # 如果数据量较大，可以改为 8:1:1
     train_size = int(0.6 * len(full_dataset))
     val_size = int(0.2 * len(full_dataset))
     test_size = len(full_dataset) - train_size - val_size
@@ -84,7 +85,7 @@ def main():
     test_loader = DataLoader(test_dataset, batch_size=BATCH_SIZE, shuffle=False, num_workers=NUM_WORKERS)
 
     # 添加早停机制
-    patience = 3  # 设置容忍的epoch数量
+    patience = 3  # 设置容忍的epoch数量，如果训练数据量较大，可以设置适当增加到 7
     best_val_acc = 0.0
     patience_counter = 0
 
