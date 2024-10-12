@@ -7,8 +7,10 @@ from torch.utils.data import DataLoader
 from torchvision.models import EfficientNet_V2_S_Weights
 from torchvision.datasets import INaturalist
 from torch.optim.lr_scheduler import CosineAnnealingLR
+import os
 
-NUM_CLASSES = 10
+
+NUM_CLASSES = 11
 
 # 输入图像大小
 INPUT_SIZE = 224
@@ -28,12 +30,19 @@ NUM_WORKERS = 3
 # 学习率
 LR = 0.001
 
+IN_COLAB = 'COLAB_GPU' in os.environ
+if IN_COLAB:
+   DATA_DIR = '/content/drive/MyDrive'
+   # 批量大小
+   BATCH_SIZE = 64
+
 
 # 定义数据增强和预处理
 transform = {
     'train': transforms.Compose([
         transforms.RandomResizedCrop(INPUT_SIZE),
         transforms.RandomHorizontalFlip(),
+        transforms.ColorJitter(brightness=0.2, contrast=0.2, saturation=0.2, hue=0.2),
         transforms.ToTensor(),
         transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
     ]),
