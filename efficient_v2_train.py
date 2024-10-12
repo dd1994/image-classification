@@ -15,6 +15,7 @@ BATCH_SIZE = 32
 NUM_EPOCHS = 5
 NUM_WORKERS = 3
 LR = 0.001
+PATIENCE = 3
 
 IN_COLAB = 'COLAB_GPU' in os.environ
 if IN_COLAB:
@@ -22,7 +23,6 @@ if IN_COLAB:
     BATCH_SIZE = 16
     INPUT_SIZE = 448
     NUM_EPOCHS = 20
-    PATIENCE = 3
 
 # 数据增强和预处理
 transform = {
