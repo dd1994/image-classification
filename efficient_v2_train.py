@@ -12,7 +12,7 @@ import timm
 NUM_CLASSES = 11
 INPUT_SIZE = 448
 DATA_DIR = './data'
-BATCH_SIZE = 32
+BATCH_SIZE = 8
 NUM_EPOCHS = 20
 NUM_WORKERS = 3
 LR = 0.001
@@ -30,7 +30,6 @@ transform = {
     'train': transforms.Compose([
         transforms.RandomResizedCrop(INPUT_SIZE),
         transforms.RandomHorizontalFlip(),
-        transforms.ColorJitter(brightness=0.2, contrast=0.2, saturation=0.2, hue=0.2),
         transforms.ToTensor(),
         transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
     ]),
