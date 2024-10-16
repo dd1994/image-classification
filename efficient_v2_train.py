@@ -16,14 +16,14 @@ BATCH_SIZE = 8
 NUM_EPOCHS = 20
 NUM_WORKERS = 3
 LR = 0.001
-PATIENCE = 3
+PATIENCE = 5
 
 IN_COLAB = 'COLAB_GPU' in os.environ
 if IN_COLAB:
     DATA_DIR = '/content/drive2/MyDrive'
     BATCH_SIZE = 16
     INPUT_SIZE = 448
-    NUM_EPOCHS = 20
+    NUM_EPOCHS = 40
 
 # 数据增强和预处理
 transform = {
