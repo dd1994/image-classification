@@ -20,7 +20,7 @@ PATIENCE = 3
 
 IN_COLAB = 'COLAB_GPU' in os.environ
 if IN_COLAB:
-    DATA_DIR = '/content/drive/MyDrive'
+    DATA_DIR = '/content/drive2/MyDrive'
     BATCH_SIZE = 16
     INPUT_SIZE = 448
     NUM_EPOCHS = 20
