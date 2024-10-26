@@ -90,15 +90,6 @@ def main():
     train_dataset = INaturalist(root=DATA_DIR, version='2021_train_mini', download=False, transform=transform['train'])
     val_dataset = INaturalist(root=DATA_DIR, version='2021_valid', download=False, transform=transform['val'])
 
-        # 只使用前10个类别的数据
-    def filter_dataset(dataset):
-        indices = [i for i, (_, label) in enumerate(dataset) if label < NUM_CLASSES]
-        return torch.utils.data.Subset(dataset, indices)
-    
-    print('filter start')
-    train_dataset = filter_dataset(train_dataset)
-    val_dataset = filter_dataset(val_dataset)
-    print('filter end')
 
     train_loader = DataLoader(train_dataset, batch_size=BATCH_SIZE, shuffle=True, num_workers=NUM_WORKERS)
     val_loader = DataLoader(val_dataset, batch_size=BATCH_SIZE, shuffle=False, num_workers=NUM_WORKERS)

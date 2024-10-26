@@ -6,16 +6,13 @@ from torchvision import transforms
 from torch.utils.data import DataLoader
 from torchvision.datasets import INaturalist
 from torch.optim.lr_scheduler import CosineAnnealingLR
-
 import os
 import timm
 
-from mutualChannelLoss import MutualChannelLoss
-
 NUM_CLASSES = 11
-INPUT_SIZE = 448
+INPUT_SIZE = 224
 DATA_DIR = './data'
-BATCH_SIZE = 8
+BATCH_SIZE = 16
 NUM_EPOCHS = 20
 NUM_WORKERS = 3
 LR = 0.001
@@ -23,10 +20,10 @@ PATIENCE = 5
 
 IN_COLAB = 'COLAB_GPU' in os.environ
 if IN_COLAB:
-    DATA_DIR = '/content/drive2/MyDrive'
-    BATCH_SIZE = 16
-    INPUT_SIZE = 448
-    NUM_EPOCHS = 40
+    DATA_DIR = '/content/drive/MyDrive'
+    BATCH_SIZE = 32
+    INPUT_SIZE = 224
+    NUM_EPOCHS = 100
 
 # 数据增强和预处理
 transform = {
@@ -59,37 +56,39 @@ def accuracy(output, target, topk=(1,)):
             res.append(correct_k.mul_(100.0 / batch_size))
         return res
 
-    
 def main():
     start_time = time.time()
 
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
-    model = timm.create_model('tf_efficientnetv2_s.in1k', pretrained=True, num_classes=NUM_CLASSES)
+    model = timm.create_model('efficientvit_m5.r224_in1k', pretrained=True)
+    model.head.linear = nn.Linear(model.head.linear.in_features, NUM_CLASSES)
+
     model = model.to(device)
 
-    # criterion = nn.CrossEntropyLoss()
-    criterion = MutualChannelLoss(alpha=0.5)
+    criterion = nn.CrossEntropyLoss()
     optimizer = optim.AdamW(model.parameters(), lr=LR)
     scheduler = CosineAnnealingLR(optimizer, T_max=NUM_EPOCHS)
 
     # 加载数据集
-    full_dataset = INaturalist(root=DATA_DIR, version='2019', download=False, transform=transform['train'])
+    # full_dataset = INaturalist(root=DATA_DIR, version='2019', download=False, transform=transform['train'])
 
-    # 切分训练集、验证集和测试集，比例为 7:1:2
-    train_size = int(0.7 * len(full_dataset))
-    val_size = int(0.2 * len(full_dataset))
-    test_size = len(full_dataset) - train_size - val_size
+    # # 切分训练集、验证集和测试集，比例为 7:1:2
+    # train_size = int(0.7 * len(full_dataset))
+    # val_size = int(0.2 * len(full_dataset))
+    # test_size = len(full_dataset) - train_size - val_size
 
-    train_dataset, val_dataset, test_dataset = torch.utils.data.random_split(
-        full_dataset, [train_size, val_size, test_size])
+    # train_dataset, val_dataset, test_dataset = torch.utils.data.random_split(
+    #     full_dataset, [train_size, val_size, test_size])
+    train_dataset = INaturalist(root=DATA_DIR, version='2021_train_mini', download=False, transform=transform['train'])
+    val_dataset = INaturalist(root=DATA_DIR, version='2021_valid', download=False, transform=transform['val_test'])
 
     train_loader = DataLoader(train_dataset, batch_size=BATCH_SIZE, shuffle=True, num_workers=NUM_WORKERS)
     val_loader = DataLoader(val_dataset, batch_size=BATCH_SIZE, shuffle=False, num_workers=NUM_WORKERS)
-    test_loader = DataLoader(test_dataset, batch_size=BATCH_SIZE, shuffle=False, num_workers=NUM_WORKERS)
+    # test_loader = DataLoader(test_dataset, batch_size=BATCH_SIZE, shuffle=False, num_workers=NUM_WORKERS)
 
-    val_dataset.dataset.transform = transform['val_test'] 
-    test_dataset.dataset.transform = transform['val_test']
+    # val_dataset.dataset.transform = transform['val_test']
+    # test_dataset.dataset.transform = transform['val_test']
 
     # 添加早停机制
     patience = PATIENCE  # 设置容忍的epoch数量
@@ -113,8 +112,7 @@ def main():
 
             optimizer.zero_grad()
             outputs = model(inputs)
-            features = model.forward_features(inputs)
-            loss = criterion(outputs, labels, features)
+            loss = criterion(outputs, labels)
             _, preds = torch.max(outputs, 1)
 
             loss.backward()
@@ -126,7 +124,7 @@ def main():
             batch_loss = train_loss / ((batch_idx + 1) * inputs.size(0))
             batch_acc = train_corrects.double() / ((batch_idx + 1) * inputs.size(0))
             print(f"Train Batch {batch_idx + 1}/{len(train_loader)}, Loss: {batch_loss:.4f}, Acc: {batch_acc:.4f}")
-        
+
         scheduler.step()
         epoch_end_time = time.time()
         epoch_duration = (epoch_end_time - epoch_start_time) / 60
@@ -186,36 +184,36 @@ def main():
     test_top1_corrects = 0
     test_top3_corrects = 0
 
-    with torch.no_grad():
-        for batch_idx, (inputs, labels) in enumerate(test_loader):
-            inputs = inputs.to(device)
-            labels = labels.to(device)
+    # with torch.no_grad():
+    #     for batch_idx, (inputs, labels) in enumerate(test_loader):
+    #         inputs = inputs.to(device)
+    #         labels = labels.to(device)
 
-            outputs = model(inputs)
-            loss = criterion(outputs, labels)
-            acc1, acc3 = accuracy(outputs, labels, topk=(1, 3))
-            test_top1_corrects += acc1.item() * inputs.size(0) / 100
-            test_top3_corrects += acc3.item() * inputs.size(0) / 100
+    #         outputs = model(inputs)
+    #         loss = criterion(outputs, labels)
+    #         acc1, acc3 = accuracy(outputs, labels, topk=(1, 3))
+    #         test_top1_corrects += acc1.item() * inputs.size(0) / 100
+    #         test_top3_corrects += acc3.item() * inputs.size(0) / 100
 
-            test_loss += loss.item() * inputs.size(0)
-            batch_loss = test_loss / ((batch_idx + 1) * inputs.size(0))
-            batch_top1_acc = test_top1_corrects / ((batch_idx + 1) * inputs.size(0))
-            batch_top3_acc = test_top3_corrects / ((batch_idx + 1) * inputs.size(0))
+    #         test_loss += loss.item() * inputs.size(0)
+    #         batch_loss = test_loss / ((batch_idx + 1) * inputs.size(0))
+    #         batch_top1_acc = test_top1_corrects / ((batch_idx + 1) * inputs.size(0))
+    #         batch_top3_acc = test_top3_corrects / ((batch_idx + 1) * inputs.size(0))
 
-            print(f"Test Batch {batch_idx + 1}/{len(test_loader)}, Loss: {batch_loss:.4f}, "
-                  f"Top-1 Acc: {batch_top1_acc:.4f}, Top-3 Acc: {batch_top3_acc:.4f}")
+    #         print(f"Test Batch {batch_idx + 1}/{len(test_loader)}, Loss: {batch_loss:.4f}, "
+    #               f"Top-1 Acc: {batch_top1_acc:.4f}, Top-3 Acc: {batch_top3_acc:.4f}")
 
-    test_loss = test_loss / len(test_loader.dataset)
-    test_top1_acc = test_top1_corrects / len(test_loader.dataset)
-    test_top3_acc = test_top3_corrects / len(test_loader.dataset)
-    print(f"Test Loss: {test_loss:.4f}, Top-1 Acc: {test_top1_acc:.4f}, Top-3 Acc: {test_top3_acc:.4f}")
+    # test_loss = test_loss / len(test_loader.dataset)
+    # test_top1_acc = test_top1_corrects / len(test_loader.dataset)
+    # test_top3_acc = test_top3_corrects / len(test_loader.dataset)
+    # print(f"Test Loss: {test_loss:.4f}, Top-1 Acc: {test_top1_acc:.4f}, Top-3 Acc: {test_top3_acc:.4f}")
 
     end_time = time.time()
     total_duration = (end_time - start_time) / 60
     print(f'Finished Training. Total training time: {total_duration:.2f} minutes')
 
     # 保存模型
-    torch.save(model.state_dict(), 'efficientnet_v2_inat_model.pth')
+    torch.save(model.state_dict(), 'heira_s_224_model.pth')
 
 if __name__ == '__main__':
     main()
