@@ -22,7 +22,7 @@ IN_COLAB = 'COLAB_GPU' in os.environ
 if IN_COLAB:
     DATA_DIR = '/content/drive/MyDrive'
     BATCH_SIZE = 40
-    INPUT_SIZE = 224
+    INPUT_SIZE = 256
     NUM_EPOCHS = 100
 
 # 数据增强和预处理
@@ -62,16 +62,16 @@ def main():
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
 
-    # model = timm.create_model('swinv2_tiny_window8_256.ms_in1k', pretrained=True)
-    # print(model)
+    model = timm.create_model('swinv2_tiny_window8_256.ms_in1k', pretrained=True)
+    print(model)
 
-    # # # 替换模型的分类头
-    # model.head.fc = nn.Linear(model.head.fc.in_features, NUM_CLASSES)
+    # # 替换模型的分类头
+    model.head.fc = nn.Linear(model.head.fc.in_features, NUM_CLASSES)
     # heira
-    model = torch.hub.load("facebookresearch/hiera", model="hiera_tiny_224", pretrained=True, checkpoint="mae_in1k")
+    # model = torch.hub.load("facebookresearch/hiera", model="hiera_tiny_224", pretrained=True, checkpoint="mae_in1k")
 
-    in_features = model.head.projection.in_features
-    model.head.projection = nn.Linear(in_features, NUM_CLASSES)
+    # in_features = model.head.projection.in_features
+    # model.head.projection = nn.Linear(in_features, NUM_CLASSES)
     # for param in model.head.projection.parameters():
     #      print(param.requires_grad)
 
