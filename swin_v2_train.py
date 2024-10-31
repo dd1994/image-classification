@@ -15,7 +15,7 @@ DATA_DIR = './data'
 BATCH_SIZE = 8
 NUM_EPOCHS = 20
 NUM_WORKERS = 3
-LR = 0.00001
+LR = 0.0001
 PATIENCE = 5
 
 IN_COLAB = 'COLAB_GPU' in os.environ
@@ -24,6 +24,9 @@ if IN_COLAB:
     BATCH_SIZE = 40
     INPUT_SIZE = 256
     NUM_EPOCHS = 100
+    # BATCH_SIZE = 16
+    # INPUT_SIZE = 448
+    # NUM_EPOCHS = 100
 
 # 数据增强和预处理
 transform = {
@@ -63,10 +66,10 @@ def main():
 
 
     model = timm.create_model('timm/swinv2_tiny_window16_256.ms_in1k', pretrained=True)
-    print(model)
 
     # # 替换模型的分类头
     model.head.fc = nn.Linear(model.head.fc.in_features, NUM_CLASSES)
+
     # heira
     # model = torch.hub.load("facebookresearch/hiera", model="hiera_tiny_224", pretrained=True, checkpoint="mae_in1k")
 
@@ -106,8 +109,7 @@ def main():
     val_loader = DataLoader(val_dataset, batch_size=BATCH_SIZE, shuffle=False, num_workers=NUM_WORKERS)
     test_loader = DataLoader(test_dataset, batch_size=BATCH_SIZE, shuffle=False, num_workers=NUM_WORKERS)
 
-    val_dataset.dataset.transform = transform['val_test']
-    test_dataset.dataset.transform = transform['val_test']
+
 
     # 添加早停机制
     patience = PATIENCE  # 设置容忍的epoch数量
