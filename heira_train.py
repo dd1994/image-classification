@@ -62,7 +62,7 @@ def main():
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
 
-    model = timm.create_model('swinv2_tiny_window8_256.ms_in1k', pretrained=True)
+    model = timm.create_model('timm/swinv2_tiny_window16_256.ms_in1k', pretrained=True)
     print(model)
 
     # # 替换模型的分类头
