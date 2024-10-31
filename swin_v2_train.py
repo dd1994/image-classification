@@ -15,7 +15,7 @@ DATA_DIR = './data'
 BATCH_SIZE = 8
 NUM_EPOCHS = 20
 NUM_WORKERS = 3
-LR = 0.0001
+LR = 0.00001
 PATIENCE = 5
 
 IN_COLAB = 'COLAB_GPU' in os.environ
