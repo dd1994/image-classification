@@ -105,12 +105,13 @@ def main():
     train_dataset = INaturalist(root=DATA_DIR, version='2021_train_mini', download=False, transform=transform['train'])
     val_dataset = INaturalist(root=DATA_DIR, version='2021_valid', download=False, transform=transform['val_test'])
 
+
+    # val_dataset.dataset.transform = transform['val_test']
+    # test_dataset.dataset.transform = transform['val_test']
     train_loader = DataLoader(train_dataset, batch_size=BATCH_SIZE, shuffle=True, num_workers=NUM_WORKERS)
     val_loader = DataLoader(val_dataset, batch_size=BATCH_SIZE, shuffle=False, num_workers=NUM_WORKERS)
     # test_loader = DataLoader(test_dataset, batch_size=BATCH_SIZE, shuffle=False, num_workers=NUM_WORKERS)
 
-    # val_dataset.dataset.transform = transform['val_test']
-    # test_dataset.dataset.transform = transform['val_test']
 
     # 添加早停机制
     patience = PATIENCE  # 设置容忍的epoch数量
