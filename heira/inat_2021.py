@@ -2,9 +2,9 @@
 
 # 第一次试验
 # top1 acc 0.92
-# top3 acc 1.0
-# epoch 数量 17
-# 总训练时间 4.74 min
+# top3 acc 0.9700
+# epoch 数量 34
+# 总训练时间 5.73 min
 
 
 import time
@@ -71,7 +71,7 @@ def main():
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
 
-    model = torch.hub.load("facebookresearch/hiera", model="hiera_tiny_224", pretrained=True, checkpoint="mae_in1k")
+    model = torch.hub.load("facebookresearch/hiera", model="hiera_tiny_224", pretrained=True, checkpoint="mae_in1k_ft_in1k")
 
     in_features = model.head.projection.in_features
     model.head.projection = nn.Linear(in_features, NUM_CLASSES)
