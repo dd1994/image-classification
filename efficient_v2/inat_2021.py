@@ -22,12 +22,12 @@ BATCH_SIZE = 8
 NUM_EPOCHS = 20
 NUM_WORKERS = 3
 LR = 0.0001
-PATIENCE = 5
+PATIENCE = 7
 
 IN_COLAB = 'COLAB_GPU' in os.environ
 if IN_COLAB:
     DATA_DIR = '/content/drive/MyDrive'
-    BATCH_SIZE = 16
+    BATCH_SIZE = 20
     INPUT_SIZE = 448
     NUM_EPOCHS = 100
 
@@ -80,8 +80,6 @@ def main():
     # 加载数据集
     full_dataset = INaturalist(root=DATA_DIR, version='2019', download=False, transform=transform['train'])
 
-    train_size = int(0.8 * len(full_dataset))
-    val_size = int(0.1 * len(full_dataset))
 
     train_dataset = INaturalist(root=DATA_DIR, version='2021_train_mini', download=False, transform=transform['train'])
     val_dataset = INaturalist(root=DATA_DIR, version='2021_valid', download=False, transform=transform['val_test'])
