@@ -6,24 +6,6 @@
 # epoch 数量 17
 # 总训练时间 4.74 min
 
-# 第二次试验
-# top1 acc 0.93
-# top3 acc 0.98
-# epoch 数量 16
-# 总训练时间 4.46 min
-
-# 第三次试验
-# top1 acc 0.86
-# top3 acc 0.98
-# epoch 数量 21
-# 总训练时间 5.79 min
-
-# 第四次试验
-# top1 acc 0.88
-# top3 acc 0.98
-# epoch 数量 11
-# 总训练时间 3.17 min
-
 
 import time
 import torch
@@ -48,8 +30,8 @@ PATIENCE = 7
 IN_COLAB = 'COLAB_GPU' in os.environ
 if IN_COLAB:
     DATA_DIR = '/content/drive/MyDrive'
-    BATCH_SIZE = 42
-    INPUT_SIZE = 256
+    BATCH_SIZE = 36
+    INPUT_SIZE = 224
     NUM_EPOCHS = 100
 
 # 数据增强和预处理
@@ -89,9 +71,10 @@ def main():
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
 
-    model = timm.create_model('timm/swinv2_tiny_window16_256.ms_in1k', pretrained=True)
+    model = torch.hub.load("facebookresearch/hiera", model="hiera_tiny_224", pretrained=True, checkpoint="mae_in1k")
 
-    model.head.fc = nn.Linear(model.head.fc.in_features, NUM_CLASSES)
+    in_features = model.head.projection.in_features
+    model.head.projection = nn.Linear(in_features, NUM_CLASSES)
 
     model = model.to(device)
 
