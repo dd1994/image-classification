@@ -15,12 +15,15 @@ DATA_DIR = './data'
 BATCH_SIZE = 8
 NUM_EPOCHS = 20
 NUM_WORKERS = 3
-LR = 0.001
+LR = 0.0001
 PATIENCE = 5
 
 IN_COLAB = 'COLAB_GPU' in os.environ
 if IN_COLAB:
     DATA_DIR = '/content/drive/MyDrive'
+    # BATCH_SIZE = 40
+    # INPUT_SIZE = 256
+    # NUM_EPOCHS = 100
     BATCH_SIZE = 16
     INPUT_SIZE = 448
     NUM_EPOCHS = 100
@@ -62,8 +65,26 @@ def main():
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
 
+    # model = timm.create_model('timm/swinv2_tiny_window16_256.ms_in1k', pretrained=True)
+
+    # # 替换模型的分类头
+    # model.head.fc = nn.Linear(model.head.fc.in_features, NUM_CLASSES)
+
+    # heira
+    # model = torch.hub.load("facebookresearch/hiera", model="hiera_tiny_224", pretrained=True, checkpoint="mae_in1k")
+
+    # in_features = model.head.projection.in_features
+    # model.head.projection = nn.Linear(in_features, NUM_CLASSES)
+    # for param in model.head.projection.parameters():
+    #      print(param.requires_grad)
+
+    # efficientvit
+    # model = timm.create_model('efficientvit_m5.r224_in1k', pretrained=True)
+    # model.head.linear = nn.Linear(model.head.linear.in_features, NUM_CLASSES)
+
+
     # efficientnet
-    model = timm.create_model('tf_efficientnetv2_s.in21k', pretrained=True, num_classes=NUM_CLASSES)
+    model = timm.create_model('tf_efficientnetv2_s.in1k', pretrained=True, num_classes=NUM_CLASSES)
 
     model = model.to(device)
 
@@ -74,15 +95,22 @@ def main():
     # 加载数据集
     full_dataset = INaturalist(root=DATA_DIR, version='2019', download=False, transform=transform['train'])
 
+    # # 切分训练集、验证集和测试集，比例为 7:1:2
     train_size = int(0.8 * len(full_dataset))
     val_size = int(0.1 * len(full_dataset))
+    test_size = len(full_dataset) - train_size - val_size
 
+    # train_dataset, val_dataset, test_dataset = torch.utils.data.random_split(
+    #     full_dataset, [train_size, val_size, test_size])
     train_dataset = INaturalist(root=DATA_DIR, version='2021_train_mini', download=False, transform=transform['train'])
     val_dataset = INaturalist(root=DATA_DIR, version='2021_valid', download=False, transform=transform['val_test'])
 
 
+    # val_dataset.dataset.transform = transform['val_test']
+    # test_dataset.dataset.transform = transform['val_test']
     train_loader = DataLoader(train_dataset, batch_size=BATCH_SIZE, shuffle=True, num_workers=NUM_WORKERS)
     val_loader = DataLoader(val_dataset, batch_size=BATCH_SIZE, shuffle=False, num_workers=NUM_WORKERS)
+    # test_loader = DataLoader(test_dataset, batch_size=BATCH_SIZE, shuffle=False, num_workers=NUM_WORKERS)
 
 
     # 添加早停机制
@@ -173,7 +201,35 @@ def main():
             print("Early stopping triggered.")
             break
 
+    print("\nTesting on test set...")
     model.eval()
+    test_loss = 0.0
+    test_top1_corrects = 0
+    test_top3_corrects = 0
+
+    # with torch.no_grad():
+    #     for batch_idx, (inputs, labels) in enumerate(test_loader):
+    #         inputs = inputs.to(device)
+    #         labels = labels.to(device)
+
+    #         outputs = model(inputs)
+    #         loss = criterion(outputs, labels)
+    #         acc1, acc3 = accuracy(outputs, labels, topk=(1, 3))
+    #         test_top1_corrects += acc1.item() * inputs.size(0) / 100
+    #         test_top3_corrects += acc3.item() * inputs.size(0) / 100
+
+    #         test_loss += loss.item() * inputs.size(0)
+    #         batch_loss = test_loss / ((batch_idx + 1) * inputs.size(0))
+    #         batch_top1_acc = test_top1_corrects / ((batch_idx + 1) * inputs.size(0))
+    #         batch_top3_acc = test_top3_corrects / ((batch_idx + 1) * inputs.size(0))
+
+    #         print(f"Test Batch {batch_idx + 1}/{len(test_loader)}, Loss: {batch_loss:.4f}, "
+    #               f"Top-1 Acc: {batch_top1_acc:.4f}, Top-3 Acc: {batch_top3_acc:.4f}")
+
+    # test_loss = test_loss / len(test_loader.dataset)
+    # test_top1_acc = test_top1_corrects / len(test_loader.dataset)
+    # test_top3_acc = test_top3_corrects / len(test_loader.dataset)
+    # print(f"Test Loss: {test_loss:.4f}, Top-1 Acc: {test_top1_acc:.4f}, Top-3 Acc: {test_top3_acc:.4f}")
 
     end_time = time.time()
     total_duration = (end_time - start_time) / 60
