@@ -6,6 +6,11 @@
 # epoch 数量 23
 # 总训练时间 6.31 min
 
+# 第一次试验
+# top1 acc 0.90
+# top3 acc 0.99
+# epoch 数量 19
+# 总训练时间 5.32 min
 
 import time
 import torch
