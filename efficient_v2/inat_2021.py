@@ -1,3 +1,9 @@
+# on T4 GPU
+# top1 acc 0.88
+# top3 acc 0.98
+# epoch 数量 19
+# 总训练时间 8.46 min
+
 import time
 import torch
 import torch.nn as nn
@@ -15,7 +21,7 @@ DATA_DIR = './data'
 BATCH_SIZE = 8
 NUM_EPOCHS = 20
 NUM_WORKERS = 3
-LR = 0.001
+LR = 0.0001
 PATIENCE = 5
 
 IN_COLAB = 'COLAB_GPU' in os.environ
