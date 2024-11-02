@@ -2,33 +2,9 @@
 
 # 第一次试验
 # top1 acc 0.92
-# top3 acc 1.0
-# epoch 数量 17
-# 总训练时间 4.74 min
-
-# 第二次试验
-# top1 acc 0.93
 # top3 acc 0.98
-# epoch 数量 16
-# 总训练时间 4.46 min
-
-# 第三次试验
-# top1 acc 0.86
-# top3 acc 0.98
-# epoch 数量 21
-# 总训练时间 5.79 min
-
-# 第四次试验
-# top1 acc 0.88
-# top3 acc 0.98
-# epoch 数量 11
-# 总训练时间 3.17 min
-
-# 第五次试验
-# top1 acc 0.90
-# top3 acc 0.98
-# epoch 数量 15
-# 总训练时间 4.33 min
+# epoch 数量 23
+# 总训练时间 6.31 min
 
 
 import time
@@ -48,7 +24,7 @@ DATA_DIR = './data'
 BATCH_SIZE = 8
 NUM_EPOCHS = 20
 NUM_WORKERS = 3
-LR = 0.0001
+LR = 0.00005
 PATIENCE = 7
 
 IN_COLAB = 'COLAB_GPU' in os.environ
