@@ -1,8 +1,22 @@
 # on T4 GPU
+
+# 第一次试验
 # top1 acc 0.89
 # top3 acc 0.96
 # epoch 数量 13
 # 总训练时间 5.91 min
+
+# 第二次试验
+# top1 acc 0.85
+# top3 acc 0.97
+# epoch 数量 31
+# 总训练时间 13.53 minutes
+
+# 第二次试验
+# top1 acc 0.88
+# top3 acc 0.96
+# epoch 数量 24
+# 总训练时间 11.91 minutes
 
 import time
 import torch
