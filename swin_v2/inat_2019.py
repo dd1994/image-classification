@@ -1,3 +1,12 @@
+# on T4 GPU
+
+# 第一次试验
+# top1 acc 0.89
+# top3 acc 0.98
+# epoch 数量 12
+# 总训练时间 6.02 min
+
+
 import time
 import torch
 import torch.nn as nn
@@ -15,18 +24,15 @@ DATA_DIR = './data'
 BATCH_SIZE = 8
 NUM_EPOCHS = 20
 NUM_WORKERS = 3
-LR = 0.00001
-PATIENCE = 5
+LR = 0.00005
+PATIENCE = 7
 
 IN_COLAB = 'COLAB_GPU' in os.environ
 if IN_COLAB:
     DATA_DIR = '/content/drive/MyDrive'
-    BATCH_SIZE = 40
+    BATCH_SIZE = 42
     INPUT_SIZE = 256
     NUM_EPOCHS = 100
-    # BATCH_SIZE = 16
-    # INPUT_SIZE = 448
-    # NUM_EPOCHS = 100
 
 # 数据增强和预处理
 transform = {
@@ -65,28 +71,9 @@ def main():
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
 
-    # 在 iNat 2019 中:
-    # timm/swinv2_tiny_window16_256.ms_in1k top 1 acc 84%
     model = timm.create_model('timm/swinv2_tiny_window16_256.ms_in1k', pretrained=True)
 
-    # # 替换模型的分类头
     model.head.fc = nn.Linear(model.head.fc.in_features, NUM_CLASSES)
-
-    # heira
-    # model = torch.hub.load("facebookresearch/hiera", model="hiera_tiny_224", pretrained=True, checkpoint="mae_in1k")
-
-    # in_features = model.head.projection.in_features
-    # model.head.projection = nn.Linear(in_features, NUM_CLASSES)
-    # for param in model.head.projection.parameters():
-    #      print(param.requires_grad)
-
-    # efficientvit
-    # model = timm.create_model('efficientvit_m5.r224_in1k', pretrained=True)
-    # model.head.linear = nn.Linear(model.head.linear.in_features, NUM_CLASSES)
-
-
-    # efficientnet
-    # model = timm.create_model('tf_efficientnetv2_s.in1k', pretrained=True, num_classes=NUM_CLASSES)
 
     model = model.to(device)
 
@@ -104,13 +91,15 @@ def main():
 
     train_dataset, val_dataset, test_dataset = torch.utils.data.random_split(
         full_dataset, [train_size, val_size, test_size])
-    # train_dataset = INaturalist(root=DATA_DIR, version='2021_train_mini', download=False, transform=transform['train'])
-    # val_dataset = INaturalist(root=DATA_DIR, version='2021_valid', download=False, transform=transform['val_test'])
+
+
+
+    val_dataset.dataset.transform = transform['val_test']
+    test_dataset.dataset.transform = transform['val_test']
 
     train_loader = DataLoader(train_dataset, batch_size=BATCH_SIZE, shuffle=True, num_workers=NUM_WORKERS)
     val_loader = DataLoader(val_dataset, batch_size=BATCH_SIZE, shuffle=False, num_workers=NUM_WORKERS)
     test_loader = DataLoader(test_dataset, batch_size=BATCH_SIZE, shuffle=False, num_workers=NUM_WORKERS)
-
 
 
     # 添加早停机制

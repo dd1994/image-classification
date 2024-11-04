@@ -81,9 +81,6 @@ def main():
     optimizer = optim.AdamW(model.parameters(), lr=LR)
     scheduler = CosineAnnealingLR(optimizer, T_max=NUM_EPOCHS)
 
-    # 加载数据集
-    full_dataset = INaturalist(root=DATA_DIR, version='2019', download=False, transform=transform['train'])
-
 
     train_dataset = INaturalist(root=DATA_DIR, version='2021_train_mini', download=False, transform=transform['train'])
     val_dataset = INaturalist(root=DATA_DIR, version='2021_valid', download=False, transform=transform['val_test'])
