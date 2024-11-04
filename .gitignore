@@ -4,3 +4,4 @@ data
 .DS_Store
 test_img
 download_img_json
+lightning_logs/
