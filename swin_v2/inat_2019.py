@@ -1,16 +1,19 @@
 # on T4 GPU
 
 # 第1次试验
-# top1 acc 0.8750
-# top3 acc 0.9531
-# epoch 数量 11
-# 总训练时间 6.34 min
+# top1 acc 0.8140
+# top3 acc 0.9302
+# epoch 数量 15
+# 总训练时间 7.85 min
 
 # 第2次试验
-# top1 acc 0.8437
-# top3 acc 0.9766
-# epoch 数量 14
-# 总训练时间 7.91 min
+# top1 acc 0.8992
+# top3 acc 0.9767
+# epoch 数量 15
+# 总训练时间 7.85 min
+
+# 第三次试验
+
 
 
 import time
