@@ -30,7 +30,7 @@ DATA_DIR = './data'
 BATCH_SIZE = 8
 NUM_EPOCHS = 20
 NUM_WORKERS = 3
-LR = 0.00005
+LR = 0.0001
 PATIENCE = 7
 
 IN_COLAB = 'COLAB_GPU' in os.environ
@@ -38,7 +38,7 @@ if IN_COLAB:
     DATA_DIR = '/content/drive/MyDrive'
     BATCH_SIZE = 42
     INPUT_SIZE = 256
-    NUM_EPOCHS = 100
+    NUM_EPOCHS = 20
 
 # 数据增强和预处理
 transform = {
