@@ -19,6 +19,12 @@
 # 总训练时间 7.85 min
 
 
+# 384 第 1 次试验
+# Top-1 Acc: 0.8837
+# Top-3 Acc: 0.9535
+
+# 384 第 2 次试验
+
 import time
 import torch
 import torch.nn as nn
