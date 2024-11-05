@@ -13,7 +13,10 @@
 # 总训练时间 7.85 min
 
 # 第三次试验
-
+# Top-1 Acc: 0.8450,
+# Top-3 Acc: 0.9612
+# epoch 数量 11
+# 总训练时间 7.85 min
 
 
 import time
