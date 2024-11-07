@@ -19,9 +19,9 @@ import os
 import timm
 
 NUM_CLASSES = 51
-INPUT_SIZE = 384
+INPUT_SIZE = 448
 DATA_DIR = '../data'
-BATCH_SIZE = 48
+BATCH_SIZE = 32
 NUM_EPOCHS = 20
 NUM_WORKERS = 3
 LR = 0.0001
@@ -65,7 +65,7 @@ def main():
     scaler = torch.amp.GradScaler('cuda')
 
     model = timm.create_model('timm/swinv2_tiny_window16_256.ms_in1k', pretrained=True).cuda()
-    model.set_input_size([384, 384])
+    model.set_input_size([INPUT_SIZE, INPUT_SIZE])
 
     model.head.fc = nn.Linear(model.head.fc.in_features, NUM_CLASSES)
 
