@@ -21,7 +21,7 @@ import timm
 NUM_CLASSES = 51
 INPUT_SIZE = 384
 DATA_DIR = '../data'
-BATCH_SIZE = 32
+BATCH_SIZE = 48
 NUM_EPOCHS = 20
 NUM_WORKERS = 3
 LR = 0.0001
@@ -62,7 +62,7 @@ def main():
     start_time = time.time()
 
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
-
+    scaler = torch.amp.GradScaler('cuda')
 
     model = timm.create_model('timm/swinv2_tiny_window16_256.ms_in1k', pretrained=True).cuda()
     model.set_input_size([384, 384])
@@ -110,8 +110,12 @@ def main():
                 loss = criterion(outputs, labels)
             _, preds = torch.max(outputs, 1)
 
-            loss.backward()
-            optimizer.step()
+            scaler.scale(loss).backward()
+            scaler.step(optimizer)
+            scaler.update()
+
+            # loss.backward()
+            # optimizer.step()
 
             train_loss += loss.item() * inputs.size(0)
             train_corrects += torch.sum(preds == labels.data)
