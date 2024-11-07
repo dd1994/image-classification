@@ -1,23 +1,3 @@
-# on T4 GPU
-
-# 第一次试验
-# top1 acc 0.89
-# top3 acc 0.96
-# epoch 数量 13
-# 总训练时间 5.91 min
-
-# 第二次试验
-# top1 acc 0.85
-# top3 acc 0.97
-# epoch 数量 31
-# 总训练时间 13.53 minutes
-
-# 第二次试验
-# top1 acc 0.88
-# top3 acc 0.96
-# epoch 数量 24
-# 总训练时间 11.91 minutes
-
 import time
 import torch
 import torch.nn as nn
@@ -29,21 +9,14 @@ from torch.optim.lr_scheduler import CosineAnnealingLR
 import os
 import timm
 
-NUM_CLASSES = 11
-INPUT_SIZE = 224
-DATA_DIR = './data'
-BATCH_SIZE = 8
+NUM_CLASSES = 51
+INPUT_SIZE = 448
+DATA_DIR = '../data'
+BATCH_SIZE = 64
 NUM_EPOCHS = 20
 NUM_WORKERS = 3
 LR = 0.0001
 PATIENCE = 7
-
-IN_COLAB = 'COLAB_GPU' in os.environ
-if IN_COLAB:
-    DATA_DIR = '/content/drive/MyDrive'
-    BATCH_SIZE = 20
-    INPUT_SIZE = 448
-    NUM_EPOCHS = 100
 
 # 数据增强和预处理
 transform = {
@@ -80,19 +53,15 @@ def main():
     start_time = time.time()
 
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+    scaler = torch.amp.GradScaler('cuda')
 
-
-    # efficientnet
-    model = timm.create_model('tf_efficientnetv2_s.in21k', pretrained=True, num_classes=NUM_CLASSES)
+    model = timm.create_model('tf_efficientnetv2_s.in1k', pretrained=True, num_classes=NUM_CLASSES).cuda()
 
     model = model.to(device)
 
     criterion = nn.CrossEntropyLoss()
     optimizer = optim.AdamW(model.parameters(), lr=LR)
     scheduler = CosineAnnealingLR(optimizer, T_max=NUM_EPOCHS)
-
-    # 加载数据集
-    full_dataset = INaturalist(root=DATA_DIR, version='2019', download=False, transform=transform['train'])
 
 
     train_dataset = INaturalist(root=DATA_DIR, version='2021_train_mini', download=False, transform=transform['train'])
@@ -124,12 +93,18 @@ def main():
             labels = labels.to(device)
 
             optimizer.zero_grad()
-            outputs = model(inputs)
-            loss = criterion(outputs, labels)
+            with torch.autocast(device_type="cuda"):
+                outputs = model(inputs)
+                loss = criterion(outputs, labels)
+
             _, preds = torch.max(outputs, 1)
 
-            loss.backward()
-            optimizer.step()
+            scaler.scale(loss).backward()
+            scaler.step(optimizer)
+            scaler.update()
+
+            # loss.backward()
+            # optimizer.step()
 
             train_loss += loss.item() * inputs.size(0)
             train_corrects += torch.sum(preds == labels.data)
