@@ -18,21 +18,14 @@ from torch.optim.lr_scheduler import CosineAnnealingLR
 import os
 import timm
 
-NUM_CLASSES = 11
-INPUT_SIZE = 224
-DATA_DIR = './data'
-BATCH_SIZE = 8
+NUM_CLASSES = 51
+INPUT_SIZE = 384
+DATA_DIR = '../data'
+BATCH_SIZE = 32
 NUM_EPOCHS = 20
 NUM_WORKERS = 3
-LR = 0.00005
-PATIENCE = 7
-
-IN_COLAB = 'COLAB_GPU' in os.environ
-if IN_COLAB:
-    DATA_DIR = '/content/drive/MyDrive'
-    BATCH_SIZE = 42
-    INPUT_SIZE = 256
-    NUM_EPOCHS = 100
+LR = 0.0001
+PATIENCE = 5
 
 # 数据增强和预处理
 transform = {
@@ -72,6 +65,7 @@ def main():
 
 
     model = timm.create_model('timm/swinv2_tiny_window16_256.ms_in1k', pretrained=True)
+    model.set_input_size([384, 384])
 
     model.head.fc = nn.Linear(model.head.fc.in_features, NUM_CLASSES)
 
