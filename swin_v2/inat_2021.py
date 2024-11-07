@@ -64,7 +64,7 @@ def main():
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
 
-    model = timm.create_model('timm/swinv2_tiny_window16_256.ms_in1k', pretrained=True)
+    model = timm.create_model('timm/swinv2_tiny_window16_256.ms_in1k', pretrained=True).cuda()
     model.set_input_size([384, 384])
 
     model.head.fc = nn.Linear(model.head.fc.in_features, NUM_CLASSES)
@@ -105,8 +105,9 @@ def main():
             labels = labels.to(device)
 
             optimizer.zero_grad()
-            outputs = model(inputs)
-            loss = criterion(outputs, labels)
+            with torch.autocast(device_type="cuda"):
+                outputs = model(inputs)
+                loss = criterion(outputs, labels)
             _, preds = torch.max(outputs, 1)
 
             loss.backward()
