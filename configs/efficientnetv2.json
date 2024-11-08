@@ -32,7 +32,7 @@
       ]
   },
   "data": {
-      "batch_size": 32,
+      "batch_size": 60,
       "num_workers": 3
   }
 }

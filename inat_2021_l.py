@@ -107,7 +107,7 @@ class SwinV2Model(BaseModel):
 class EfficientNetV2Model(BaseModel):
     def __init__(self, num_classes: int = 51, learning_rate: float = 1e-4):
         super().__init__(num_classes, learning_rate)
-        self.model = timm.create_model('tf_efficientnetv2_s', pretrained=True)
+        self.model = timm.create_model('tf_efficientnetv2_s.in1k', pretrained=True)
         self.model.classifier = nn.Linear(self.model.classifier.in_features, num_classes)
 
     def forward(self, x):
