@@ -1,0 +1,38 @@
+{
+  "model": {
+      "class_path": "EfficientNetV2Model",
+      "init_args": {
+          "num_classes": 51,
+          "learning_rate": 1e-4
+      }
+  },
+  "trainer": {
+      "max_epochs": 20,
+      "accelerator": "gpu",
+      "devices": 1,
+      "precision": 16,
+      "callbacks": [
+          {
+              "class_path": "pytorch_lightning.callbacks.EarlyStopping",
+              "init_args": {
+                  "monitor": "val_loss",
+                  "patience": 5,
+                  "mode": "min"
+              }
+          },
+          {
+              "class_path": "pytorch_lightning.callbacks.ModelCheckpoint",
+              "init_args": {
+                  "monitor": "val_acc_top1",
+                  "filename": "efficientnetv2-{epoch:02d}-{val_acc_top1:.4f}",
+                  "save_top_k": 1,
+                  "mode": "max"
+              }
+          }
+      ]
+  },
+  "data": {
+      "batch_size": 32,
+      "num_workers": 3
+  }
+}

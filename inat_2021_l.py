@@ -1,6 +1,5 @@
+from pytorch_lightning.cli import LightningCLI
 import pytorch_lightning as pl
-from pytorch_lightning.callbacks import EarlyStopping, ModelCheckpoint
-from pytorch_lightning.loggers import TensorBoardLogger
 import torch
 import torch.nn as nn
 from torchvision import transforms
@@ -9,13 +8,13 @@ from torchvision.datasets import INaturalist
 import timm
 
 class INatDataModule(pl.LightningDataModule):
-    def __init__(self, data_dir: str = '../data', batch_size: int = 32, num_workers: int = 3, input_size: int = 448):
+    def __init__(self, data_dir: str = './data', batch_size: int = 32, num_workers: int = 3, input_size: int = 448):
         super().__init__()
         self.data_dir = data_dir
         self.batch_size = batch_size
         self.num_workers = num_workers
         self.input_size = input_size
-        
+
         self.transform = {
             'train': transforms.Compose([
                 transforms.RandomResizedCrop(self.input_size),
@@ -45,38 +44,26 @@ class INatDataModule(pl.LightningDataModule):
             )
 
     def train_dataloader(self):
-        return DataLoader(self.train_dataset, batch_size=self.batch_size, 
-                         shuffle=True, num_workers=self.num_workers)
+        return DataLoader(self.train_dataset, batch_size=self.batch_size,
+                          shuffle=True, num_workers=self.num_workers)
 
     def val_dataloader(self):
-        return DataLoader(self.val_dataset, batch_size=self.batch_size, 
-                         shuffle=False, num_workers=self.num_workers, persistent_workers=True)
-
-class SwinV2Model(pl.LightningModule):
-    def __init__(self, num_classes: int = 51, lr: float = 1e-4):
+        return DataLoader(self.val_dataset, batch_size=self.batch_size,
+                          shuffle=False, num_workers=self.num_workers, persistent_workers=True)
+class BaseModel(pl.LightningModule):
+    def __init__(self, num_classes: int = 51, learning_rate: float = 1e-4):
         super().__init__()
         self.save_hyperparameters()
-        
-        # 模型初始化
-        self.model = timm.create_model('timm/swinv2_tiny_window16_256.ms_in1k', pretrained=True)
-        self.model.set_input_size([448, 448])
-        self.model.head.fc = nn.Linear(self.model.head.fc.in_features, num_classes)
-        
         self.criterion = nn.CrossEntropyLoss()
-
-    def forward(self, x):
-        return self.model(x)
-
+        
     def training_step(self, batch, batch_idx):
         x, y = batch
         outputs = self(x)
         loss = self.criterion(outputs, y)
         
-        # 计算准确率
         _, preds = torch.max(outputs, 1)
         acc = torch.sum(preds == y).float() / len(y)
         
-        # 记录指标
         self.log('train_loss', loss, prog_bar=True)
         self.log('train_acc', acc, prog_bar=True)
         
@@ -89,14 +76,13 @@ class SwinV2Model(pl.LightningModule):
         _, preds = torch.max(outputs, 1)
         top1_acc = (preds == y).float().mean()
         
-        # 记录指标
         self.log('val_loss', loss, prog_bar=True)
         self.log('val_acc_top1', top1_acc, prog_bar=True, on_step=False, on_epoch=True)
         
         return loss
 
     def configure_optimizers(self):
-        optimizer = torch.optim.AdamW(self.parameters(), lr=self.hparams.lr)
+        optimizer = torch.optim.AdamW(self.parameters(), lr=self.hparams.learning_rate)
         scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(
             optimizer, T_max=20
         )
@@ -108,43 +94,33 @@ class SwinV2Model(pl.LightningModule):
             }
         }
 
-def main():
-    # 数据模块
-    data_module = INatDataModule()
-    
-    # 模型
-    model = SwinV2Model()
-    
-    # 回调函数
-    callbacks = [
-        EarlyStopping(
-            monitor='val_loss',
-            patience=5,
-            mode='min'
-        ),
-        ModelCheckpoint(
-            monitor='val_acc_top1',
-            filename='swinv2-{epoch:02d}-{val_acc_top1:.2f}',
-            save_top_k=1,
-            mode='max'
-        )
-    ]
-    
-    # 日志记录器
-    logger = TensorBoardLogger("lightning_logs", name="swinv2")
-    
-    # 训练器
-    trainer = pl.Trainer(
-        max_epochs=20,
-        accelerator='gpu',
-        devices=1,
-        callbacks=callbacks,
-        logger=logger,
-        precision=16  # 使用混合精度训练
+class SwinV2Model(BaseModel):
+    def __init__(self, num_classes: int = 51, learning_rate: float = 1e-4):
+        super().__init__(num_classes, learning_rate)
+        self.model = timm.create_model('timm/swinv2_tiny_window16_256.ms_in1k', pretrained=True)
+        self.model.set_input_size([448, 448])
+        self.model.head.fc = nn.Linear(self.model.head.fc.in_features, num_classes)
+
+    def forward(self, x):
+        return self.model(x)
+
+class EfficientNetV2Model(BaseModel):
+    def __init__(self, num_classes: int = 51, learning_rate: float = 1e-4):
+        super().__init__(num_classes, learning_rate)
+        self.model = timm.create_model('tf_efficientnetv2_s', pretrained=True)
+        self.model.classifier = nn.Linear(self.model.classifier.in_features, num_classes)
+
+    def forward(self, x):
+        return self.model(x)
+
+def cli_main():
+    cli = LightningCLI(
+        model_class=BaseModel,
+        datamodule_class=INatDataModule,
+        subclass_mode_model=True,  # 启用子类模式
+        save_config_callback=None,
+        seed_everything_default=42,
     )
-    
-    # 开始训练
-    trainer.fit(model, data_module)
 
 if __name__ == '__main__':
-    main()
+    cli_main()
