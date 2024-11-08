@@ -1,12 +1,3 @@
-# on T4 GPU
-
-# 第一次试验
-# top1 acc 0.89
-# top3 acc 0.98
-# epoch 数量 12
-# 总训练时间 6.02 min
-
-
 import time
 import torch
 import torch.nn as nn
@@ -15,7 +6,6 @@ from torchvision import transforms
 from torch.utils.data import DataLoader
 from torchvision.datasets import INaturalist
 from torch.optim.lr_scheduler import CosineAnnealingLR
-import os
 import timm
 
 NUM_CLASSES = 51
