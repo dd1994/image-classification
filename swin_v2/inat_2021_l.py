@@ -9,12 +9,12 @@ from torchvision.datasets import INaturalist
 import timm
 
 class INatDataModule(pl.LightningDataModule):
-    def __init__(self, data_dir: str = '../data', batch_size: int = 32, num_workers: int = 3):
+    def __init__(self, data_dir: str = '../data', batch_size: int = 32, num_workers: int = 3, input_size: int = 448):
         super().__init__()
         self.data_dir = data_dir
         self.batch_size = batch_size
         self.num_workers = num_workers
-        self.input_size = 448
+        self.input_size = input_size
         
         self.transform = {
             'train': transforms.Compose([
