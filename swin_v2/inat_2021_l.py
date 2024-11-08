@@ -50,7 +50,7 @@ class INatDataModule(pl.LightningDataModule):
 
     def val_dataloader(self):
         return DataLoader(self.val_dataset, batch_size=self.batch_size, 
-                         shuffle=False, num_workers=self.num_workers)
+                         shuffle=False, num_workers=self.num_workers, persistent_workers=True)
 
 class SwinV2Model(pl.LightningModule):
     def __init__(self, num_classes: int = 51, lr: float = 1e-4):
@@ -86,14 +86,12 @@ class SwinV2Model(pl.LightningModule):
         x, y = batch
         outputs = self(x)
         loss = self.criterion(outputs, y)
-        
-        # 计算 Top-1 和 Top-3 准确率
-        acc1, acc3 = self._accuracy(outputs, y, topk=(1, 3))
+        _, preds = torch.max(outputs, 1)
+        top1_acc = (preds == y).float().mean()
         
         # 记录指标
         self.log('val_loss', loss, prog_bar=True)
-        self.log('val_acc_top1', acc1, prog_bar=True)
-        self.log('val_acc_top3', acc3, prog_bar=True)
+        self.log('val_acc_top1', top1_acc, prog_bar=True, on_step=False, on_epoch=True)
         
         return loss
 
@@ -109,22 +107,6 @@ class SwinV2Model(pl.LightningModule):
                 "monitor": "val_loss"
             }
         }
-
-    def _accuracy(self, output, target, topk=(1,)):
-        """计算 top-k 准确率"""
-        with torch.no_grad():
-            maxk = max(topk)
-            batch_size = target.size(0)
-
-            _, pred = output.topk(maxk, 1, True, True)
-            pred = pred.t()
-            correct = pred.eq(target.view(1, -1).expand_as(pred))
-
-            res = []
-            for k in topk:
-                correct_k = correct[:k].reshape(-1).float().sum(0, keepdim=True)
-                res.append(correct_k.mul_(100.0 / batch_size))
-            return [x.item() for x in res]
 
 def main():
     # 数据模块
