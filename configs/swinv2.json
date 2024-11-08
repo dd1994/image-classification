@@ -10,7 +10,7 @@
       "max_epochs": 20,
       "accelerator": "gpu",
       "devices": 1,
-      "precision": 16,
+      "precision": "16-mixed",
       "callbacks": [
           {
               "class_path": "pytorch_lightning.callbacks.EarlyStopping",
