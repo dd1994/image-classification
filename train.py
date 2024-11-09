@@ -49,7 +49,7 @@ def restore_sleep():
 class CustomTransform:
     def __call__(self, img):
         # 检查图像的通道数
-        if img.mode == 'L':  # 灰度图像
+        if img.mode != 'RGB':  # 灰度图像
             # 将灰度图像转换为三通道
             img = img.convert('RGB')
         return img
