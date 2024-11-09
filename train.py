@@ -46,6 +46,14 @@ def restore_sleep():
     except Exception as e:
         print(f"恢复休眠设置失败: {e}")
 
+class CustomTransform:
+    def __call__(self, img):
+        # 检查图像的通道数
+        if img.mode == 'L':  # 灰度图像
+            # 将灰度图像转换为三通道
+            img = img.convert('RGB')
+        return img
+
 class INatBaseDataModule(pl.LightningDataModule):
     def __init__(self, data_dir: str = './data', batch_size: int = 32, num_workers: int = 3, input_size: int = 448):
         super().__init__()
@@ -56,12 +64,14 @@ class INatBaseDataModule(pl.LightningDataModule):
 
         self.transform = {
             'train': transforms.Compose([
+                CustomTransform(),  # 自定义转换
                 transforms.RandomResizedCrop(self.input_size),
                 transforms.RandomHorizontalFlip(),
                 transforms.ToTensor(),
                 transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
             ]),
             'val_test': transforms.Compose([
+                CustomTransform(),  # 自定义转换
                 transforms.Resize(int(self.input_size * 1.2)),
                 transforms.CenterCrop(self.input_size),
                 transforms.ToTensor(),
