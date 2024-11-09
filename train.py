@@ -54,7 +54,7 @@ class INatDataModule(pl.LightningDataModule):
         return DataLoader(self.val_dataset, batch_size=self.batch_size,
                           shuffle=False, num_workers=self.num_workers, persistent_workers=True)
 class BaseModel(pl.LightningModule):
-    def __init__(self, num_classes: int = 51, learning_rate: float = 1e-4):
+    def __init__(self, num_classes: int = 51, learning_rate: float = 1e-4, input_size=448):
         super().__init__()
         self.save_hyperparameters()
         self.criterion = nn.CrossEntropyLoss()
@@ -66,7 +66,7 @@ class BaseModel(pl.LightningModule):
         
         _, preds = torch.max(outputs, 1)
         acc = torch.sum(preds == y).float() / len(y)
-        self.log('epoch', self.current_epoch, prog_bar=True)
+        self.log('epoch', self.current_epoch, prog_bar=False)
         self.log('train/loss', loss, prog_bar=True)
         self.log('train/acc', acc, prog_bar=True)
         # 记录学习率
