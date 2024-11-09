@@ -66,7 +66,7 @@ class BaseModel(pl.LightningModule):
         
         _, preds = torch.max(outputs, 1)
         acc = torch.sum(preds == y).float() / len(y)
-        
+        self.log('epoch', self.current_epoch, prog_bar=True)
         self.log('train/loss', loss, prog_bar=True)
         self.log('train/acc', acc, prog_bar=True)
         # 记录学习率
@@ -86,11 +86,6 @@ class BaseModel(pl.LightningModule):
         self.log('val/acc_top1', top1_acc, prog_bar=True, on_step=False, on_epoch=True)
         
         return loss
-    def on_train_epoch_end(self):
-        # 记录每个epoch的时间
-        if hasattr(self.trainer, 'callback_metrics'):
-            metrics = self.trainer.callback_metrics
-            self.log_dict({f"epoch/{k}": v for k, v in metrics.items()})    
 
     def configure_optimizers(self):
         optimizer = torch.optim.AdamW(self.parameters(), lr=self.hparams.learning_rate)
@@ -106,10 +101,10 @@ class BaseModel(pl.LightningModule):
         }
 
 class SwinV2Model(BaseModel):
-    def __init__(self, num_classes: int = 51, learning_rate: float = 1e-4):
+    def __init__(self, num_classes: int = 51, learning_rate: float = 1e-4, input_size = 448):
         super().__init__(num_classes, learning_rate)
         self.model = timm.create_model('timm/swinv2_tiny_window16_256.ms_in1k', pretrained=True)
-        self.model.set_input_size([448, 448])
+        self.model.set_input_size([input_size, input_size])
         self.model.head.fc = nn.Linear(self.model.head.fc.in_features, num_classes)
 
     def forward(self, x):
