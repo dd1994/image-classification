@@ -27,8 +27,7 @@
                 "monitor": "val/acc_top1",
                 "filename": "swinv2-{epoch:02d}-{val/acc_top1:.4f}",
                 "save_top_k": 1,
-                "mode": "max",
-                "save_config": true
+                "mode": "max"
             }
         },
         {

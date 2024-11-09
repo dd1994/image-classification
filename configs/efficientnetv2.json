@@ -24,10 +24,9 @@
             "class_path": "pytorch_lightning.callbacks.ModelCheckpoint",
             "init_args": {
                 "monitor": "val/acc_top1",
-                "filename": "swinv2-{epoch:02d}-{val/acc_top1:.4f}",
+                "filename": "efficientnetv2-{epoch:02d}-{val/acc_top1:.4f}",
                 "save_top_k": 1,
-                "mode": "max",
-                "save_config": true
+                "mode": "max"
             }
         },
         {
