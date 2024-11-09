@@ -38,9 +38,14 @@
         }
     ]
   },
-  "data": {
+  "data":  {
+    "class_path": "INatDataModule2019",
+    "init_args": {
+      "data_dir": "./data",
       "batch_size": 32,
       "num_workers": 3,
-      "input_size": 448
+      "input_size": 448,
+      "val_split": 0.2
+    }
   }
 }
