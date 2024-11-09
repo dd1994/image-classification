@@ -25,7 +25,7 @@
             "init_args": {
                 "monitor": "val/acc_top1",
                 "filename": "efficientnetv2-{epoch:02d}-{val/acc_top1:.4f}",
-                "save_top_k": 1,
+                "save_top_k": 3,
                 "mode": "max"
             }
         },
