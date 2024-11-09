@@ -2,9 +2,12 @@ from pytorch_lightning.cli import LightningCLI
 import pytorch_lightning as pl
 import torch
 import torch.nn as nn
+from torch.distributed.elastic.agent.server.api import logger
 from torchvision import transforms
 from torch.utils.data import DataLoader
 from torchvision.datasets import INaturalist
+from pytorch_lightning.loggers import WandbLogger
+import wandb
 import timm
 
 class INatDataModule(pl.LightningDataModule):
@@ -64,8 +67,11 @@ class BaseModel(pl.LightningModule):
         _, preds = torch.max(outputs, 1)
         acc = torch.sum(preds == y).float() / len(y)
         
-        self.log('train_loss', loss, prog_bar=True)
-        self.log('train_acc', acc, prog_bar=True)
+        self.log('train/loss', loss, prog_bar=True)
+        self.log('train/acc', acc, prog_bar=True)
+        # 记录学习率
+        if batch_idx == 0:
+            self.log('train/lr', self.trainer.optimizers[0].param_groups[0]['lr'])
         
         return loss
 
@@ -76,10 +82,15 @@ class BaseModel(pl.LightningModule):
         _, preds = torch.max(outputs, 1)
         top1_acc = (preds == y).float().mean()
         
-        self.log('val_loss', loss, prog_bar=True)
-        self.log('val_acc_top1', top1_acc, prog_bar=True, on_step=False, on_epoch=True)
+        self.log('val/loss', loss, prog_bar=True)
+        self.log('val/acc_top1', top1_acc, prog_bar=True, on_step=False, on_epoch=True)
         
         return loss
+    def on_train_epoch_end(self):
+        # 记录每个epoch的时间
+        if hasattr(self.trainer, 'callback_metrics'):
+            metrics = self.trainer.callback_metrics
+            self.log_dict({f"epoch/{k}": v for k, v in metrics.items()})    
 
     def configure_optimizers(self):
         optimizer = torch.optim.AdamW(self.parameters(), lr=self.hparams.learning_rate)
@@ -114,12 +125,27 @@ class EfficientNetV2Model(BaseModel):
         return self.model(x)
 
 def cli_main():
+    wandb_logger = WandbLogger(
+        project="identify",  # 项目名称
+        log_model=True,       # 记录模型检查点
+        save_dir='wandb_logs' # 日志保存目录
+    )
     cli = LightningCLI(
         model_class=BaseModel,
         datamodule_class=INatDataModule,
         subclass_mode_model=True,  # 启用子类模式
         save_config_callback=None,
         seed_everything_default=42,
+        trainer_defaults={
+               "logger": {
+                "class_path": "pytorch_lightning.loggers.WandbLogger",
+                "init_args": {
+                    "project": "identify",
+                    "log_model": True,
+                    "save_dir": "wandb_logs"
+                }
+            }
+        }
     )
 
 if __name__ == '__main__':
