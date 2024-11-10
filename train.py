@@ -122,10 +122,11 @@ class INatDataModule2021(INatBaseDataModule):
         )
 
 class BaseModel(pl.LightningModule):
-    def __init__(self, num_classes: int = 51, learning_rate: float = 1e-4, input_size=448):
+    def __init__(self, num_classes: int = 51, learning_rate: float = 1e-4, input_size=448, t_max=20):
         super().__init__()
         self.save_hyperparameters()
         self.criterion = nn.CrossEntropyLoss()
+        self.t_max = t_max
         
     def training_step(self, batch, batch_idx):
         x, y = batch
@@ -158,7 +159,7 @@ class BaseModel(pl.LightningModule):
     def configure_optimizers(self):
         optimizer = torch.optim.AdamW(self.parameters(), lr=self.hparams.learning_rate)
         scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(
-            optimizer, T_max=20
+            optimizer, T_max=self.t_max
         )
         return {
             "optimizer": optimizer,
