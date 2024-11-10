@@ -3,7 +3,7 @@ import torch
 from torch.utils.data import DataLoader, default_collate
 from torchvision.transforms import v2
 from torchvision.datasets import INaturalist
-from torchvision.transforms import RandAugment
+from torchvision.transforms import TrivialAugmentWide
 
 from util.transform import ToRGBTransform
 
@@ -22,7 +22,7 @@ class INatBaseDataModule(pl.LightningDataModule):
                 ToRGBTransform(),
                 v2.ToImage(), # Convert to tensor, only needed if you had a PIL image
                 v2.RandomResizedCrop(self.input_size),
-                RandAugment(num_ops=2, magnitude=9),
+                TrivialAugmentWide(),
                 v2.ToDtype(torch.float32, scale=True),
                 v2.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
                 # 不要加 Random Erasing，会显著降低识别率，不知道为啥。
