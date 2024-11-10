@@ -43,11 +43,7 @@ class INatBaseDataModule(pl.LightningDataModule):
     def val_dataloader(self):
         return DataLoader(self.val_dataset, batch_size=self.batch_size,
                           shuffle=False, num_workers=self.num_workers, persistent_workers=True)
-    def collate_fn(self, batch):
-        cutmix = v2.CutMix(num_classes=self.num_classes)
-        mixup = v2.MixUp(num_classes=self.num_classes)
-        cutmix_or_mixup = v2.RandomChoice([cutmix, mixup])
-        return cutmix_or_mixup(*default_collate(batch))
+    
 
 
 class INatDataModule2019(INatBaseDataModule):
