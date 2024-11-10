@@ -1,6 +1,6 @@
 import pytorch_lightning as pl
 import torch
-from torch.utils.data import DataLoader
+from torch.utils.data import DataLoader, default_collate
 from torchvision.transforms import v2
 from torchvision.datasets import INaturalist
 from torchvision.transforms import RandAugment
@@ -9,12 +9,13 @@ from util.transform import ToRGBTransform
 
 
 class INatBaseDataModule(pl.LightningDataModule):
-    def __init__(self, data_dir: str = './data', batch_size: int = 32, num_workers: int = 3, input_size: int = 448):
+    def __init__(self, data_dir: str = './data', batch_size: int = 32, num_workers: int = 3, input_size: int = 448, num_classes = 51):
         super().__init__()
         self.data_dir = data_dir
         self.batch_size = batch_size
         self.num_workers = num_workers
         self.input_size = input_size
+        self.num_classes = num_classes
 
         self.transform = {
             'train': v2.Compose([
@@ -42,6 +43,11 @@ class INatBaseDataModule(pl.LightningDataModule):
     def val_dataloader(self):
         return DataLoader(self.val_dataset, batch_size=self.batch_size,
                           shuffle=False, num_workers=self.num_workers, persistent_workers=True)
+    def collate_fn(self, batch):
+        cutmix = v2.CutMix(num_classes=self.num_classes)
+        mixup = v2.MixUp(num_classes=self.num_classes)
+        cutmix_or_mixup = v2.RandomChoice([cutmix, mixup])
+        return cutmix_or_mixup(*default_collate(batch))
 
 
 class INatDataModule2019(INatBaseDataModule):
