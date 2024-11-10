@@ -24,8 +24,8 @@ class INatBaseDataModule(pl.LightningDataModule):
                 v2.RandomResizedCrop(self.input_size),
                 RandAugment(num_ops=2, magnitude=9),
                 v2.ToDtype(torch.float32, scale=True),
-                v2.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225]),
-                v2.RandomErasing()
+                v2.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
+                # 不要加 Random Erasing，会显著降低识别率，不知道为啥。
             ]),
             'val_test': v2.Compose([
                 ToRGBTransform(),
