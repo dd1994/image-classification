@@ -6,17 +6,16 @@ from torchvision import transforms
 from torch.utils.data import DataLoader
 from torchvision.datasets import INaturalist
 from torch.optim.lr_scheduler import CosineAnnealingLR
-import os
 import timm
 
 NUM_CLASSES = 51
 INPUT_SIZE = 448
-DATA_DIR = '../data'
-BATCH_SIZE = 60
+DATA_DIR = '../../data'
+BATCH_SIZE = 32
 NUM_EPOCHS = 20
 NUM_WORKERS = 3
 LR = 0.0001
-PATIENCE = 7
+PATIENCE = 5
 
 # 数据增强和预处理
 transform = {
@@ -55,7 +54,10 @@ def main():
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
     scaler = torch.amp.GradScaler('cuda')
 
-    model = timm.create_model('tf_efficientnetv2_s.in1k', pretrained=True, num_classes=NUM_CLASSES).cuda()
+    model = timm.create_model('timm/swinv2_tiny_window16_256.ms_in1k', pretrained=True).cuda()
+    model.set_input_size([INPUT_SIZE, INPUT_SIZE])
+
+    model.head.fc = nn.Linear(model.head.fc.in_features, NUM_CLASSES)
 
     model = model.to(device)
 
@@ -96,7 +98,6 @@ def main():
             with torch.autocast(device_type="cuda"):
                 outputs = model(inputs)
                 loss = criterion(outputs, labels)
-
             _, preds = torch.max(outputs, 1)
 
             scaler.scale(loss).backward()
