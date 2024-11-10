@@ -6,3 +6,4 @@ test_img
 download_img_json
 lightning_logs/
 /wandb_logs/
+/__pycache__

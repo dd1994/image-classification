@@ -1,8 +1,9 @@
 import pytorch_lightning as pl
 import torch
 from torch.utils.data import DataLoader
-from torchvision import transforms
+from torchvision.transforms import v2
 from torchvision.datasets import INaturalist
+from torchvision.transforms import RandAugment
 
 from util.transform import ToRGBTransform
 
@@ -16,19 +17,21 @@ class INatBaseDataModule(pl.LightningDataModule):
         self.input_size = input_size
 
         self.transform = {
-            'train': transforms.Compose([
-                ToRGBTransform(),  # 自定义转换
-                transforms.RandomResizedCrop(self.input_size),
-                transforms.RandomHorizontalFlip(),
-                transforms.ToTensor(),
-                transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
+            'train': v2.Compose([
+                ToRGBTransform(),
+                v2.ToImage(), # Convert to tensor, only needed if you had a PIL image
+                v2.RandomResizedCrop(self.input_size),
+                RandAugment(num_ops=2, magnitude=9),
+                v2.ToDtype(torch.float32, scale=True),
+                v2.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
             ]),
-            'val_test': transforms.Compose([
-                ToRGBTransform(),  # 自定义转换
-                transforms.Resize(int(self.input_size * 1.2)),
-                transforms.CenterCrop(self.input_size),
-                transforms.ToTensor(),
-                transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
+            'val_test': v2.Compose([
+                ToRGBTransform(),
+                v2.ToImage(),
+                v2.Resize(int(self.input_size * 1.2)),
+                v2.CenterCrop(self.input_size),
+                v2.ToDtype(torch.float32, scale=True),
+                v2.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
             ])
         }
 
