@@ -5,7 +5,7 @@ from torch import nn as nn
 
 
 class BaseModel(pl.LightningModule):
-    def __init__(self, num_classes: int = 51, learning_rate: float = 1e-4, input_size=448, t_max=20):
+    def __init__(self, t_max=20):
         super().__init__()
         self.save_hyperparameters()
         self.criterion = nn.CrossEntropyLoss()
@@ -54,8 +54,8 @@ class BaseModel(pl.LightningModule):
 
 
 class SwinV2Model(BaseModel):
-    def __init__(self, num_classes: int = 51, learning_rate: float = 1e-4, input_size = 448):
-        super().__init__(num_classes, learning_rate)
+    def __init__(self, num_classes: int = 51, learning_rate: float = 1e-4, input_size = 448, t_max=20):
+        super().__init__(t_max=t_max)
         self.model = timm.create_model('timm/swinv2_tiny_window16_256.ms_in1k', pretrained=True)
         self.model.set_input_size([input_size, input_size])
         self.model.head.fc = nn.Linear(self.model.head.fc.in_features, num_classes)
@@ -65,8 +65,8 @@ class SwinV2Model(BaseModel):
 
 
 class EfficientNetV2Model(BaseModel):
-    def __init__(self, num_classes: int = 51, learning_rate: float = 1e-4):
-        super().__init__(num_classes, learning_rate)
+    def __init__(self, num_classes: int = 51, learning_rate: float = 1e-4, t_max=20):
+        super().__init__(t_max=t_max)
         self.model = timm.create_model('tf_efficientnetv2_s.in1k', pretrained=True)
         self.model.classifier = nn.Linear(self.model.classifier.in_features, num_classes)
 

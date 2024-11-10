@@ -1,5 +1,4 @@
 from pytorch_lightning.cli import LightningCLI
-
 from data_module import INatBaseDataModule
 from model import BaseModel, SwinV2Model, EfficientNetV2Model
 from util.win_sleep import prevent_sleep, restore_sleep
@@ -16,7 +15,7 @@ def cli_main():
             subclass_mode_model=True,
             subclass_mode_data=True,
             save_config_callback=None,
-            seed_everything_default=42,
+            seed_everything_default=66,
             trainer_defaults={
                 "logger": {
                     "class_path": "pytorch_lightning.loggers.WandbLogger",
