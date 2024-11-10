@@ -1,9 +1,10 @@
 {
   "model": {
-      "class_path": "EfficientNetV2Model",
+      "class_path": "SwinV2Model",
       "init_args": {
           "num_classes": 51,
-          "learning_rate": 1e-3
+          "learning_rate": 1e-4,
+          "input_size": 448
       }
   },
   "trainer": {
@@ -24,7 +25,7 @@
             "class_path": "pytorch_lightning.callbacks.ModelCheckpoint",
             "init_args": {
                 "monitor": "val/acc_top1",
-                "filename": "efficientnetv2-{epoch:02d}-{val/acc_top1:.4f}",
+                "filename": "swinv2-inat2021-mini-{epoch:02d}-{val/acc_top1:.4f}",
                 "save_top_k": 3,
                 "mode": "max"
             }
@@ -37,8 +38,13 @@
         }
     ]
   },
-  "data": {
-      "batch_size": 60,
-      "num_workers": 3
+  "data":  {
+    "class_path": "INatDataModule2021",
+    "init_args": {
+      "data_dir": "./data",
+      "batch_size": 32,
+      "num_workers": 3,
+      "input_size": 448
+    }
   }
 }
