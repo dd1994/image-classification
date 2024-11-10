@@ -5,11 +5,12 @@ from torch import nn as nn
 
 
 class BaseModel(pl.LightningModule):
-    def __init__(self, t_max=20):
+    def __init__(self, t_max=20, learning_rate: float = 1e-4,):
         super().__init__()
         self.save_hyperparameters()
         self.criterion = nn.CrossEntropyLoss()
         self.t_max = t_max
+        self.learning_rate = learning_rate
 
     def training_step(self, batch, batch_idx):
         x, y = batch
@@ -40,9 +41,9 @@ class BaseModel(pl.LightningModule):
         return loss
 
     def configure_optimizers(self):
-        optimizer = torch.optim.AdamW(self.parameters(), lr=self.hparams.learning_rate)
+        optimizer = torch.optim.AdamW(self.parameters(), lr=self.learning_rate)
         scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(
-            optimizer, T_max=self.t_max
+            optimizer, T_max=self.t_max,eta_min=self.learning_rate * 0.01
         )
         return {
             "optimizer": optimizer,
@@ -55,7 +56,7 @@ class BaseModel(pl.LightningModule):
 
 class SwinV2Model(BaseModel):
     def __init__(self, num_classes: int = 51, learning_rate: float = 1e-4, input_size = 448, t_max=20):
-        super().__init__(t_max=t_max)
+        super().__init__(t_max=t_max, learning_rate=learning_rate)
         self.model = timm.create_model('timm/swinv2_tiny_window16_256.ms_in1k', pretrained=True)
         self.model.set_input_size([input_size, input_size])
         self.model.head.fc = nn.Linear(self.model.head.fc.in_features, num_classes)
@@ -66,7 +67,7 @@ class SwinV2Model(BaseModel):
 
 class EfficientNetV2Model(BaseModel):
     def __init__(self, num_classes: int = 51, learning_rate: float = 1e-4, t_max=20):
-        super().__init__(t_max=t_max)
+        super().__init__(t_max=t_max, learning_rate=learning_rate)
         self.model = timm.create_model('tf_efficientnetv2_s.in1k', pretrained=True)
         self.model.classifier = nn.Linear(self.model.classifier.in_features, num_classes)
 
