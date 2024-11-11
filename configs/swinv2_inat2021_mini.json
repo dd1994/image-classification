@@ -43,7 +43,7 @@
     "class_path": "INatDataModule2021",
     "init_args": {
       "data_dir": "./data",
-      "batch_size": 32,
+      "batch_size": 20,
       "num_workers": 3,
       "input_size": 448
     }

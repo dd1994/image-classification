@@ -57,7 +57,7 @@ class BaseModel(pl.LightningModule):
 class SwinV2Model(BaseModel):
     def __init__(self, num_classes: int = 51, learning_rate: float = 1e-4, input_size = 448, t_max=20):
         super().__init__(t_max=t_max, learning_rate=learning_rate)
-        self.model = timm.create_model('timm/swinv2_tiny_window16_256.ms_in1k', pretrained=True)
+        self.model = timm.create_model('timm/swinv2_small_window16_256.ms_in1k', pretrained=True)
         self.model.set_input_size([input_size, input_size])
         self.model.head.fc = nn.Linear(self.model.head.fc.in_features, num_classes)
 
