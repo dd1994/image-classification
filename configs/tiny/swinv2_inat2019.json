@@ -3,7 +3,7 @@
       "class_path": "SwinV2Model",
       "init_args": {
           "num_classes": 25,
-          "learning_rate": 2e-4,
+          "learning_rate": 1e-4,
           "input_size": 448,
           "t_max": 20
       }
@@ -40,7 +40,7 @@
     ]
   },
   "data":  {
-    "class_path": "INatDataModuleBefore2019",
+    "class_path": "INatDataModule2019",
     "init_args": {
       "data_dir": "./data/tiny",
       "batch_size": 16,
