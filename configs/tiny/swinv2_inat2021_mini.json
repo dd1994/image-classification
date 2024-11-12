@@ -5,11 +5,11 @@
           "num_classes": 51,
           "learning_rate": 5e-5,
           "input_size": 448,
-          "t_max": 20
+          "t_max": 15
       }
   },
   "trainer": {
-      "max_epochs": 20,
+      "max_epochs": 15,
       "accelerator": "gpu",
       "devices": 1,
       "precision": "16-mixed",
@@ -36,13 +36,19 @@
             "init_args": {
                 "logging_interval": "step"
             }
+        },
+        {
+            "class_path": "pytorch_lightning.callbacks.StochasticWeightAveraging",
+            "init_args": {
+                "swa_lrs": 1e-6
+            }
         }
     ]
   },
   "data":  {
     "class_path": "INatDataModule2021",
     "init_args": {
-      "data_dir": "./data",
+      "data_dir": "./data/tiny",
       "batch_size": 16,
       "num_workers": 3,
       "input_size": 448

@@ -71,7 +71,7 @@ class INatDataModule2021(INatBaseDataModule):
         # 直接加载训练和验证数据集
         self.train_dataset = INaturalist(
             root=self.data_dir,
-            version='2021_train_mini',
+            version='2021_train',
             transform=self.transform['train']
         )
         self.val_dataset = INaturalist(

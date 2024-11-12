@@ -22,7 +22,6 @@ def cli_main():
                     "init_args": {
                         "project": "identify",
                         "log_model": True,
-                        "mode": "offline",
                         "save_dir": "wandb_logs"
                     }
                 }
