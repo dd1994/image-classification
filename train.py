@@ -17,6 +17,7 @@ def cli_main():
             save_config_callback=None,
             seed_everything_default=1,
             trainer_defaults={
+                "accumulate_grad_batches": 4,
                 "logger": {
                     "class_path": "pytorch_lightning.loggers.WandbLogger",
                     "init_args": {

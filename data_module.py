@@ -9,7 +9,7 @@ from util.transform import ToRGBTransform
 
 
 class INatBaseDataModule(pl.LightningDataModule):
-    def __init__(self, data_dir: str = './data', batch_size: int = 32, num_workers: int = 3, input_size: int = 448, num_classes = 51):
+    def __init__(self, data_dir: str = './data/tiny', batch_size: int = 32, num_workers: int = 3, input_size: int = 448, num_classes = 51):
         super().__init__()
         self.data_dir = data_dir
         self.batch_size = batch_size
