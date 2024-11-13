@@ -66,12 +66,12 @@ class INatDataModule2019(INatBaseDataModule):
         self.train_dataset, self.val_dataset = torch.utils.data.random_split(full_dataset, [train_size, val_size])
 
 
-class INatDataModule2021(INatBaseDataModule):
+class INatDataModule2021Mini(INatBaseDataModule):
     def setup(self, stage=None):
         # 直接加载训练和验证数据集
         self.train_dataset = INaturalist(
             root=self.data_dir,
-            version='2021_train',
+            version='2021_train_mini',
             transform=self.transform['train']
         )
         self.val_dataset = INaturalist(
