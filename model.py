@@ -43,7 +43,7 @@ class BaseModel(pl.LightningModule):
     def configure_optimizers(self):
         optimizer = torch.optim.AdamW(self.parameters(), lr=self.learning_rate)
         scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(
-            optimizer, T_max=self.t_max,eta_min=self.learning_rate * 0.01
+            optimizer, T_max=self.t_max, eta_min=self.learning_rate*0.01
         )
         return {
             "optimizer": optimizer,
@@ -68,7 +68,7 @@ class SwinV2Model(BaseModel):
 class EfficientNetV2Model(BaseModel):
     def __init__(self, num_classes: int = 51, learning_rate: float = 1e-4, t_max=20):
         super().__init__(t_max=t_max, learning_rate=learning_rate)
-        self.model = timm.create_model('tf_efficientnetv2_s.in1k', pretrained=True)
+        self.model = timm.create_model('tf_efficientnetv2_l.in21k_ft_in1k', pretrained=True)
         self.model.classifier = nn.Linear(self.model.classifier.in_features, num_classes)
 
     def forward(self, x):

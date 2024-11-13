@@ -3,7 +3,8 @@
       "class_path": "EfficientNetV2Model",
       "init_args": {
           "num_classes": 51,
-          "learning_rate": 1e-3
+          "learning_rate": 1e-3,
+          "t_max": 20
       }
   },
   "trainer": {
@@ -38,12 +39,11 @@
     ]
   },
   "data":  {
-    "class_path": "INatDataModule2021",
+    "class_path": "INatDataModule2021Mini",
     "init_args": {
-      "data_dir": "./data",
-      "batch_size": 60,
-      "num_workers": 3,
-      "input_size": 448
+      "data_dir": "./data/tiny",
+      "batch_size": 22,
+      "num_workers": 3
     }
   }
 }
