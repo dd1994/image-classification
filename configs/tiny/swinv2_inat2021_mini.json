@@ -3,7 +3,7 @@
       "class_path": "SwinV2Model",
       "init_args": {
           "num_classes": 51,
-          "learning_rate": 1e-4,
+          "learning_rate": 1.4e-4,
           "input_size": 448,
           "t_max": 20
       }
