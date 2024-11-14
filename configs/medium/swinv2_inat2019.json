@@ -4,7 +4,8 @@
       "init_args": {
           "num_classes": 1010,
           "learning_rate": 1e-4,
-          "input_size": 448
+          "input_size": 448,
+          "t_max": 20
       }
   },
   "trainer": {
@@ -25,7 +26,7 @@
             "class_path": "pytorch_lightning.callbacks.ModelCheckpoint",
             "init_args": {
                 "monitor": "val/acc_top1",
-                "filename": "swinv2-inat2021-{epoch:02d}-{val/acc_top1:.4f}",
+                "filename": "swinv2-inat2021-mini-{epoch:02d}-{val/acc_top1:.4f}",
                 "save_top_k": 3,
                 "mode": "max"
             }
@@ -39,11 +40,11 @@
     ]
   },
   "data":  {
-    "class_path": "INatDataModule2021",
+    "class_path": "INatDataModule2019",
     "init_args": {
-      "data_dir": "./data",
-      "batch_size": 32,
-      "num_workers": 3,
+      "data_dir": "./data/medium",
+      "batch_size": 16,
+      "num_workers": 14,
       "input_size": 448
     }
   }
