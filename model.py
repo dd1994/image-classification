@@ -43,7 +43,7 @@ class BaseModel(pl.LightningModule):
     def configure_optimizers(self):
         optimizer = torch.optim.AdamW(self.parameters(), lr=self.learning_rate)
         scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(
-            optimizer, T_max=self.t_max, eta_min=self.learning_rate*0.01
+            optimizer, T_max=self.t_max, eta_min=self.learning_rate*0.001
         )
         return {
             "optimizer": optimizer,
