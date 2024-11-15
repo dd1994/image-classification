@@ -64,6 +64,22 @@ class SwinV2Model(BaseModel):
     def forward(self, x):
         return self.model(x)
 
+class HieraModel(BaseModel):
+    def __init__(self, num_classes: int = 51, learning_rate: float = 1e-4, input_size = 448, t_max=20):
+        super().__init__(t_max=t_max, learning_rate=learning_rate)
+        self.model = torch.hub.load("facebookresearch/hiera", model="hiera_base_plus_224", pretrained=True,
+                               checkpoint="mae_in1k_ft_in1k" , input_size = (224, 224))
+        # adjust_pos_embed_shape(self.model, input_size)
+        in_features = self.model.head.projection.in_features
+        self.model.head.projection = nn.Linear(in_features, num_classes)
+
+        # , input_size = (224, 224), num_classes = num_classes
+        # print(self.model)
+        # out_features = self.model.head.projection.out_features
+        # self.model.head.projection.out_features = num_classes
+
+    def forward(self, x):
+        return self.model(x)
 
 class EfficientNetV2Model(BaseModel):
     def __init__(self, num_classes: int = 51, learning_rate: float = 1e-4, t_max=20):
