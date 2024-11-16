@@ -2,14 +2,15 @@
   "model": {
       "class_path": "SwinV2Model",
       "init_args": {
-          "num_classes": 51,
-          "learning_rate": 2e-4,
-          "input_size": 384,
-          "t_max": 20
+          "num_classes": 23,
+          "learning_rate": 1e-5,
+          "input_size": 448,
+          "t_max": 10,
+          "ckpt": "wandb_logs/identify/lfn9pwcx/checkpoints/swinv2-inat2021-mini-epoch=19-val/acc_top1=0.8012.ckpt"
       }
   },
   "trainer": {
-      "max_epochs": 20,
+      "max_epochs": 10,
       "accelerator": "gpu",
       "devices": 1,
       "precision": "16-mixed",
@@ -40,12 +41,12 @@
     ]
   },
   "data":  {
-    "class_path": "INatDataModule2021Mini",
+    "class_path": "INatDataModule2019",
     "init_args": {
       "data_dir": "./data/tiny",
-      "batch_size": 28,
+      "batch_size": 16,
       "num_workers": 3,
-      "input_size": 384
+      "input_size": 448
     }
   }
 }

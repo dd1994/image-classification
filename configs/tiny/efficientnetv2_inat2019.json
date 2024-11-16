@@ -2,7 +2,7 @@
   "model": {
       "class_path": "EfficientNetV2Model",
       "init_args": {
-          "num_classes": 51,
+          "num_classes": 23,
           "learning_rate": 1e-3,
           "t_max": 20
       }
@@ -25,7 +25,7 @@
             "class_path": "pytorch_lightning.callbacks.ModelCheckpoint",
             "init_args": {
                 "monitor": "val/acc_top1",
-                "filename": "efficientnetv2-inat2021-mini-{epoch:02d}-{val/acc_top1:.4f}",
+                "filename": "efficientnetv2-inat2019-{epoch:02d}-{val/acc_top1:.4f}",
                 "save_top_k": 3,
                 "mode": "max"
             }
@@ -39,7 +39,7 @@
     ]
   },
   "data":  {
-    "class_path": "INatDataModule2021Mini",
+    "class_path": "INatDataModule2019",
     "init_args": {
       "data_dir": "./data/tiny",
       "batch_size": 22,

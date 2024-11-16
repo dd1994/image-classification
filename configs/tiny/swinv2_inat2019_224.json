@@ -2,9 +2,9 @@
   "model": {
       "class_path": "SwinV2Model",
       "init_args": {
-          "num_classes": 51,
+          "num_classes": 23,
           "learning_rate": 2e-4,
-          "input_size": 384,
+          "input_size": 224,
           "t_max": 20
       }
   },
@@ -40,12 +40,12 @@
     ]
   },
   "data":  {
-    "class_path": "INatDataModule2021Mini",
+    "class_path": "INatDataModule2019",
     "init_args": {
       "data_dir": "./data/tiny",
-      "batch_size": 28,
-      "num_workers": 3,
-      "input_size": 384
+      "batch_size": 128,
+      "num_workers": 10,
+      "input_size": 224
     }
   }
 }
