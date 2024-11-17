@@ -13,6 +13,7 @@
       "accelerator": "gpu",
       "devices": 1,
       "precision": "16-mixed",
+      "accumulate_grad_batches": 32,
       "callbacks": [
         {
             "class_path": "pytorch_lightning.callbacks.EarlyStopping",
