@@ -4,15 +4,17 @@
       "init_args": {
           "num_classes": 163,
           "learning_rate": 1e-4,
-          "input_size": 384,
-          "t_max": 20
+          "input_size": 448,
+          "t_max": 25
       }
   },
   "trainer": {
-      "max_epochs": 20,
+      "max_epochs": 25,
       "accelerator": "gpu",
       "devices": 1,
       "precision": "16-mixed",
+      "profiler": "simple",
+      "accumulate_grad_batches": 32,
       "callbacks": [
         {
             "class_path": "pytorch_lightning.callbacks.EarlyStopping",
@@ -26,7 +28,7 @@
             "class_path": "pytorch_lightning.callbacks.ModelCheckpoint",
             "init_args": {
                 "monitor": "val/acc_top1",
-                "filename": "swinv2-inat2021-mini-{epoch:02d}-{val/acc_top1:.4f}",
+                "filename": "swinv2-inat2019-{epoch:02d}-{val/acc_top1:.4f}",
                 "save_top_k": 3,
                 "mode": "max"
             }
@@ -43,9 +45,9 @@
     "class_path": "INatDataModule2019",
     "init_args": {
       "data_dir": "./data/small",
-      "batch_size": 28,
-      "num_workers": 3,
-      "input_size": 384
+      "batch_size": 16,
+      "num_workers": 12,
+      "input_size": 448
     }
   }
 }
