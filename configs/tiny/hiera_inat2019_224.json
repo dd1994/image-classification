@@ -3,7 +3,7 @@
       "class_path": "HieraModel",
       "init_args": {
           "num_classes": 23,
-          "learning_rate": 1e-4,
+          "learning_rate": 2e-4,
           "input_size": 224,
           "t_max": 20
       }
@@ -43,7 +43,7 @@
     "class_path": "INatDataModule2019",
     "init_args": {
       "data_dir": "./data/tiny",
-      "batch_size": 16,
+      "batch_size": 128,
       "num_workers": 3,
       "input_size": 224
     }
