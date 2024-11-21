@@ -1,6 +1,7 @@
 import pytorch_lightning as pl
 import timm
 import torch
+from timm.models.hiera import PatchEmbed, Hiera
 from torch import nn as nn
 
 
@@ -65,13 +66,43 @@ class SwinV2Model(BaseModel):
         return self.model(x)
 
 class HieraModel(BaseModel):
-    def __init__(self, num_classes: int = 51, learning_rate: float = 1e-4, input_size = 448, t_max=20):
+    def __init__(self, num_classes: int = 51, learning_rate: float = 1e-4, input_size=448, t_max=20):
         super().__init__(t_max=t_max, learning_rate=learning_rate)
-        self.model = torch.hub.load("facebookresearch/hiera", model="hiera_base_plus_224", pretrained=True, checkpoint="mae_in1k_ft_in1k")
-        in_features = self.model.head.projection.in_features
-        self.model.head.projection = nn.Linear(in_features, num_classes)
+        
+
+        pretrained_model = timm.create_model('hiera_base_plus_224.mae_in1k_ft_in1k', pretrained=True)
+        pretrained_model.head.fc = nn.Linear(pretrained_model.head.fc.in_features, num_classes)
+
+        # 修改模型的输入层以支持 448px 输入
+
+        # self.model = Hiera(
+        #     img_size=(input_size, input_size),  # 设置输入大小为 448x448
+        #     embed_dim=96,  # 嵌入维度
+        #     num_heads=1,   # 注意力头数
+        #     stages=(2, 3, 16, 3),  # 各个阶段的块数
+        #     num_classes=num_classes,  # 类别数
+        #     # 其他参数可以根据需要添加
+        # )
+
+        print(pretrained_model)
+        self.model = Hiera(
+            img_size=(input_size, input_size),  # 设置输入大小为 448x448
+            embed_dim=112,  # 嵌入维度
+            num_heads=2,  # 注意力头数
+            stages=(2, 3, 16, 3),  # 各个阶段的块数
+            num_classes=num_classes,  # 类别数
+            # 其他参数可以根据需要添加
+        )
+        print(self.model)
+        self.model.load_state_dict(pretrained_model.state_dict(), strict=False)
+
+        # self.model.head.fc = nn.Linear(self.model.head.fc.in_features, num_classes)
+
+        # in_features = self.model.head.projection.in_features
+        # self.model.head.projection = nn.Linear(in_features, num_classes)
 
     def forward(self, x):
+        # 直接使用 448px 的输入
         return self.model(x)
 
 
