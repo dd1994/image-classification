@@ -1,4 +1,5 @@
 import pytorch_lightning as pl
+from pytorch_lightning.utilities.types import EVAL_DATALOADERS
 import torch
 from torch.utils.data import DataLoader, default_collate
 from torchvision.transforms import v2
@@ -16,6 +17,9 @@ class INatBaseDataModule(pl.LightningDataModule):
         self.num_workers = num_workers
         self.input_size = input_size
         self.num_classes = num_classes
+        self.train_dataset = None
+        self.test_dataset = None
+        self.val_dataset = None
 
         self.transform = {
             'train': v2.Compose([
@@ -44,6 +48,10 @@ class INatBaseDataModule(pl.LightningDataModule):
     def val_dataloader(self):
         return DataLoader(self.val_dataset, batch_size=self.batch_size,
                           shuffle=False, num_workers=self.num_workers, persistent_workers=True)
+
+    def test_dataloader(self):
+        return DataLoader(self.test_dataset, batch_size=self.batch_size,
+                          shuffle=False, num_workers=self.num_workers, persistent_workers=True)
     
 
 
@@ -60,10 +68,16 @@ class INatDataModule2019(INatBaseDataModule):
             transform=self.transform['train']
         )
 
-        # 按比例划分训练和验证集
-        train_size = int((1 - self.val_split) * len(full_dataset))
-        val_size = len(full_dataset) - train_size
-        self.train_dataset, self.val_dataset = torch.utils.data.random_split(full_dataset, [train_size, val_size])
+        # 按比例划分训练、验证和测试集
+        train_size = int(0.8 * len(full_dataset))  # 80% 训练集
+        val_size = int(0.1 * len(full_dataset))    # 10% 验证集
+        test_size = len(full_dataset) - train_size - val_size  # 剩余 10% 测试集
+        
+        self.train_dataset, self.val_dataset, self.test_dataset = torch.utils.data.random_split(full_dataset, [train_size, val_size, test_size])
+
+        # 应用转换
+        self.val_dataset.dataset.transform = self.transform['val_test']
+        self.test_dataset.dataset.transform = self.transform['val_test']
 
 
 class INatDataModule2021Mini(INatBaseDataModule):
