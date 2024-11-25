@@ -1,5 +1,4 @@
 import pytorch_lightning as pl
-from pytorch_lightning.utilities.types import EVAL_DATALOADERS
 import torch
 from torch.utils.data import DataLoader, default_collate
 from torchvision.transforms import v2
