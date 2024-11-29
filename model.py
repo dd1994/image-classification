@@ -84,6 +84,14 @@ class SwinV2Model(BaseModel):
         self.model.set_input_size([input_size, input_size])
         self.model.head.fc = nn.Linear(self.model.head.fc.in_features, num_classes)
 
+        # checkpoint = torch.load('wandb_logs/identify/zdyuh8p2/checkpoints/swinv2-inat2021-mini-epoch=12-val/acc_top1=0.8633.ckpt')
+        #
+        # state_dict = checkpoint['state_dict']
+        #     # 移除最后一层的权重
+        # state_dict.pop('model.head.fc.weight', None)
+        # state_dict.pop('model.head.fc.bias', None)
+        # self.load_state_dict(state_dict, strict=False)
+
     def forward(self, x):
         return self.model(x)
 

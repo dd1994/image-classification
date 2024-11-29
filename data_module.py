@@ -56,9 +56,8 @@ class INatBaseDataModule(pl.LightningDataModule):
 
 
 class INatDataModule2019(INatBaseDataModule):
-    def __init__(self, val_split: float = 0.2, *args, **kwargs):
+    def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.val_split = val_split  # 验证集比例
 
     def setup(self, stage=None):
         # 加载整个数据集
@@ -89,6 +88,12 @@ class INatDataModule2021Mini(INatBaseDataModule):
             transform=self.transform['train']
         )
         self.val_dataset = INaturalist(
+            root=self.data_dir,
+            version='2021_valid',
+            transform=self.transform['val_test']
+        )
+
+        self.test_dataset = INaturalist(
             root=self.data_dir,
             version='2021_valid',
             transform=self.transform['val_test']
