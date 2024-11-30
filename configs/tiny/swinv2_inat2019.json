@@ -28,6 +28,7 @@
                 "monitor": "val/acc_top1",
                 "filename": "swinv2-inat2019-{epoch:02d}-{val/acc_top1:.4f}",
                 "save_top_k": 3,
+                "save_last": true,
                 "mode": "max"
             }
         },
