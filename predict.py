@@ -1,10 +1,8 @@
-from pytorch_lightning import Trainer
-from PIL import Image
 import torch
 import torchvision.transforms as transforms
-from model import SwinV2Model  # 或者您使用的其他模型类
-import json
+from PIL import Image
 
+from model import SwinV2Model  # 或者您使用的其他模型类
 from util.transform import ToRGBTransform  # 添加导入
 
 input_size = 448
