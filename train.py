@@ -30,8 +30,6 @@ def cli_main():
             }
         )
     finally:
-        # 训练完成后运行测试
-        cli.trainer.test(cli.model, datamodule=cli.datamodule)
         # 训练结束后恢复休眠设置
         restore_sleep()
 
