@@ -1,9 +1,9 @@
 import pytorch_lightning as pl
 import torch
-from torch.utils.data import DataLoader, default_collate
-from torchvision.transforms import v2
+from torch.utils.data import DataLoader
 from torchvision.datasets import INaturalist
 from torchvision.transforms import TrivialAugmentWide
+from torchvision.transforms import v2
 
 from util.transform import ToRGBTransform
 

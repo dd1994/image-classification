@@ -1,6 +1,7 @@
 from pytorch_lightning.cli import LightningCLI
+
 from data_module import INatBaseDataModule
-from model import BaseModel, SwinV2Model, EfficientNetV2Model
+from model import BaseModel
 from util.win_sleep import prevent_sleep, restore_sleep
 
 
