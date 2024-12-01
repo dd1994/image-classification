@@ -3,13 +3,13 @@
       "class_path": "SwinV2Model",
       "init_args": {
           "num_classes": 51,
-          "learning_rate": 0.8e-4,
+          "learning_rate": 1e-4,
           "input_size": 448,
-          "t_max": 15
+          "t_max": 11
       }
   },
   "trainer": {
-      "max_epochs": 15,
+      "max_epochs": 11,
       "accelerator": "gpu",
       "devices": 1,
       "precision": "16-mixed",
@@ -18,7 +18,7 @@
             "class_path": "pytorch_lightning.callbacks.EarlyStopping",
             "init_args": {
                 "monitor": "val/acc_top1",
-                "patience": 7,
+                "patience": 5,
                 "mode": "max"
             }
         },

@@ -70,7 +70,7 @@ class BaseModel(pl.LightningModule):
         warmup_epochs = 1  # 预热的 epoch 数，可以根据需要调整
         warmup_scheduler = torch.optim.lr_scheduler.LambdaLR(
             optimizer,
-            lr_lambda=lambda epoch: 2e-7 if epoch < warmup_epochs else 1
+            lr_lambda=lambda epoch: 1e-6 if epoch < warmup_epochs else 1
         )
 
         scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(

@@ -5,11 +5,11 @@
           "num_classes": 1010,
           "learning_rate": 1e-4,
           "input_size": 448,
-          "t_max": 10
+          "t_max": 15
       }
   },
   "trainer": {
-      "max_epochs": 10,
+      "max_epochs": 15,
       "accelerator": "gpu",
       "devices": 1,
       "precision": "16-mixed",
@@ -19,7 +19,7 @@
             "class_path": "pytorch_lightning.callbacks.EarlyStopping",
             "init_args": {
                 "monitor": "val/acc_top1",
-                "patience": 7,
+                "patience": 5,
                 "mode": "max"
             }
         },
