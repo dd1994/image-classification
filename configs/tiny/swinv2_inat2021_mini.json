@@ -3,13 +3,13 @@
       "class_path": "SwinV2Model",
       "init_args": {
           "num_classes": 51,
-          "learning_rate": 1e-4,
+          "learning_rate": 0.8e-4,
           "input_size": 448,
-          "t_max": 10
+          "t_max": 15
       }
   },
   "trainer": {
-      "max_epochs": 10,
+      "max_epochs": 15,
       "accelerator": "gpu",
       "devices": 1,
       "precision": "16-mixed",
@@ -28,6 +28,7 @@
                 "monitor": "val/acc_top1",
                 "filename": "swinv2-inat2021-mini-{epoch:02d}-{val/acc_top1:.4f}",
                 "save_top_k": 3,
+                "save_last": true,
                 "mode": "max"
             }
         },
