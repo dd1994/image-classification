@@ -27,7 +27,7 @@
             "class_path": "pytorch_lightning.callbacks.ModelCheckpoint",
             "init_args": {
                 "monitor": "val/acc_top1",
-                "filename": "swinv2-inat2021-mini-{epoch:02d}-{val/acc_top1:.4f}",
+                "filename": "swinv2-inat2019-full-{epoch:02d}-{val/acc_top1:.4f}",
                 "save_top_k": 3,
                 "save_last": true,
                 "mode": "max"
