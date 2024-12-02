@@ -3,6 +3,7 @@ import timm
 import torch
 from timm.models.hiera import PatchEmbed, Hiera
 from torch import nn as nn
+from aim.v2.utils import load_pretrained
 
 
 class BaseModel(pl.LightningModule):
@@ -108,6 +109,39 @@ class SwinV2Model(BaseModel):
 
     def forward(self, x):
         return self.model(x)
+
+class AIMv2Model(BaseModel):
+    def __init__(self, num_classes: int = 51, learning_rate: float = 1e-4, input_size = 448, t_max=20):
+        super().__init__(t_max=t_max, learning_rate=learning_rate)
+        self.model = load_pretrained("aimv2-large-patch14-448", backend="torch")
+           # 冻结特征提取层的参数
+        for param in self.model.parameters():
+            param.requires_grad = False
+            
+        self.classifier = nn.Sequential(
+            nn.Flatten(),  # 展平层
+            nn.Linear(1024 * 1024, 512),  # 隐藏层
+            nn.BatchNorm1d(512),  # Batch Normalization 层
+            nn.ReLU(),  # 激活函数
+            nn.Dropout(0.5),  # Dropout 层
+            nn.Linear(512, num_classes)  # 输出层，51 个类别
+        )
+
+        # self.model = timm.create_model('swinv2_base_window12to24_192to384.ms_in22k_ft_in1k', pretrained=True)
+        # self.model.set_input_size([input_size, input_size])
+        # self.model.head.fc = nn.Linear(self.model.head.fc.in_features, num_classes)
+
+        # checkpoint = torch.load('wandb_logs/identify/zdyuh8p2/checkpoints/swinv2-inat2021-mini-epoch=12-val/acc_top1=0.8633.ckpt')
+        #
+        # state_dict = checkpoint['state_dict']
+        #     # 移除最后一层的权重
+        # state_dict.pop('model.head.fc.weight', None)
+        # state_dict.pop('model.head.fc.bias', None)
+        # self.load_state_dict(state_dict, strict=False)
+
+    def forward(self, x):
+        features = self.model(x)
+        return self.classifier(features)
 
 class HieraModel(BaseModel):
     def __init__(self, num_classes: int = 51, learning_rate: float = 1e-4, input_size=448, t_max=20):
