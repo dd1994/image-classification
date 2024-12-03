@@ -5,11 +5,11 @@
           "num_classes": 1010,
           "learning_rate": 7e-5,
           "input_size": 448,
-          "t_max": 11
+          "t_max": 15
       }
   },
   "trainer": {
-      "max_epochs": 11,
+      "max_epochs": 15,
       "accelerator": "gpu",
       "devices": 1,
       "precision": "16-mixed",
