@@ -120,28 +120,22 @@ class AIMv2Model(BaseModel):
             
         self.classifier = nn.Sequential(
             nn.Flatten(),  # 展平层
-            nn.Linear(1024 * 1024, 512),  # 隐藏层
+            nn.MaxPool1d(kernel_size=2),  # 添加最大池化层，注意输入输出维度
+            nn.Linear(1024 * 1024 // 2, 512),  # 隐藏层，调整输入特征数
             nn.BatchNorm1d(512),  # Batch Normalization 层
             nn.ReLU(),  # 激活函数
             nn.Dropout(0.5),  # Dropout 层
             nn.Linear(512, num_classes)  # 输出层，51 个类别
         )
 
-        # self.model = timm.create_model('swinv2_base_window12to24_192to384.ms_in22k_ft_in1k', pretrained=True)
-        # self.model.set_input_size([input_size, input_size])
-        # self.model.head.fc = nn.Linear(self.model.head.fc.in_features, num_classes)
-
-        # checkpoint = torch.load('wandb_logs/identify/zdyuh8p2/checkpoints/swinv2-inat2021-mini-epoch=12-val/acc_top1=0.8633.ckpt')
-        #
-        # state_dict = checkpoint['state_dict']
-        #     # 移除最后一层的权重
-        # state_dict.pop('model.head.fc.weight', None)
-        # state_dict.pop('model.head.fc.bias', None)
-        # self.load_state_dict(state_dict, strict=False)
-
     def forward(self, x):
-        features = self.model(x)
-        return self.classifier(features)
+        x = self.model(x)
+        print(f"Input shape: {x.shape}")
+        for layer in self.classifier:
+            x = layer(x)
+            print(f"After {layer.__class__.__name__}: {x.shape}")
+        return x
+        # return self.classifier(features)
 
 class HieraModel(BaseModel):
     def __init__(self, num_classes: int = 51, learning_rate: float = 1e-4, input_size=448, t_max=20):
