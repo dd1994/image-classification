@@ -121,21 +121,20 @@ class AIMv2Model(BaseModel):
         self.classifier = nn.Sequential(
             nn.Flatten(),  # 展平层
             nn.MaxPool1d(kernel_size=2),  # 添加最大池化层，注意输入输出维度
-            nn.Linear(1024 * 1024 // 2, 512),  # 隐藏层，调整输入特征数
-            nn.BatchNorm1d(512),  # Batch Normalization 层
+            nn.Linear(1024 * 1024 // 2, 1024),  # 第一隐藏层
             nn.ReLU(),  # 激活函数
             nn.Dropout(0.5),  # Dropout 层
-            nn.Linear(512, num_classes)  # 输出层，51 个类别
+            nn.Linear(1024, num_classes)  # 输出层，51 个类别
         )
 
     def forward(self, x):
-        x = self.model(x)
-        print(f"Input shape: {x.shape}")
-        for layer in self.classifier:
-            x = layer(x)
-            print(f"After {layer.__class__.__name__}: {x.shape}")
-        return x
-        # return self.classifier(features)
+        features = self.model(x)
+        # print(f"Input shape: {x.shape}")
+        # for layer in self.classifier:
+        #     x = layer(x)
+        #     print(f"After {layer.__class__.__name__}: {x.shape}")
+        # return x
+        return self.classifier(features)
 
 class HieraModel(BaseModel):
     def __init__(self, num_classes: int = 51, learning_rate: float = 1e-4, input_size=448, t_max=20):
