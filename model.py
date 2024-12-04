@@ -4,6 +4,7 @@ import torch
 from timm.models.hiera import PatchEmbed, Hiera
 from torch import nn as nn
 from aim.v2.utils import load_pretrained
+from transformers import AutoImageProcessor, ConvNextV2ForImageClassification
 
 
 class BaseModel(pl.LightningModule):
@@ -109,6 +110,15 @@ class SwinV2Model(BaseModel):
 
     def forward(self, x):
         return self.model(x)
+
+class ConvNextV2Model(BaseModel):
+    def __init__(self, num_classes: int = 51, learning_rate: float = 1e-4, input_size = 448, t_max=20):
+        super().__init__(t_max=t_max, learning_rate=learning_rate)
+        self.model = ConvNextV2ForImageClassification.from_pretrained("facebook/convnextv2-base-22k-384")
+        self.model.classifier = nn.Linear(self.model.classifier.in_features, num_classes)
+
+    def forward(self, x):
+        return self.model(x).logits
 
 class AIMv2Model(BaseModel):
     def __init__(self, num_classes: int = 51, learning_rate: float = 1e-4, input_size = 448, t_max=20):
