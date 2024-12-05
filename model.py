@@ -1,27 +1,46 @@
 import pytorch_lightning as pl
 import timm
 import torch
-from timm.models.hiera import PatchEmbed, Hiera
+from timm.models.hiera import  Hiera
 from torch import nn as nn
 from aim.v2.utils import load_pretrained
 from transformers import AutoImageProcessor, ConvNextV2ForImageClassification
+from torchvision.transforms import v2
 
 
 class BaseModel(pl.LightningModule):
-    def __init__(self, t_max=20, learning_rate: float = 1e-4,):
+    def __init__(self, num_classes: int = 51, t_max=20, learning_rate: float = 1e-4,):
         super().__init__()
         self.save_hyperparameters()
         self.criterion = nn.CrossEntropyLoss()
         self.t_max = t_max
         self.learning_rate = learning_rate
+        self.num_classes = num_classes
 
     def training_step(self, batch, batch_idx):
         x, y = batch
+        
+        # 20% 的概率使用 CutMix 或 MixUp
+        if torch.rand(1).item() < 0.8:  # 20% probability
+            cutmix = v2.CutMix(num_classes=self.num_classes)
+            mixup = v2.MixUp(num_classes=self.num_classes)
+            cutmix_or_mixup = v2.RandomChoice([cutmix, mixup])
+            # 应用 CutMix 或 MixUp
+            x, y = cutmix_or_mixup(x, y)
+
         outputs = self(x)
         loss = self.criterion(outputs, y)
 
-        _, preds = torch.max(outputs, 1)
-        acc = torch.sum(preds == y).float() / len(y)
+        # 获取预测的类别
+        preds = torch.argmax(outputs, dim=1)  # 预测类别索引
+
+        # 处理标签 y 的形状
+        if y.dim() == 2:  # 如果 y 是 [16, 23]，表示使用了 CutMix 或 MixUp
+            true_labels = torch.argmax(y, dim=1)  # 获取真实类别索引
+        else:  # 如果 y 是 [16]，表示没有使用 CutMix 或 MixUp
+            true_labels = y  # 直接使用 y
+
+        acc = (preds == true_labels).float().mean()  # 计算准确率
         self.log('epoch', self.current_epoch, prog_bar=False)
         self.log('train/loss', loss, prog_bar=True)
         self.log('train/acc', acc, prog_bar=True)
@@ -95,7 +114,7 @@ class BaseModel(pl.LightningModule):
 
 class SwinV2Model(BaseModel):
     def __init__(self, num_classes: int = 51, learning_rate: float = 1e-4, input_size = 448, t_max=20):
-        super().__init__(t_max=t_max, learning_rate=learning_rate)
+        super().__init__(t_max=t_max, num_classes=num_classes,learning_rate=learning_rate)
         self.model = timm.create_model('swinv2_base_window12to24_192to384.ms_in22k_ft_in1k', pretrained=True)
         self.model.set_input_size([input_size, input_size])
         self.model.head.fc = nn.Linear(self.model.head.fc.in_features, num_classes)
@@ -112,6 +131,7 @@ class SwinV2Model(BaseModel):
         return self.model(x)
 
 class ConvNextV2Model(BaseModel):
+    # 在小的数据集上和 swin 不相上下，但是在 iNat2019 这样的数据集上只有 84% 的识别率。
     def __init__(self, num_classes: int = 51, learning_rate: float = 1e-4, input_size = 448, t_max=20):
         super().__init__(t_max=t_max, learning_rate=learning_rate)
         self.model = ConvNextV2ForImageClassification.from_pretrained("facebook/convnextv2-base-22k-384")
