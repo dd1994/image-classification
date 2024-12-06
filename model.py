@@ -133,7 +133,7 @@ class SwinV2Model(BaseModel):
 class ConvNextV2Model(BaseModel):
     # 在小的数据集上和 swin 不相上下，但是在 iNat2019 这样的数据集上只有 84% 的识别率。
     def __init__(self, num_classes: int = 51, learning_rate: float = 1e-4, input_size = 448, t_max=20):
-        super().__init__(t_max=t_max, learning_rate=learning_rate)
+        super().__init__(t_max=t_max, num_classes=num_classes,learning_rate=learning_rate)
         self.model = ConvNextV2ForImageClassification.from_pretrained("facebook/convnextv2-base-22k-384")
         self.model.classifier = nn.Linear(self.model.classifier.in_features, num_classes)
 
@@ -142,7 +142,7 @@ class ConvNextV2Model(BaseModel):
 
 class AIMv2Model(BaseModel):
     def __init__(self, num_classes: int = 51, learning_rate: float = 1e-4, input_size = 448, t_max=20):
-        super().__init__(t_max=t_max, learning_rate=learning_rate)
+        super().__init__(t_max=t_max,num_classes=num_classes, learning_rate=learning_rate)
         self.model = load_pretrained("aimv2-large-patch14-448", backend="torch")
            # 冻结特征提取层的参数
         for param in self.model.parameters():
