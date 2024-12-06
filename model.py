@@ -4,19 +4,68 @@ import torch
 from timm.models.hiera import  Hiera
 from torch import nn as nn
 from aim.v2.utils import load_pretrained
-from transformers import AutoImageProcessor, ConvNextV2ForImageClassification
+from transformers import ConvNextV2ForImageClassification
 from torchvision.transforms import v2
+import numpy as np
+import json
+from collections import Counter
 
+class SeesawLossWithLogits(nn.Module):
+    """
+    This is unofficial implementation for Seesaw loss,
+    which is proposed in the techinical report for LVIS workshop at ECCV 2020.
+    For more detail, please refer https://arxiv.org/pdf/2008.10032.pdf.
+    Args:
+    class_counts: The list which has number of samples for each class.
+                  Should have same length as num_classes.
+    p: Scale parameter which adjust the strength of panishment.
+       Set to 0.8 as a default by following the original paper.
+    """
+
+    def __init__(self, class_counts: np.array, p: float = 0.8, num_classes: int = 51):
+        super().__init__()
+
+        class_counts = torch.FloatTensor(class_counts)
+        conditions = class_counts[:, None] > class_counts[None, :]
+        trues = (class_counts[None, :] / class_counts[:, None]) ** p
+        falses = torch.ones(len(class_counts), len(class_counts))
+        self.s = torch.where(conditions, trues, falses)
+
+        self.num_classes = num_classes
+
+        self.eps = 1.0e-6
+
+    def forward(self, logits, targets):
+        # 如果 targets 是独热编码格式，直接使用
+        if targets.dim() == 2:  # 检查是否为 [batch_size, num_classes]
+            targets = targets.float().to(targets.device)  # 确保是浮点型
+        else:
+            targets = nn.functional.one_hot(targets, num_classes=self.num_classes).float().to(targets.device)
+        max_element, _ = logits.max(axis=-1)
+        logits = logits - max_element[:, None]  # to prevent overflow
+        self.s = self.s.to(targets.device)
+        numerator = torch.exp(logits)
+        denominator = (
+            (1 - targets)[:, None, :]
+            * self.s[None, :, :]
+            * torch.exp(logits)[:, None, :]).sum(axis=-1) \
+            + torch.exp(logits)
+
+        sigma = numerator / (denominator + self.eps)
+        loss = (- targets * torch.log(sigma + self.eps)).sum(-1)
+        return loss.mean()
 
 class BaseModel(pl.LightningModule):
-    def __init__(self, num_classes: int = 51, t_max=20, learning_rate: float = 1e-4,):
+    def __init__(self, num_classes: int = 51, t_max=20, learning_rate: float = 1e-4, class_counts=None):
         super().__init__()
         self.save_hyperparameters()
         self.criterion = nn.CrossEntropyLoss()
         self.t_max = t_max
         self.learning_rate = learning_rate
         self.num_classes = num_classes
-
+        self.class_counts = class_counts
+        self.loss_tr = SeesawLossWithLogits(class_counts, num_classes=num_classes)
+    
     def training_step(self, batch, batch_idx):
         x, y = batch
         
@@ -29,7 +78,7 @@ class BaseModel(pl.LightningModule):
             x, y = cutmix_or_mixup(x, y)
 
         outputs = self(x)
-        loss = self.criterion(outputs, y)
+        loss = self.loss_tr(outputs, y)
 
         # 获取预测的类别
         preds = torch.argmax(outputs, dim=1)  # 预测类别索引
@@ -114,7 +163,20 @@ class BaseModel(pl.LightningModule):
 
 class SwinV2Model(BaseModel):
     def __init__(self, num_classes: int = 51, learning_rate: float = 1e-4, input_size = 448, t_max=20):
-        super().__init__(t_max=t_max, num_classes=num_classes,learning_rate=learning_rate)
+        with open('data/medium/train2019.json', 'r') as f:
+            data = json.load(f)
+
+        # 提取所有的 category_id
+        category_ids = [annotation['category_id'] for annotation in data['annotations']]
+
+        # 统计每个类别的样本数量
+        class_counts = Counter(category_ids)
+
+        # 将结果转换为列表，确保按类别 ID 排序
+        # 假设类别 ID 从 0 开始，最大类别 ID 为 1000（根据实际情况调整）
+        class_counts = [class_counts.get(i, 0) for i in range(num_classes)]
+
+        super().__init__(t_max=t_max, num_classes=num_classes,class_counts=class_counts, learning_rate=learning_rate)
         self.model = timm.create_model('swinv2_base_window12to24_192to384.ms_in22k_ft_in1k', pretrained=True)
         self.model.set_input_size([input_size, input_size])
         self.model.head.fc = nn.Linear(self.model.head.fc.in_features, num_classes)
