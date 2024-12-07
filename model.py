@@ -21,6 +21,12 @@ class BaseModel(pl.LightningModule):
         self.learning_rate = learning_rate
         self.num_classes = num_classes
         self.class_counts = class_counts
+         # 如果 class_counts 没有传入，则初始化为全零的列表
+        if class_counts is None:
+            self.class_counts = [1] * num_classes
+        else:
+            self.class_counts = class_counts
+            
         self.loss_tr = SeesawLossWithLogits(class_counts, num_classes=num_classes)
     
     def training_step(self, batch, batch_idx):
