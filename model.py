@@ -29,7 +29,7 @@ class BaseModel(pl.LightningModule):
         self.loss_tr = SeesawLossWithLogits(class_counts, num_classes=num_classes)
     
     def training_step(self, batch, batch_idx):
-        x, y = batch
+        images, labels = batch
         
         # 20% 的概率使用 CutMix 或 MixUp
         if torch.rand(1).item() < 0.8:  # 20% probability
@@ -37,19 +37,19 @@ class BaseModel(pl.LightningModule):
             mixup = v2.MixUp(num_classes=self.num_classes)
             cutmix_or_mixup = v2.RandomChoice([cutmix, mixup])
             # 应用 CutMix 或 MixUp
-            x, y = cutmix_or_mixup(x, y)
+            images, labels = cutmix_or_mixup(images, labels)
 
-        outputs = self(x)
-        loss = self.loss_tr(outputs, y)
+        outputs = self(images)
+        loss = self.loss_tr(outputs, labels)
 
         # 获取预测的类别
         preds = torch.argmax(outputs, dim=1)  # 预测类别索引
 
-        # 处理标签 y 的形状
-        if y.dim() == 2:  # 如果 y 是 [16, 23]，表示使用了 CutMix 或 MixUp
-            true_labels = torch.argmax(y, dim=1)  # 获取真实类别索引
-        else:  # 如果 y 是 [16]，表示没有使用 CutMix 或 MixUp
-            true_labels = y  # 直接使用 y
+        # 处理标签 labels 的形状
+        if labels.dim() == 2:  # 如果 labels 是 [16, 23]，表示使用了 CutMix 或 MixUp
+            true_labels = torch.argmax(labels, dim=1)  # 获取真实类别索引
+        else:  # 如果 labels 是 [16]，表示没有使用 CutMix 或 MixUp
+            true_labels = labels  # 直接使用 labels
 
         acc = (preds == true_labels).float().mean()  # 计算准确率
         self.log('epoch', self.current_epoch, prog_bar=False)
@@ -219,7 +219,7 @@ class HieraModel(BaseModel):
             embed_dim=112,  # 嵌入维度
             num_heads=2,  # 注意力头数
             stages=(2, 3, 16, 3),  # 各个阶段的块数
-            num_classes=num_classes,  # 类别数
+            num_classes=num_classes,  # 类���数
             # 其他参数可以根据需要添加
         )
         print(self.model)
