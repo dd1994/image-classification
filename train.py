@@ -16,7 +16,7 @@ def cli_main():
             subclass_mode_model=True,
             subclass_mode_data=True,
             save_config_callback=None,
-            seed_everything_default=42,
+            seed_everything_default=666,
             trainer_defaults={
                 "accumulate_grad_batches": 8,
                 "logger": {
