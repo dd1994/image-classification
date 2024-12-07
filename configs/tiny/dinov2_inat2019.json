@@ -44,7 +44,7 @@
     "class_path": "INatDataModule2019",
     "init_args": {
       "data_dir": "./data/tiny",
-      "batch_size": 64,
+      "batch_size": 96,
       "num_workers": 3,
       "input_size": 448
     }

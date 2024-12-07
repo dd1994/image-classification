@@ -144,7 +144,7 @@ class SwinV2Model(BaseModel):
 class ConvNextV2Model(BaseModel):
     # 在小的数据集上和 swin 不相上下，但是在 iNat2019 这样的数据集上只有 84% 的识别率。
     def __init__(self, num_classes: int = 51, learning_rate: float = 1e-4, input_size = 448, t_max=20):
-        super().__init__(t_max=t_max, num_classes=num_classes,learning_rate=learning_rate)
+        super().__init__(t_max=t_max,class_counts=get_inat2019_class_counts(num_classes), num_classes=num_classes,learning_rate=learning_rate)
         self.model = ConvNextV2ForImageClassification.from_pretrained("facebook/convnextv2-base-22k-384")
         self.model.classifier = nn.Linear(self.model.classifier.in_features, num_classes)
 
@@ -156,7 +156,7 @@ class DinoV2Model(BaseModel):
         super().__init__(t_max=t_max, class_counts=get_inat2019_class_counts(num_classes), num_classes=num_classes, learning_rate=learning_rate)
 
         # 引入 DINO V2 模型
-        self.model =  torch.hub.load('facebookresearch/dinov2', 'dinov2_vitb14_reg_lc')
+        self.model =  torch.hub.load('facebookresearch/dinov2', 'dinov2_vitl14_reg_lc')
         self.model.linear_head = nn.Linear(self.model.linear_head.in_features, num_classes)
 
         # 冻结特征提取层的参数，但不冻结最后一层分类层
