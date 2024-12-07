@@ -1,14 +1,13 @@
 import pytorch_lightning as pl
 import timm
 import torch
-from timm.models.hiera import  Hiera
-from torch import nn as nn
 from aim.v2.utils import load_pretrained
-from transformers import ConvNextV2ForImageClassification
+from timm.models.hiera import Hiera
+from torch import nn as nn
 from torchvision.transforms import v2
-import json
-from collections import Counter
+from transformers import ConvNextV2ForImageClassification
 
+from util.get_inat_2019_class_counts import get_inat2019_class_counts
 from util.seesaw_loss import SeesawLossWithLogits
 
 
@@ -26,7 +25,7 @@ class BaseModel(pl.LightningModule):
             self.class_counts = [1] * num_classes
         else:
             self.class_counts = class_counts
-            
+
         self.loss_tr = SeesawLossWithLogits(class_counts, num_classes=num_classes)
     
     def training_step(self, batch, batch_idx):
@@ -126,20 +125,7 @@ class BaseModel(pl.LightningModule):
 
 class SwinV2Model(BaseModel):
     def __init__(self, num_classes: int = 51, learning_rate: float = 1e-4, input_size = 448, t_max=20):
-        with open('data/medium/train2019.json', 'r') as f:
-            data = json.load(f)
-
-        # 提取所有的 category_id
-        category_ids = [annotation['category_id'] for annotation in data['annotations']]
-
-        # 统计每个类别的样本数量
-        class_counts = Counter(category_ids)
-
-        # 将结果转换为列表，确保按类别 ID 排序
-        # 假设类别 ID 从 0 开始，最大类别 ID 为 1000（根据实际情况调整）
-        class_counts = [class_counts.get(i, 0) for i in range(num_classes)]
-
-        super().__init__(t_max=t_max, num_classes=num_classes,class_counts=class_counts, learning_rate=learning_rate)
+        super().__init__(t_max=t_max, num_classes=num_classes,class_counts=get_inat2019_class_counts(num_classes), learning_rate=learning_rate)
         self.model = timm.create_model('swinv2_base_window12to24_192to384.ms_in22k_ft_in1k', pretrained=True)
         self.model.set_input_size([input_size, input_size])
         self.model.head.fc = nn.Linear(self.model.head.fc.in_features, num_classes)
@@ -164,6 +150,23 @@ class ConvNextV2Model(BaseModel):
 
     def forward(self, x):
         return self.model(x).logits
+
+class DinoV2Model(BaseModel):
+    def __init__(self, num_classes: int = 51, learning_rate: float = 1e-4, input_size = 448, t_max=20):
+        super().__init__(t_max=t_max, class_counts=get_inat2019_class_counts(num_classes), num_classes=num_classes, learning_rate=learning_rate)
+
+        # 引入 DINO V2 模型
+        self.model =  torch.hub.load('facebookresearch/dinov2', 'dinov2_vitb14_reg_lc')
+        self.model.linear_head = nn.Linear(self.model.linear_head.in_features, num_classes)
+
+        # 冻结特征提取层的参数，但不冻结最后一层分类层
+        for name, param in self.model.named_parameters():
+            if 'linear_head' not in name:  # 确保不冻结分类层
+                param.requires_grad = False
+
+    def forward(self, x):
+        return self.model(x)
+
 
 class AIMv2Model(BaseModel):
     def __init__(self, num_classes: int = 51, learning_rate: float = 1e-4, input_size = 448, t_max=20):
