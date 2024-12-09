@@ -40,7 +40,7 @@ class BaseModel(pl.LightningModule):
             images, labels = cutmix_or_mixup(images, labels)
 
         outputs = self(images)
-        loss = self.loss_tr(outputs, labels)
+        loss = self.criterion(outputs, labels)
 
         # 获取预测的类别
         preds = torch.argmax(outputs, dim=1)  # 预测类别索引
