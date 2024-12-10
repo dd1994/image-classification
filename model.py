@@ -105,7 +105,7 @@ class BaseModel(pl.LightningModule):
         )
 
         scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(
-            optimizer, T_max=(self.t_max - warmup_epochs), eta_min=self.learning_rate*0.001
+            optimizer, T_max=(self.t_max - warmup_epochs), eta_min=self.learning_rate*0.0001
         )
 
         combined_scheduler = torch.optim.lr_scheduler.SequentialLR(
