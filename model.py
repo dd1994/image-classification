@@ -26,7 +26,7 @@ class BaseModel(pl.LightningModule):
         else:
             self.class_counts = class_counts
 
-        self.loss_tr = SeesawLossWithLogits(class_counts, num_classes=num_classes)
+        # self.loss_tr = SeesawLossWithLogits(class_counts, num_classes=num_classes)
     
     def training_step(self, batch, batch_idx):
         images, labels = batch
