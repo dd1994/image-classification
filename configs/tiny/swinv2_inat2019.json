@@ -3,13 +3,13 @@
       "class_path": "SwinV2Model",
       "init_args": {
           "num_classes": 23,
-          "learning_rate": 7e-5,
+          "learning_rate": 1e-4,
           "input_size": 448,
-          "t_max": 15
+          "t_max": 12
       }
   },
   "trainer": {
-      "max_epochs": 15,
+      "max_epochs": 12,
       "accelerator": "gpu",
       "devices": 1,
       "precision": "16-mixed",
