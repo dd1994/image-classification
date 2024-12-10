@@ -19,7 +19,7 @@
             "class_path": "pytorch_lightning.callbacks.EarlyStopping",
             "init_args": {
                 "monitor": "val/acc_top1",
-                "patience": 5,
+                "patience": 7,
                 "mode": "max"
             }
         },
