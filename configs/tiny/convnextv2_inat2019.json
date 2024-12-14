@@ -3,13 +3,13 @@
       "class_path": "ConvNextV2Model",
       "init_args": {
           "num_classes": 23,
-          "learning_rate": 1e-4,
+          "learning_rate": 1.5e-4,
           "input_size": 448,
-          "t_max": 11
+          "t_max": 15
       }
   },
   "trainer": {
-      "max_epochs": 11,
+      "max_epochs": 15,
       "accelerator": "gpu",
       "devices": 1,
       "precision": "16-mixed",
