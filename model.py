@@ -129,17 +129,34 @@ class SwinV2Model(BaseModel):
         self.model.set_input_size([input_size, input_size])
         self.model.head.fc = nn.Linear(self.model.head.fc.in_features, num_classes)
 
-        # checkpoint = torch.load('wandb_logs/identify/zdyuh8p2/checkpoints/swinv2-inat2021-mini-epoch=12-val/acc_top1=0.8633.ckpt')
-        #
-        # state_dict = checkpoint['state_dict']
-        #     # 移除最后一层的权重
-        # state_dict.pop('model.head.fc.weight', None)
-        # state_dict.pop('model.head.fc.bias', None)
-        # self.load_state_dict(state_dict, strict=False)
-
     def forward(self, x):
         return self.model(x)
 
+class SwinV2FixResModel(BaseModel):
+    def __init__(self, num_classes: int = 51, learning_rate: float = 1e-4, input_size = 448, t_max=20, ckpt: str = ''):
+        super().__init__(t_max=t_max, num_classes=num_classes,class_counts=get_inat2019_class_counts(num_classes), learning_rate=learning_rate)
+        self.model = timm.create_model('swinv2_base_window12to24_192to384.ms_in22k_ft_in1k', pretrained=True)
+        self.model.set_input_size([input_size, input_size])
+        self.model.head.fc = nn.Linear(self.model.head.fc.in_features, num_classes)
+
+        checkpoint = torch.load(ckpt)
+
+        state_dict = checkpoint['state_dict']
+            # 移除最后一层的权重
+        # state_dict.pop('model.head.fc.weight', None)
+        # state_dict.pop('model.head.fc.bias', None)
+        self.load_state_dict(state_dict, strict=False)
+        self.model.set_input_size([512, 512])
+        # Freeze the backbone layers
+        for param in self.model.parameters():
+            param.requires_grad = False  # Freeze all parameters
+
+        # Unfreeze the classification layer
+        for param in self.model.head.fc.parameters():
+            param.requires_grad = True  # Fine-tune the classification layer
+
+    def forward(self, x):
+        return self.model(x)
 class ConvNextV2Model(BaseModel):
     # 在小的数据集上和 swin 不相上下，但是在 iNat2019 这样的数据集上只有 84% 的识别率。
     def __init__(self, num_classes: int = 51, learning_rate: float = 1e-4, input_size = 448, t_max=20):
