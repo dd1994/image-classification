@@ -6,7 +6,7 @@
           "learning_rate": 3e-5,
           "input_size": 512,
           "t_max": 4,
-          "ckpt": "wandb_logs/identify/c118m4sn/checkpoints/swinv2-inat2019-tiny-epoch=14-val/acc_top1=0.9282.ckpt"
+          "ckpt": "wandb_logs/identify/c4cs82pu/checkpoints/last.ckpt"
       }
   },
   "trainer": {
