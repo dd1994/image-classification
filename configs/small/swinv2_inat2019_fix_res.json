@@ -6,7 +6,7 @@
           "learning_rate": 3e-5,
           "input_size": 512,
           "t_max": 4,
-          "ckpt": "wandb_logs/identify/ehsweq9c/checkpoints/last.ckpt"
+          "ckpt": "wandb_logs/identify/bttnlrqd/checkpoints/last.ckpt"
       }
   },
   "trainer": {
@@ -27,7 +27,7 @@
             "class_path": "pytorch_lightning.callbacks.ModelCheckpoint",
             "init_args": {
                 "monitor": "val/acc_top1",
-                "filename": "swinv2-inat2019-tiny-fix-res-{epoch:02d}-{val/acc_top1:.4f}",
+                "filename": "swinv2-inat2019-small-fix-res-{epoch:02d}-{val/acc_top1:.4f}",
                 "save_top_k": 3,
                 "save_last": true,
                 "mode": "max"
