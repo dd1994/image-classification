@@ -68,7 +68,7 @@ class INatDataModule2019(INatBaseDataModule):
         )
 
         # 按比例划分训练、验证和测试集
-        train_size = int(0.8 * len(full_dataset))  # 80% 训练集
+        train_size = int(0.5 * len(full_dataset))  # 50% 训练集
         val_size = int(0.1 * len(full_dataset))    # 10% 验证集
         test_size = len(full_dataset) - train_size - val_size  # 剩余 10% 测试集
         

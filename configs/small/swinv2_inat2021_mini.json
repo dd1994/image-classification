@@ -2,8 +2,8 @@
   "model": {
       "class_path": "SwinV2Model",
       "init_args": {
-          "num_classes": 51,
-          "learning_rate": 1e-4,
+          "num_classes": 200,
+          "learning_rate": 2e-4,
           "input_size": 448,
           "t_max": 15
       }
@@ -13,7 +13,7 @@
       "accelerator": "gpu",
       "devices": 1,
       "precision": "16-mixed",
-      "accumulate_grad_batches": 32,
+      "accumulate_grad_batches": 8,
       "callbacks": [
         {
             "class_path": "pytorch_lightning.callbacks.EarlyStopping",
@@ -27,7 +27,7 @@
             "class_path": "pytorch_lightning.callbacks.ModelCheckpoint",
             "init_args": {
                 "monitor": "val/acc_top1",
-                "filename": "swinv2-inat2021-mini-{epoch:02d}-{val/acc_top1:.4f}",
+                "filename": "swinv2-inat2021-small-{epoch:02d}-{val/acc_top1:.4f}",
                 "save_top_k": 3,
                 "save_last": true,
                 "mode": "max"
@@ -44,7 +44,7 @@
   "data":  {
     "class_path": "INatDataModule2021Mini",
     "init_args": {
-      "data_dir": "./data/tiny",
+      "data_dir": "./data/small",
       "batch_size": 16,
       "num_workers": 12,
       "input_size": 448
