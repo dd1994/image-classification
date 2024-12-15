@@ -6,7 +6,7 @@
           "learning_rate": 3e-5,
           "input_size": 512,
           "t_max": 4,
-          "ckpt": "wandb_logs/identify/bttnlrqd/checkpoints/last.ckpt"
+          "ckpt": "wandb_logs/identify/fi8eaghf/checkpoints/last.ckpt"
       }
   },
   "trainer": {
