@@ -99,7 +99,7 @@ class BaseModel(pl.LightningModule):
         optimizer = torch.optim.AdamW(self.parameters(), lr=self.learning_rate, weight_decay=2e-5)
         
         # 添加学习率预热
-        warmup_epochs = 2
+        warmup_epochs = 3
         warmup_scheduler = torch.optim.lr_scheduler.LinearLR(
             optimizer, start_factor=0.01, total_iters = warmup_epochs
         )
