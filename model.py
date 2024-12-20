@@ -99,7 +99,7 @@ class BaseModel(pl.LightningModule):
         optimizer = torch.optim.AdamW(self.parameters(), lr=self.learning_rate, weight_decay=2e-5)
         
         # 添加学习率预热
-        warmup_epochs = 3
+        warmup_epochs = 2
         warmup_scheduler = torch.optim.lr_scheduler.LinearLR(
             optimizer, start_factor=0.01, total_iters = warmup_epochs
         )
@@ -148,12 +148,12 @@ class SwinV2FixResModel(BaseModel):
         self.load_state_dict(state_dict, strict=False)
         self.model.set_input_size([input_size, input_size])
         # Freeze the backbone layers
-        for param in self.model.parameters():
-            param.requires_grad = False  # Freeze all parameters
-
-        # Unfreeze the classification layer
-        for param in self.model.head.fc.parameters():
-            param.requires_grad = True  # Fine-tune the classification layer
+        # for param in self.model.parameters():
+        #     param.requires_grad = False  # Freeze all parameters
+        #
+        # # Unfreeze the classification layer
+        # for param in self.model.head.fc.parameters():
+        #     param.requires_grad = True  # Fine-tune the classification layer
 
     def forward(self, x):
         return self.model(x)

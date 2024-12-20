@@ -4,9 +4,9 @@
       "init_args": {
           "num_classes": 163,
           "learning_rate": 3e-5,
-          "input_size": 512,
+          "input_size": 448,
           "t_max": 4,
-          "ckpt": "wandb_logs/identify/fi8eaghf/checkpoints/last.ckpt"
+          "ckpt": "wandb_logs/identify/aolaubgz/checkpoints/last.ckpt"
       }
   },
   "trainer": {
@@ -45,9 +45,9 @@
     "class_path": "INatDataModule2019",
     "init_args": {
       "data_dir": "./data/small",
-      "batch_size": 92,
+      "batch_size": 16,
       "num_workers": 3,
-      "input_size": 512
+      "input_size": 448
     }
   }
 }
