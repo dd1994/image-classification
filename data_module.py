@@ -5,6 +5,7 @@ from torchvision.datasets import INaturalist
 from torchvision.transforms import TrivialAugmentWide
 from torchvision.transforms import v2
 
+from dataSet.AmphibiansDataset import AmphibiansDataset
 from util.transform import ToRGBTransform
 
 
@@ -24,6 +25,7 @@ class INatBaseDataModule(pl.LightningDataModule):
             'train': v2.Compose([
                 ToRGBTransform(),
                 v2.ToImage(), # Convert to tensor, only needed if you had a PIL image
+                v2.Resize(800),
                 v2.RandomResizedCrop(self.input_size),
                 TrivialAugmentWide(),
                 v2.ToDtype(torch.float32, scale=True),
@@ -53,6 +55,30 @@ class INatBaseDataModule(pl.LightningDataModule):
         return DataLoader(self.test_dataset, batch_size=self.batch_size,
                           shuffle=False, num_workers=self.num_workers, persistent_workers=True)
     
+
+class AmphibiansData(INatBaseDataModule):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+    def setup(self, stage=None):
+        # 加载整个数据集
+        full_dataset = AmphibiansDataset(
+            root_dir=self.data_dir,
+            transform=self.transform['train']
+        )
+
+        # 按比例划分训练、验证和测试集
+        train_size = int(0.8 * len(full_dataset))  # 50% 训练集
+        val_size = int(0.1 * len(full_dataset))  # 10% 验证集
+        test_size = len(full_dataset) - train_size - val_size  # 剩余 10% 测试集
+
+        self.train_dataset, self.val_dataset, self.test_dataset = torch.utils.data.random_split(full_dataset,
+                                                                                                [train_size, val_size,
+                                                                                                 test_size])
+
+        # 应用转换
+        self.val_dataset.dataset.transform = self.transform['val_test']
+        self.test_dataset.dataset.transform = self.transform['val_test']
 
 
 class INatDataModule2019(INatBaseDataModule):

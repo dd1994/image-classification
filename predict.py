@@ -4,20 +4,33 @@ from PIL import Image
 
 from model import SwinV2Model  # 或者您使用的其他模型类
 from util.transform import ToRGBTransform  # 添加导入
+import csv
+
+
+def load_index_to_species_id_from_csv(csv_file_path):
+    index_to_species_id = {}
+    with open(csv_file_path, mode='r') as file:
+        reader = csv.reader(file)
+        next(reader)  # 跳过表头行
+        for row in reader:
+            index, species_id = row
+            index_to_species_id[int(index)] = species_id
+    return index_to_species_id
 
 input_size = 448
 
 def main():
-
+    csv_file_path = 'index_to_species_id.csv'
+    index_to_species_id = load_index_to_species_id_from_csv(csv_file_path)
     # 创建模型实例
-    model = SwinV2Model.load_from_checkpoint('wandb_logs/identify/zdyuh8p2/checkpoints/swinv2-inat2021-mini-epoch=12-val/acc_top1=0.8633.ckpt')  # 替换为您的检查点路径
+    model = SwinV2Model.load_from_checkpoint('wandb_logs/identify/dwt4lj4q/checkpoints/swinv2-Amphibians-small-epoch=13-val/acc_top1=0.9831.ckpt')  # 替换为您的检查点路径
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     model.to(device)
 
 
     # 加载本地图片
-    img_path = 'data/predict/2019/2.jpeg'  # 替换为您的图片路径
+    img_path = 'data/predict/amp/test.jpg'  # 替换为您的图片路径
     image = Image.open(img_path)
 
     # 预处理图片
@@ -43,7 +56,10 @@ def main():
 
     # 输出 top 3 预测结果和概率
     for i in range(top_k):
-        print(f"预测类别: {top_classes[0][i].item()}, 概率: {top_probs[0][i].item():.4f}")
+        class_index = top_classes[0][i].item()
+        species_id = index_to_species_id[class_index]
+        probability = top_probs[0][i].item()
+        print(f"预测物种 ID: {species_id}, 概率: {probability:.4f}")
 
 if __name__ == '__main__':
     main() 

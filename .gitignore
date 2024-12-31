@@ -8,3 +8,4 @@ lightning_logs/
 /wandb_logs/
 /__pycache__
 *.pyc
+index_to_species_id.csv
