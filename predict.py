@@ -27,16 +27,11 @@ def main():
 
     # 创建模型实例
     model = SwinV2Model(num_classes = 167)
-    model.load_state_dict(torch.load('./model.pth', map_location=torch.device('cuda:0')))
+    model.load_state_dict(torch.load('./model.pth', map_location=torch.device('cuda:0'), weights_only=True))
 
     # 如果模型是在Lightning中训练的，你可能需要只提取模型状态字典
 
     # state_dict = checkpoint['state_dict']
-
-    # 因为Lightning会添加前缀到权重名称，所以需要去掉这个前缀
-    # 注意：以下代码假设所有键都以 "model." 开头
-    # print(state_dict)
-    # state_dict = {k.replace("model.", ""): v for k, v in state_dict.items()}
 
     # 加载模型权重
     # model.load_state_dict(state_dict)
@@ -45,7 +40,7 @@ def main():
     model.eval()
 
     # 保存模型为.pth文件
-    torch.save(model.state_dict(), 'model.pth')
+    # torch.save(model.state_dict(), 'model.pth')
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     model.to(device)
@@ -53,7 +48,7 @@ def main():
 
 
     # 加载本地图片
-    img_path = 'data/predict/amp/50a3be3eb13533fa8b25e961a5d3fd1f40345b6c.jpg'  # 替换为您的图片路径
+    img_path = 'data/predict/amp/ef65aad3fd1f4134b6e802c6321f95cad0c85e21.jpg'  # 替换为您的图片路径
     image = Image.open(img_path)
 
     # 预处理图片

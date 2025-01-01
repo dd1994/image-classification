@@ -67,18 +67,27 @@ class AmphibiansData(INatBaseDataModule):
             transform=self.transform['train']
         )
 
-        # 按比例划分训练、验证和测试集
-        train_size = int(0.8 * len(full_dataset))  # 50% 训练集
-        val_size = int(0.1 * len(full_dataset))  # 10% 验证集
-        test_size = len(full_dataset) - train_size - val_size  # 剩余 10% 测试集
+        train_size = int(0.8 * len(full_dataset))
+        val_size = len(full_dataset) - train_size
 
         self.train_dataset, self.val_dataset, self.test_dataset = torch.utils.data.random_split(full_dataset,
-                                                                                                [train_size, val_size,
-                                                                                                 test_size])
+                                                                                                [train_size, val_size])
 
         # 应用转换
         self.val_dataset.dataset.transform = self.transform['val_test']
-        self.test_dataset.dataset.transform = self.transform['val_test']
+
+        # 按比例划分训练、验证和测试集
+        # train_size = int(0.8 * len(full_dataset))  # 50% 训练集
+        # val_size = int(0.1 * len(full_dataset))  # 10% 验证集
+        # test_size = len(full_dataset) - train_size - val_size  # 剩余 10% 测试集
+        #
+        # self.train_dataset, self.val_dataset, self.test_dataset = torch.utils.data.random_split(full_dataset,
+        #                                                                                         [train_size, val_size,
+        #                                                                                          test_size])
+        #
+        # # 应用转换
+        # self.val_dataset.dataset.transform = self.transform['val_test']
+        # self.test_dataset.dataset.transform = self.transform['val_test']
 
 
 class INatDataModule2019(INatBaseDataModule):
