@@ -48,7 +48,7 @@ def main():
 
 
     # 加载本地图片
-    img_path = 'data/predict/amp/ef65aad3fd1f4134b6e802c6321f95cad0c85e21.jpg'  # 替换为您的图片路径
+    img_path = 'data/predict/amp/e8f085d6277f9e2f861e1dbd0830e924b999f3d3.jpg'  # 替换为您的图片路径
     image = Image.open(img_path)
 
     # 预处理图片

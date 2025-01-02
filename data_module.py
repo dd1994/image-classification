@@ -70,7 +70,7 @@ class AmphibiansData(INatBaseDataModule):
         train_size = int(0.8 * len(full_dataset))
         val_size = len(full_dataset) - train_size
 
-        self.train_dataset, self.val_dataset, self.test_dataset = torch.utils.data.random_split(full_dataset,
+        self.train_dataset, self.val_dataset = torch.utils.data.random_split(full_dataset,
                                                                                                 [train_size, val_size])
 
         # 应用转换
