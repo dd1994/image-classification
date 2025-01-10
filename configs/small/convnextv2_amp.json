@@ -45,7 +45,7 @@
     "class_path": "AmphibiansData",
     "init_args": {
       "data_dir": "./data/large/Amphibians",
-      "batch_size": 16,
+      "batch_size": 22,
       "num_workers": 12,
       "input_size": 448
     }
