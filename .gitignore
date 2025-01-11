@@ -11,3 +11,4 @@ lightning_logs/
 index_to_species_id.csv
 index_to_species_name.csv
 index_to_species_reptilia.csv
+*.csv

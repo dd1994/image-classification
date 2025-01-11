@@ -13,7 +13,7 @@ def save_index_to_species_id_to_csv(index_to_species_id, csv_file_path):
             writer.writerow([index, species_id])
 
 class SpecialCateDataset(Dataset):
-    def __init__(self, root_dir, transform=None):
+    def __init__(self, root_dir = '', id_map_file_path = '', transform=None):
         self.root_dir = root_dir
         self.transform = transform
         self.species_ids = sorted([
@@ -21,7 +21,7 @@ class SpecialCateDataset(Dataset):
         ])
         self.index_to_species_id = {i: species_id for i, species_id in enumerate(self.species_ids)}
         print("数据集初始化成功，已写入到 csv 文件")
-        save_index_to_species_id_to_csv(self.index_to_species_id, 'index_to_species_id.csv')
+        save_index_to_species_id_to_csv(self.index_to_species_id, id_map_file_path)
 
         self.index: List[Tuple[int, str]] = []
 

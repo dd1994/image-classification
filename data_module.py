@@ -10,12 +10,13 @@ from util.transform import ToRGBTransform
 
 
 class INatBaseDataModule(pl.LightningDataModule):
-    def __init__(self, data_dir: str = './data/tiny', valid_dir= './data/tiny', batch_size: int = 32, num_workers: int = 3, input_size: int = 448, num_classes = 51):
+    def __init__(self, data_dir: str = './data/tiny', valid_dir= './data/tiny', id_map_file_path = '', batch_size: int = 32, num_workers: int = 3, input_size: int = 448, num_classes = 51):
         super().__init__()
         self.data_dir = data_dir
         self.valid_dir = valid_dir
         self.batch_size = batch_size
         self.num_workers = num_workers
+        self.id_map_file_path = id_map_file_path
         self.input_size = input_size
         self.num_classes = num_classes
         self.train_dataset = None
@@ -65,12 +66,14 @@ class SpecialCateData(INatBaseDataModule):
         # 加载整个数据集
         train_dataset = SpecialCateDataset(
             root_dir=self.data_dir,
-            transform=self.transform['train']
+            transform=self.transform['train'],
+            id_map_file_path=self.id_map_file_path
         )
 
         valid_dataset = SpecialCateDataset(
             root_dir=self.valid_dir,
-            transform= self.transform['val_test']
+            transform= self.transform['val_test'],
+            id_map_file_path=self.id_map_file_path
         )
 
         # train_size = int(0.8 * len(train_dataset))
@@ -78,6 +81,8 @@ class SpecialCateData(INatBaseDataModule):
         #
         # self.train_dataset, self.val_dataset = torch.utils.data.random_split(train_dataset,
         #                                                                                         [train_size, val_size])
+        self.train_dataset = train_dataset
+        self.val_dataset = valid_dataset
 
         # 应用转换
         # self.val_dataset.dataset.transform = self.transform['val_test']
