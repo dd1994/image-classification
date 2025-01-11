@@ -10,9 +10,10 @@ from util.transform import ToRGBTransform
 
 
 class INatBaseDataModule(pl.LightningDataModule):
-    def __init__(self, data_dir: str = './data/tiny', batch_size: int = 32, num_workers: int = 3, input_size: int = 448, num_classes = 51):
+    def __init__(self, data_dir: str = './data/tiny', valid_dir= './data/tiny', batch_size: int = 32, num_workers: int = 3, input_size: int = 448, num_classes = 51):
         super().__init__()
         self.data_dir = data_dir
+        self.valid_dir = valid_dir
         self.batch_size = batch_size
         self.num_workers = num_workers
         self.input_size = input_size
@@ -62,19 +63,24 @@ class SpecialCateData(INatBaseDataModule):
 
     def setup(self, stage=None):
         # 加载整个数据集
-        full_dataset = SpecialCateDataset(
+        train_dataset = SpecialCateDataset(
             root_dir=self.data_dir,
             transform=self.transform['train']
         )
 
-        train_size = int(0.8 * len(full_dataset))
-        val_size = len(full_dataset) - train_size
+        valid_dataset = SpecialCateDataset(
+            root_dir=self.valid_dir,
+            transform= self.transform['val_test']
+        )
 
-        self.train_dataset, self.val_dataset = torch.utils.data.random_split(full_dataset,
-                                                                                                [train_size, val_size])
+        # train_size = int(0.8 * len(train_dataset))
+        # val_size = len(train_dataset) - train_size
+        #
+        # self.train_dataset, self.val_dataset = torch.utils.data.random_split(train_dataset,
+        #                                                                                         [train_size, val_size])
 
         # 应用转换
-        self.val_dataset.dataset.transform = self.transform['val_test']
+        # self.val_dataset.dataset.transform = self.transform['val_test']
 
         # 按比例划分训练、验证和测试集
         # train_size = int(0.8 * len(full_dataset))  # 50% 训练集
