@@ -5,7 +5,7 @@ from torchvision.datasets import INaturalist
 from torchvision.transforms import TrivialAugmentWide
 from torchvision.transforms import v2
 
-from dataSet.AmphibiansDataset import SpecialCateDataset
+from dataSet.SpecialCateDataset import SpecialCateDataset
 from util.transform import ToRGBTransform
 
 
@@ -56,7 +56,7 @@ class INatBaseDataModule(pl.LightningDataModule):
                           shuffle=False, num_workers=self.num_workers, persistent_workers=True)
     
 
-class AmphibiansData(INatBaseDataModule):
+class SpecialCateData(INatBaseDataModule):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
