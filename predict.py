@@ -13,21 +13,21 @@ def load_index_to_species_id_from_csv(csv_file_path):
         reader = csv.reader(file)
         next(reader)  # 跳过表头行
         for row in reader:
-            index, species_id, chinese_name = row
-            index_to_species_id[int(index)] = species_id + ' ' + chinese_name
+            index, species_id, taxon_name, chinese_name = row
+            index_to_species_id[int(index)] = species_id + ' ' + taxon_name + ' ' + chinese_name
     return index_to_species_id
 
 input_size = 448
 
 def main():
-    csv_file_path = 'index_to_species_name.csv'
+    csv_file_path = 'index_to_species_reptilia.csv'
     index_to_species_id = load_index_to_species_id_from_csv(csv_file_path)
     # 加载检查点文件
-    # checkpoint = torch.load('wandb_logs/identify/m1krcha9/checkpoints/last.ckpt', map_location=torch.device('cuda:0'))
+    # checkpoint = torch.load('wandb_logs/identify/hbyxm397/checkpoints/last.ckpt', map_location=torch.device('cuda:0'))
 
     # 创建模型实例
-    model = SwinV2Model(num_classes = 167)
-    model.load_state_dict(torch.load('./model.pth', map_location=torch.device('cuda:0'), weights_only=True))
+    model = SwinV2Model(num_classes = 259)
+    model.load_state_dict(torch.load('./model_reptilia.pth', map_location=torch.device('cuda:0'), weights_only=True))
 
     # 如果模型是在Lightning中训练的，你可能需要只提取模型状态字典
 
@@ -40,7 +40,7 @@ def main():
     model.eval()
 
     # 保存模型为.pth文件
-    # torch.save(model.state_dict(), 'model.pth')
+    # torch.save(model.state_dict(), 'model_reptilia.pth')
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     model.to(device)
@@ -48,7 +48,7 @@ def main():
 
 
     # 加载本地图片
-    img_path = 'data/predict/amp/e8f085d6277f9e2f861e1dbd0830e924b999f3d3.jpg'  # 替换为您的图片路径
+    img_path = 'data/predict/amp/a6abd143ad4bd113caee43895cafa40f4bfb052c.jpg'  # 替换为您的图片路径
     image = Image.open(img_path)
 
     # 预处理图片
