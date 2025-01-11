@@ -5,7 +5,7 @@ from torchvision.datasets import INaturalist
 from torchvision.transforms import TrivialAugmentWide
 from torchvision.transforms import v2
 
-from dataSet.AmphibiansDataset import AmphibiansDataset
+from dataSet.AmphibiansDataset import SpecialCateDataset
 from util.transform import ToRGBTransform
 
 
@@ -62,7 +62,7 @@ class AmphibiansData(INatBaseDataModule):
 
     def setup(self, stage=None):
         # 加载整个数据集
-        full_dataset = AmphibiansDataset(
+        full_dataset = SpecialCateDataset(
             root_dir=self.data_dir,
             transform=self.transform['train']
         )

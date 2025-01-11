@@ -12,7 +12,7 @@ def save_index_to_species_id_to_csv(index_to_species_id, csv_file_path):
         for index, species_id in index_to_species_id.items():
             writer.writerow([index, species_id])
 
-class AmphibiansDataset(Dataset):
+class SpecialCateDataset(Dataset):
     def __init__(self, root_dir, transform=None):
         self.root_dir = root_dir
         self.transform = transform
