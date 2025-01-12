@@ -3,7 +3,7 @@
       "class_path": "SwinV2Model",
       "init_args": {
           "num_classes": 173,
-          "learning_rate": 1e-4,
+          "learning_rate": 4e-4,
           "input_size": 448,
           "t_max": 17
       }
@@ -13,7 +13,7 @@
       "accelerator": "gpu",
       "devices": 1,
       "precision": "16-mixed",
-      "accumulate_grad_batches": 8,
+      "accumulate_grad_batches": 32,
       "callbacks": [
         {
             "class_path": "pytorch_lightning.callbacks.EarlyStopping",
