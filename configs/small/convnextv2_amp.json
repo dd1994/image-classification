@@ -42,9 +42,12 @@
     ]
   },
   "data":  {
-    "class_path": "AmphibiansData",
+    "class_path": "SpecialCateData",
     "init_args": {
-      "data_dir": "./data/large/Amphibians",
+      "data_dir": "./data/train/Amphibians",
+      "valid_dir": "./data/valid/Amphibians",
+      "id_map_file_path": "amp_id_map.csv",
+      "valid_id_map_file_path": "valid_amp_id_map.csv",
       "batch_size": 22,
       "num_workers": 12,
       "input_size": 448

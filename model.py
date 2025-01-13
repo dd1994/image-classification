@@ -123,9 +123,17 @@ class BaseModel(pl.LightningModule):
 
 
 class SwinV2Model(BaseModel):
-    def __init__(self, num_classes: int = 51, learning_rate: float = 1e-4, input_size = 448, t_max=20):
+    def __init__(self, num_classes: int = 51, learning_rate: float = 1e-4, input_size = 448, t_max=20, ckpt: str = ''):
         super().__init__(t_max=t_max, num_classes=num_classes,class_counts=get_inat2019_class_counts(num_classes), learning_rate=learning_rate)
         self.model = timm.create_model('swinv2_base_window12to24_192to384.ms_in22k_ft_in1k', pretrained=True)
+        if ckpt != '' :
+            checkpoint = torch.load(ckpt)
+            state_dict = checkpoint['state_dict']
+            state_dict.pop('model.head.fc.weight', None)
+            state_dict.pop('model.head.fc.bias', None)
+            self.load_state_dict(state_dict, strict=False)
+
+
         self.model.set_input_size([input_size, input_size])
         self.model.head.fc = nn.Linear(self.model.head.fc.in_features, num_classes)
 
