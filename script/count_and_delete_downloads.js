@@ -1,8 +1,8 @@
 const fs = require('fs');
 const path = require('path');
 
-const imgDir = 'D:\\image-classification\\data\\large\\Reptilia';
-const ouputFile = 'trainReptilia50.csv'
+const imgDir = 'D:\\image-classification\\data\\train\\Mollusca';
+const ouputFile = 'trainMollusca.csv'
 
 // 读取 plant 文件夹下的所有子文件夹
 fs.readdir(imgDir, (err, subdirs) => {
