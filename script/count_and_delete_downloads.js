@@ -1,15 +1,16 @@
 const fs = require('fs');
 const path = require('path');
 
-const imgDir = 'D:/image-classification/data/train/Mollusca';
-const ouputFile = 'trainMollusca.csv';
+const trainDir = 'D:/image-classification/data/train';
+const outputFile = 'train_stats.csv';
 
-// 支持的图片扩展名列表
+// 支持的图片扩展名集合
 const IMAGE_EXTENSIONS = new Set([
-'.jpg', '.jpeg', 'png', 'webp', '.heic', '.heif', '.bmp'
+  '.jpg', '.jpeg', '.png', '.gif',
+  '.bmp', '.webp', '.tiff'
 ]);
 
-// 同步删除目录（兼容Node 12+）
+// 同步删除目录
 const deleteDir = (dirPath) => {
   if (fs.existsSync(dirPath)) {
     fs.rmSync(dirPath, { recursive: true, force: true });
@@ -18,70 +19,97 @@ const deleteDir = (dirPath) => {
 
 try {
   const results = [];
-  const subdirs = fs.readdirSync(imgDir);
 
-  for (const subdir of subdirs) {
-    const subdirPath = path.join(imgDir, subdir);
-    const stats = fs.statSync(subdirPath);
+  // 遍历第一层分类目录（如 Mollusca/Insecta）
+  const classDirs = fs.readdirSync(trainDir);
 
-    // 处理隐藏目录和文件
-    if (subdir.startsWith('.')) {
-      deleteDir(subdirPath);
-      console.log(`Deleted hidden: ${subdirPath}`);
+  for (const className of classDirs) {
+    const classPath = path.join(trainDir, className);
+    const classStats = fs.statSync(classPath);
+
+    // 处理隐藏目录和普通文件
+    if (className.startsWith('.')) {
+      deleteDir(classPath);
+      console.log(`删除隐藏分类目录: ${classPath}`);
       continue;
     }
 
-    // 跳过非目录文件
-    if (!stats.isDirectory()) {
-      fs.unlinkSync(subdirPath);
-      console.log(`Deleted file: ${subdirPath}`);
+    if (!classStats.isDirectory()) {
+      fs.unlinkSync(classPath);
+      console.log(`删除非目录文件: ${classPath}`);
       continue;
     }
 
-    // 处理子目录内容
-    let fileCount = 0;
-    const files = fs.readdirSync(subdirPath);
+    // 遍历第二层物种目录（taxon_id）
+    const taxonDirs = fs.readdirSync(classPath);
 
-    for (const file of files) {
-      const filePath = path.join(subdirPath, file);
-      const fileStats = fs.statSync(filePath);
+    for (const taxonId of taxonDirs) {
+      const taxonPath = path.join(classPath, taxonId);
+      const taxonStats = fs.statSync(taxonPath);
 
-      // 删除子目录中的嵌套目录
-      if (fileStats.isDirectory()) {
-        deleteDir(filePath);
-        console.log(`Deleted nested directory: ${filePath}`);
+      // 处理隐藏目录和非目录文件
+      if (taxonId.startsWith('.')) {
+        deleteDir(taxonPath);
+        console.log(`删除隐藏物种目录: ${taxonPath}`);
         continue;
       }
 
-      // 处理隐藏文件和非图片文件
-      if (file.startsWith('.') ||
-          !IMAGE_EXTENSIONS.has(path.extname(file).toLowerCase())) {
-        fs.unlinkSync(filePath);
-        console.log(`Deleted invalid file: ${filePath}`);
+      if (!taxonStats.isDirectory()) {
+        fs.unlinkSync(taxonPath);
+        console.log(`删除非目录文件: ${taxonPath}`);
         continue;
       }
 
-      fileCount++;
-    }
+      // 处理物种目录内容
+      let validCount = 0;
+      const files = fs.readdirSync(taxonPath);
 
-    // 最终数量检查
-    if (fileCount > 49) {
-      results.push({ taxonId: subdir, photoCount: fileCount });
-    } else {
-      deleteDir(subdirPath);
-      console.log(`Deleted insufficient directory: ${subdirPath}`);
+      for (const file of files) {
+        const filePath = path.join(taxonPath, file);
+        const fileStats = fs.statSync(filePath);
+
+        // 删除嵌套目录
+        if (fileStats.isDirectory()) {
+          deleteDir(filePath);
+          console.log(`删除嵌套目录: ${filePath}`);
+          continue;
+        }
+
+        // 过滤隐藏文件和非图片文件
+        const ext = path.extname(file).toLowerCase();
+        if (file.startsWith('.') || !IMAGE_EXTENSIONS.has(ext)) {
+          fs.unlinkSync(filePath);
+          console.log(`删除无效文件: ${filePath}`);
+          continue;
+        }
+
+        validCount++;
+      }
+
+      // 最终数量检查
+      if (validCount > 49) {
+        results.push({
+          class: className,
+          taxon_id: taxonId,
+          photo_count: validCount
+        });
+      } else {
+//        deleteDir(taxonPath);
+        console.log(`删除不足量物种目录: ${taxonPath}`);
+      }
     }
   }
 
-  // 生成CSV内容
+  // 生成CSV报告
   const csvContent = [
-    'taxon_id,photo_count',
-    ...results.map(({ taxonId, photoCount }) => `${taxonId},${photoCount}`)
+    'class,taxon_id,photo_count',
+    ...results.map(r => `${r.class},${r.taxon_id},${r.photo_count}`)
   ].join('\n');
 
-  fs.writeFileSync(path.join(__dirname, ouputFile), csvContent);
-  console.log(`CSV文件已成功创建，包含 ${results.length} 个有效分类`);
+  fs.writeFileSync(outputFile, csvContent);
+  console.log(`生成统计文件成功，共 ${results.length} 个有效物种`);
 
 } catch (err) {
   console.error('处理过程中发生错误:', err);
+  process.exit(1);
 }
