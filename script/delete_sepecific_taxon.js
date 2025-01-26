@@ -1,22 +1,10 @@
 const fs = require('fs');
 const path = require('path');
+const csv = require('csv-parser');
 
 // 配置部分
 const parentDir = 'D:/image-classification/data/train/Reptilia'; // 父文件夹路径
-const foldersToDelete = [
-"35484",
-"35492",
-"35493",
-"35500",
-"37668",
-"517749",
-"539787",
-"539801",
-"540025",
-"797622",
-"797632",
-"797638"
-]; // 需要删除的文件夹名数组
+const csvFilePath = 'D:/taxon_ids.csv'; // CSV文件路径
 
 // 安全校验函数
 const validatePaths = () => {
@@ -28,48 +16,97 @@ const validatePaths = () => {
   }
 };
 
-// 主删除逻辑
-const deleteFolders = () => {
-  try {
-    // 读取父文件夹内容
-    const items = fs.readdirSync(parentDir);
+// 使用流式读取CSV文件
+const readTaxonIdsFromCSV = () => {
+  return new Promise((resolve, reject) => {
+    const results = [];
 
-    items.forEach(item => {
+    fs.createReadStream(csvFilePath)
+      .pipe(csv())
+      .on('data', (row) => {
+        // 自动兼容不同列名格式（taxonId/TaxonID等）
+        const taxonId = row.taxonId || row.TaxonID || row.TAXON_ID;
+        if (taxonId) results.push(taxonId.toString());
+      })
+      .on('end', () => {
+        console.log(`从CSV读取到 ${results.length} 个需要处理的taxonId`);
+        resolve(results);
+      })
+      .on('error', (error) => {
+        console.error('CSV文件读取失败:');
+        reject(error);
+      });
+  });
+};
+
+// 增强版删除逻辑
+const deleteFolders = async (foldersToDelete) => {
+  try {
+    const items = fs.readdirSync(parentDir);
+    let deleteCount = 0;
+
+    for (const item of items) {
       const itemPath = path.join(parentDir, item);
       const stats = fs.lstatSync(itemPath);
 
-      // 只处理目录且名称匹配的项
       if (stats.isDirectory() && foldersToDelete.includes(item)) {
-        console.log(`正在删除: ${itemPath}`);
+        console.log(`[${++deleteCount}] 正在删除: ${itemPath}`);
 
-        // 递归强制删除目录
-        fs.rmSync(itemPath, {
+        await fs.promises.rm(itemPath, {
           recursive: true,
           force: true,
-          retryDelay: 100, // 重试间隔 100ms
-          maxRetries: 3    // 最多重试 3 次
+          retryDelay: 100,
+          maxRetries: 3
         });
 
-        console.log(`成功删除: ${item}`);
+        console.log(`✅ 成功删除: ${item}`);
       }
-    });
+    }
 
-    console.log('删除操作完成，请检查剩余目录确认结果');
+    console.log(`\n删除完成，共删除 ${deleteCount} 个目录`);
+    console.log('未找到的条目:', foldersToDelete.filter(id => !items.includes(id)));
 
   } catch (error) {
     console.error('删除过程中发生错误:');
-    console.error(error.stack);
-    process.exit(1);
+    throw error;
   }
 };
 
-// 执行流程
-try {
-  validatePaths();
-  console.log('开始删除操作...\n');
-  deleteFolders();
-} catch (error) {
-  console.error('初始化校验失败:');
-  console.error(error.message);
-  process.exit(1);
-}
+// 主流程
+(async () => {
+  try {
+    validatePaths();
+
+    console.log('正在读取CSV文件...');
+    const foldersToDelete = await readTaxonIdsFromCSV();
+
+    console.log('\n===== 操作确认 =====');
+    console.log('待删除目录数量:', foldersToDelete.length);
+    console.log('示例条目:', foldersToDelete.slice(0, 5));
+
+    // 添加人工确认步骤
+    const readline = require('readline').createInterface({
+      input: process.stdin,
+      output: process.stdout
+    });
+
+    await new Promise(resolve => {
+      readline.question('\n确认要执行删除操作？(y/n) ', async (answer) => {
+        if (answer.toLowerCase() === 'y') {
+          console.log('\n开始删除操作...');
+          await deleteFolders(foldersToDelete);
+        } else {
+          console.log('操作已取消');
+          process.exit(0);
+        }
+        readline.close();
+        resolve();
+      });
+    });
+
+  } catch (error) {
+    console.error('\n❌ 程序异常终止:');
+    console.error(error.stack || error.message);
+    process.exit(1);
+  }
+})();
