@@ -2,9 +2,11 @@ const fs = require('fs');
 const path = require('path');
 const csv = require('csv-parser');
 
+// 删除指定目录，主要用于删除台湾特有种
+
 // 配置部分
 const parentDir = 'D:/image-classification/data/train/Reptilia'; // 父文件夹路径
-const csvFilePath = 'D:/taxon_ids.csv'; // CSV文件路径
+const csvFilePath = './taicol.csv'; // CSV文件路径
 
 // 安全校验函数
 const validatePaths = () => {
@@ -25,8 +27,8 @@ const readTaxonIdsFromCSV = () => {
       .pipe(csv())
       .on('data', (row) => {
         // 自动兼容不同列名格式（taxonId/TaxonID等）
-        const taxonId = row.taxonId || row.TaxonID || row.TAXON_ID;
-        if (taxonId) results.push(taxonId.toString());
+        const taxonId = row.taxonID
+        if (taxonId) results.push(String(taxonId));
       })
       .on('end', () => {
         console.log(`从CSV读取到 ${results.length} 个需要处理的taxonId`);
