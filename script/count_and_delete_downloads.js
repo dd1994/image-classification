@@ -3,6 +3,7 @@ const path = require('path');
 
 const trainDir = 'D:/image-classification/data/train';
 const outputFile = 'train_stats.csv';
+const collectionBase = path.join(path.dirname(trainDir), 'collection'); // 自动生成collection路径
 
 // 支持的图片扩展名集合
 const IMAGE_EXTENSIONS = new Set([
@@ -17,6 +18,50 @@ const deleteDir = (dirPath) => {
   }
 };
 
+// 移动目录的同步方法
+const moveDirectory = (srcPath, destPath) => {
+  try {
+    if (!fs.existsSync(srcPath)) return;
+
+    // 如果目标目录不存在，直接移动整个目录
+    if (!fs.existsSync(destPath)) {
+      fs.mkdirSync(path.dirname(destPath), { recursive: true });
+      fs.renameSync(srcPath, destPath);
+      console.log(`移动目录成功: ${srcPath} -> ${destPath}`);
+      return;
+    }
+
+    // 目标目录存在时，合并文件
+    const files = fs.readdirSync(srcPath);
+    let movedCount = 0;
+
+    files.forEach(file => {
+      const srcFile = path.join(srcPath, file);
+      const destFile = path.join(destPath, file);
+
+      // 跳过已存在的文件
+      if (fs.existsSync(destFile)) {
+        console.log(`跳过已存在文件: ${destFile}`);
+        return;
+      }
+
+      // 移动文件并保持目录结构
+      fs.renameSync(srcFile, destFile);
+      movedCount++;
+    });
+
+    console.log(`合并完成: 从 ${srcPath} 移动了 ${movedCount} 个文件到 ${destPath}`);
+
+    // 删除已搬空的源目录
+    if (fs.readdirSync(srcPath).length === 0) {
+      fs.rmdirSync(srcPath);
+      console.log(`删除空目录: ${srcPath}`);
+    }
+  } catch (err) {
+    console.error(`操作失败: ${srcPath}`, err);
+  }
+};
+
 try {
   const results = [];
 
@@ -27,7 +72,7 @@ try {
     const classPath = path.join(trainDir, className);
     const classStats = fs.statSync(classPath);
 
-    // 处理隐藏目录和普通文件
+    // 跳过隐藏目录和文件
     if (className.startsWith('.')) {
       deleteDir(classPath);
       console.log(`删除隐藏分类目录: ${classPath}`);
@@ -86,7 +131,7 @@ try {
         validCount++;
       }
 
-      // 最终数量检查
+      // 根据数量决定保留或移动
       if (validCount > 49) {
         results.push({
           class: className,
@@ -94,8 +139,9 @@ try {
           photo_count: validCount
         });
       } else {
-//        deleteDir(taxonPath);
-        console.log(`删除不足量物种目录: ${taxonPath}`);
+          const destPath = path.join(collectionBase, className, taxonId);
+          console.log('少于 50 张，移动到', destPath)
+//          moveDirectory(taxonPath, destPath);
       }
     }
   }
