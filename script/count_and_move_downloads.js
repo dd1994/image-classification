@@ -141,7 +141,7 @@ try {
       } else {
           const destPath = path.join(collectionBase, className, taxonId);
           console.log('少于 50 张，移动到', destPath)
-//          moveDirectory(taxonPath, destPath);
+          moveDirectory(taxonPath, destPath);
       }
     }
   }
