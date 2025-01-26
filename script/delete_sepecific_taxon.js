@@ -5,7 +5,7 @@ const csv = require('csv-parser');
 // 删除指定目录，主要用于删除台湾特有种
 
 // 配置部分
-const parentDir = 'D:/image-classification/data/train/Reptilia'; // 父文件夹路径
+const parentDir = 'D:/image-classification/data/train'; // 父文件夹路径
 const csvFilePath = './taicol.csv'; // CSV文件路径
 
 // 安全校验函数
@@ -26,8 +26,7 @@ const readTaxonIdsFromCSV = () => {
     fs.createReadStream(csvFilePath)
       .pipe(csv())
       .on('data', (row) => {
-        // 自动兼容不同列名格式（taxonId/TaxonID等）
-        const taxonId = row.taxonID
+        const taxonId = row.taxonID;
         if (taxonId) results.push(String(taxonId));
       })
       .on('end', () => {
@@ -42,31 +41,44 @@ const readTaxonIdsFromCSV = () => {
 };
 
 // 增强版删除逻辑
-const deleteFolders = async (foldersToDelete) => {
+const deleteFoldersInSubdirectories = async (foldersToDelete) => {
   try {
-    const items = fs.readdirSync(parentDir);
-    let deleteCount = 0;
+    let totalDeleteCount = 0;
 
-    for (const item of items) {
+    // 获取 train 文件夹下的所有子文件夹
+    const subdirectories = fs.readdirSync(parentDir).filter(item => {
       const itemPath = path.join(parentDir, item);
-      const stats = fs.lstatSync(itemPath);
+      return fs.statSync(itemPath).isDirectory();
+    });
 
-      if (stats.isDirectory() && foldersToDelete.includes(item)) {
-        console.log(`[${++deleteCount}] 正在删除: ${itemPath}`);
+    for (const subdir of subdirectories) {
+      const subdirPath = path.join(parentDir, subdir);
+      let deleteCount = 0;
 
-        await fs.promises.rm(itemPath, {
-          recursive: true,
-          force: true,
-          retryDelay: 100,
-          maxRetries: 3
-        });
+      const items = fs.readdirSync(subdirPath);
+      for (const item of items) {
+        const itemPath = path.join(subdirPath, item);
+        const stats = fs.lstatSync(itemPath);
 
-        console.log(`✅ 成功删除: ${item}`);
+        if (stats.isDirectory() && foldersToDelete.includes(item)) {
+          console.log(`[${++deleteCount}] 正在删除: ${itemPath}`);
+
+          await fs.promises.rm(itemPath, {
+            recursive: true,
+            force: true,
+            retryDelay: 100,
+            maxRetries: 3
+          });
+
+          console.log(`✅ 成功删除: ${item}`);
+        }
       }
+
+      totalDeleteCount += deleteCount;
+      console.log(`\n在 ${subdir} 中删除完成，共删除 ${deleteCount} 个目录`);
     }
 
-    console.log(`\n删除完成，共删除 ${deleteCount} 个目录`);
-    console.log('未找到的条目:', foldersToDelete.filter(id => !items.includes(id)));
+    console.log(`\n总删除完成，共删除 ${totalDeleteCount} 个目录`);
 
   } catch (error) {
     console.error('删除过程中发生错误:');
@@ -96,7 +108,7 @@ const deleteFolders = async (foldersToDelete) => {
       readline.question('\n确认要执行删除操作？(y/n) ', async (answer) => {
         if (answer.toLowerCase() === 'y') {
           console.log('\n开始删除操作...');
-          await deleteFolders(foldersToDelete);
+          await deleteFoldersInSubdirectories(foldersToDelete);
         } else {
           console.log('操作已取消');
           process.exit(0);
@@ -112,3 +124,6 @@ const deleteFolders = async (foldersToDelete) => {
     process.exit(1);
   }
 })();
+
+
+
