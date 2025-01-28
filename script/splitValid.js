@@ -25,7 +25,7 @@ async function sortFilesByMtime(dir, files) {
         return { file, mtime: stats.mtime };
     });
     const fileStats = await Promise.all(fileStatsPromises);
-    fileStats.sort((a, b) => a.mtime - b.mtime);
+    fileStats.sort((a, b) => b.mtime - a.mtime);
     return fileStats.map(f => f.file);
 }
 
@@ -120,7 +120,7 @@ async function main() {
             // 计算需要移动的图片数量
             const need_to_move = desired_valid_count - current_valid_count;
 
-            // 从训练集中选择未存在于验证集中的最老的图片，忽略以点开头的文件
+            // 从训练集中选择未存在于验证集中的最新的图片，忽略以点开头的文件
             const files_to_move = sorted_train_files.filter(file => !existing_valid_files.has(file)).slice(0, need_to_move);
 
             // 移动图片到验证集目录
