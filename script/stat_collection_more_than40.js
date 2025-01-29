@@ -2,7 +2,7 @@ const fs = require('fs');
 const path = require('path');
 const { createObjectCsvWriter } = require('csv-writer');
 
-const rootDir = 'D:/image-classification/data/collection';
+const rootDir = 'D:/image-classification/data/train';
 const result = [];
 
 // 遍历目录结构的同步方法
@@ -27,7 +27,7 @@ function processDirectory() {
             const files = fs.readdirSync(speciesPath);
             const imageCount = files.length;
 
-            if (imageCount > 1) {
+            if (imageCount < 300) {
                 result.push({
                     class: className,
                     species_id: speciesId,
