@@ -27,7 +27,7 @@ function processDirectory() {
             const files = fs.readdirSync(speciesPath);
             const imageCount = files.length;
 
-            if (imageCount > 40) {
+            if (imageCount > 1) {
                 result.push({
                     class: className,
                     species_id: speciesId,
