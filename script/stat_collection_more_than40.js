@@ -27,7 +27,7 @@ function processDirectory() {
             const files = fs.readdirSync(speciesPath);
             const imageCount = files.length;
 
-            if (imageCount < 300) {
+            if (imageCount < 400) {
                 result.push({
                     class: className,
                     species_id: speciesId,
@@ -41,7 +41,7 @@ function processDirectory() {
 // 写入CSV文件
 async function writeCSV() {
     const csvWriter = createObjectCsvWriter({
-        path: 'species_report.csv',
+        path: 'species_report_spider_train.csv',
         header: [
             { id: 'class', title: 'CLASS' },
             { id: 'species_id', title: 'SPECIES_ID' },
