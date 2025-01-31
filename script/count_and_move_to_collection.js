@@ -1,7 +1,7 @@
 const fs = require('fs');
 const path = require('path');
 
-const trainDir = 'D:/image-classification/data/train';
+const trainDir = 'D:/image-classification/data/train-mini';
 const outputFile = 'train_stats.csv';
 const collectionBase = path.join(path.dirname(trainDir), 'collection'); // 自动生成collection路径
 

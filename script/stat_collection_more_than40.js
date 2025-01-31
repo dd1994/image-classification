@@ -2,7 +2,8 @@ const fs = require('fs');
 const path = require('path');
 const { createObjectCsvWriter } = require('csv-writer');
 
-const rootDir = 'D:/image-classification/data/train';
+const rootDir = 'D:/image-classification/data/collection';
+const outputFile = 'test.csv'
 const result = [];
 
 // 遍历目录结构的同步方法
@@ -27,7 +28,7 @@ function processDirectory() {
             const files = fs.readdirSync(speciesPath);
             const imageCount = files.length;
 
-            if (imageCount < 400) {
+            if (imageCount > 40) {
                 result.push({
                     class: className,
                     species_id: speciesId,
@@ -41,7 +42,7 @@ function processDirectory() {
 // 写入CSV文件
 async function writeCSV() {
     const csvWriter = createObjectCsvWriter({
-        path: 'species_report_spider_train.csv',
+        path: outputFile,
         header: [
             { id: 'class', title: 'CLASS' },
             { id: 'species_id', title: 'SPECIES_ID' },
