@@ -40,6 +40,7 @@ class BaseModel(pl.LightningModule):
             images, labels = cutmix_or_mixup(images, labels)
 
         outputs = self(images)
+        print(outputs, labels)
         loss = self.criterion(outputs, labels)
 
         # 获取预测的类别

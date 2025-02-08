@@ -1,3 +1,3 @@
 exports.imgExt = [
-  '.jpg', '.jpeg', '.png', '.webp', '.heic', '.heif'
+  '.jpg', '.jpeg', '.png', '.webp'
 ]
