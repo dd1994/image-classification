@@ -4,6 +4,9 @@ const path = require('path');
 // 定义图片文件扩展名
 const imageExtensions = ['.jpg', '.jpeg', '.png', '.bmp', '.webp', '.heic', '.heif'];
 
+const trainDir = "D:/image-classification/data/train-mini";
+const validDir = "D:/image-classification/data/valid-mini";
+
 // 获取目录中的图片文件，忽略以点开头的文件
 async function getImageFiles(dir) {
     try {
@@ -63,9 +66,6 @@ async function deleteDir(dir) {
 
 // 主函数
 async function main() {
-    const trainDir = "D:/image-classification/data/train-mini";
-    const validDir = "D:/image-classification/data/valid-mini";
-
     // 获取所有大类文件夹，忽略以点开头的文件夹
     const classes = (await fs.readdir(trainDir)).filter(name => !name.startsWith('.'));
     for (const class_name of classes) {
