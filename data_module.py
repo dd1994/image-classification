@@ -28,7 +28,6 @@ class INatBaseDataModule(pl.LightningDataModule):
             'train': v2.Compose([
                 ToRGBTransform(),
                 v2.ToImage(), # Convert to tensor, only needed if you had a PIL image
-                v2.Resize(800),
                 v2.RandomResizedCrop(self.input_size),
                 TrivialAugmentWide(),
                 v2.ToDtype(torch.float32, scale=True),
