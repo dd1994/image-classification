@@ -1,7 +1,7 @@
 const fs = require('fs');
 const path = require('path');
 const { imgExt } = require('./const')
-const trainDir = 'D:/image-classification/data/train';
+const trainDir = 'D:/image-classification/data/tmp';
 const outputFile = 'train_stats.csv';
 const collectionBase = path.join(path.dirname(trainDir), 'collection'); // 自动生成collection路径
 console.log(imgExt)
@@ -138,7 +138,7 @@ try {
       } else {
           const destPath = path.join(collectionBase, className, taxonId);
           console.log('少于 50 张，移动到', destPath)
-          moveDirectory(taxonPath, destPath);
+//          moveDirectory(taxonPath, destPath);
       }
     }
   }
