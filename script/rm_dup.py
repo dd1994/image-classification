@@ -52,6 +52,17 @@ def process_species_directory(species_dir):
     # 按修改时间排序
     image_paths.sort(key=lambda x: x[1])
     sorted_paths = [x[0] for x in image_paths]
+    
+    # 根据图片数量动态设置阈值
+    if len(sorted_paths) > 500:
+        print(f"图片数量 {len(sorted_paths)} > 500，使用阈值 0.5")
+        similarity_threshold = 0.5
+    elif len(sorted_paths) > 200:
+        print(f"图片数量 {len(sorted_paths)} 201-500，使用阈值 0.6")
+        similarity_threshold = 0.6
+    else:
+        print(f"图片数量 {len(sorted_paths)} ≤ 200，使用阈值 0.8")
+        similarity_threshold = 0.8
 
     # 提取特征
     features = []
@@ -95,7 +106,7 @@ def process_species_directory(species_dir):
             else:
                 similarity = np.dot(vi, vj) / norm
 
-            if similarity > SIMILARITY_THRESHOLD:
+            if similarity > similarity_threshold:
                 to_delete.add(j)
 
     # 执行删除操作
@@ -103,7 +114,6 @@ def process_species_directory(species_dir):
     for idx in sorted(to_delete, reverse=True):
         try:
             os.remove(valid_paths[idx])
-            print(f"删除 {valid_paths[idx]}成功 ")
             deleted_count += 1
         except Exception as e:
             print(f"删除 {valid_paths[idx]} 失败: {e}")
