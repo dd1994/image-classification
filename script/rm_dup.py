@@ -54,20 +54,17 @@ def process_species_directory(species_dir):
     sorted_paths = [x[0] for x in image_paths]
     
     # 根据图片数量动态设置阈值
-    if len(sorted_paths) > 500:
-        print(f"图片数量 {len(sorted_paths)} > 500，使用阈值 0.5")
-        similarity_threshold = 0.5
+    if len(sorted_paths) > 490:
+        similarity_threshold = 0.57
     elif len(sorted_paths) > 200:
-        print(f"图片数量 {len(sorted_paths)} 201-500，使用阈值 0.6")
         similarity_threshold = 0.6
     else:
-        print(f"图片数量 {len(sorted_paths)} ≤ 200，使用阈值 0.8")
         similarity_threshold = 0.8
 
     # 提取特征
     features = []
     valid_paths = []
-    for path in tqdm(sorted_paths, desc="提取特征"):
+    for path in sorted_paths:
         try:
             img = Image.open(path).convert('RGB')
             inp = transform(img).unsqueeze(0).to(device)
@@ -86,7 +83,7 @@ def process_species_directory(species_dir):
 
     # 相似度检测
     total = len(valid_paths)
-    for i in tqdm(range(total), desc="检测相似度"):
+    for i in range(total):
         if i in to_delete:
             continue
 
@@ -122,20 +119,26 @@ def process_species_directory(species_dir):
 
 
 def main():
-    # 遍历所有类别和物种目录
+    # 遍历所有类别
     for class_name in os.listdir(BASE_DIR):
         class_dir = os.path.join(BASE_DIR, class_name)
         if not os.path.isdir(class_dir):
             continue
 
+        # 收集当前类群的所有物种目录
+        current_class_species = []
         for species_id in os.listdir(class_dir):
             species_dir = os.path.join(class_dir, species_id)
-            if not os.path.isdir(species_dir):
-                continue
+            if os.path.isdir(species_dir):
+                current_class_species.append((species_id, species_dir))
 
-            print(f"\n正在处理: {class_name}/{species_id}")
-            deleted = process_species_directory(species_dir)
-            print(f"已删除 {deleted} 张重复图片")
+        # 使用当前类群的进度条
+        with tqdm(current_class_species, desc=f"处理 {class_name}", unit="物种") as class_pbar:
+            for species_id, species_dir in class_pbar:
+                class_pbar.set_postfix_str(species_id)
+                deleted = process_species_directory(species_dir)
+                if deleted > 0:
+                    class_pbar.write(f"{class_name}/{species_id} 删除 {deleted} 张")
 
 
 if __name__ == "__main__":
