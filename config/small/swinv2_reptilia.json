@@ -44,8 +44,8 @@
   "data":  {
     "class_path": "SpecialCateData",
     "init_args": {
-      "data_dir": "./data/train-mini/Reptilia",
-      "valid_dir": "./data/valid-mini/Reptilia",
+      "data_dir": "./data/train-small/Reptilia",
+      "valid_dir": "./data/valid-small/Reptilia",
       "id_map_file_path": "reptilia_id_map.csv",
       "valid_id_map_file_path": "valid_reptilia_id_map.csv",
       "batch_size": 16,

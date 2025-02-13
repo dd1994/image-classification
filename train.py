@@ -7,9 +7,9 @@ from util.win_sleep import prevent_sleep, restore_sleep
 
 def cli_main():
     # 训练开始前设置防止休眠
-    prevent_sleep()
+    # prevent_sleep()
     
-    try:
+    # try:
         cli = LightningCLI(
             model_class=BaseModel,
             datamodule_class=INatBaseDataModule,
@@ -29,9 +29,9 @@ def cli_main():
                 }
             }
         )
-    finally:
+    # finally:
         # 训练结束后恢复休眠设置
-        restore_sleep()
+        # restore_sleep()
 
 if __name__ == '__main__':
     cli_main()

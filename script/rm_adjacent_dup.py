@@ -27,7 +27,7 @@ from aim.v2.utils import load_pretrained
 from aim.v1.torch.data import val_transforms
 
 # 配置参数
-BASE_DIR = r"D:\image-classification\data\dup_test"
+BASE_DIR = r"D:\image-classification\data\train-small"
 SIMILARITY_THRESHOLD = 0.6  # 相似度阈值，可调整
 NEIGHBOR_RANGE = 10  # 前后检查范围
 SUPPORTED_EXTENSIONS = ('.png', '.jpg', '.jpeg')
@@ -117,10 +117,12 @@ def process_species_directory(species_dir):
 
     return deleted_count
 
-
+# 79,961
 def main():
     # 遍历所有类别
     for class_name in os.listdir(BASE_DIR):
+        if class_name == 'Amphibia':
+            continue
         class_dir = os.path.join(BASE_DIR, class_name)
         if not os.path.isdir(class_dir):
             continue

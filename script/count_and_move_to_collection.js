@@ -1,7 +1,7 @@
 const fs = require('fs');
 const path = require('path');
 const { imgExt } = require('./const')
-const trainDir = 'D:/image-classification/data/tmp';
+const trainDir = 'D:/image-classification/data/train';
 const outputFile = 'train_stats.csv';
 const collectionBase = path.join(path.dirname(trainDir), 'collection'); // 自动生成collection路径
 console.log(imgExt)
@@ -66,6 +66,9 @@ try {
   const classDirs = fs.readdirSync(trainDir);
 
   for (const className of classDirs) {
+    if(className !== 'Reptilia') {
+        continue
+    }
     const classPath = path.join(trainDir, className);
     const classStats = fs.statSync(classPath);
 
@@ -129,7 +132,7 @@ try {
       }
 
       // 根据数量决定保留或移动
-      if (validCount > 49) {
+      if (validCount > 490) {
         results.push({
           class: className,
           taxon_id: taxonId,
