@@ -2,10 +2,10 @@ const fs = require('fs').promises;
 const path = require('path');
 
 // 定义图片文件扩展名
-const imageExtensions = ['.jpg', '.jpeg', '.png', '.bmp', '.webp', '.heic', '.heif'];
+const imageExtensions = ['.jpg', '.jpeg', '.png', '.bmp', '.webp'];
 
-const trainDir = "D:/image-classification/data/train-mini";
-const validDir = "D:/image-classification/data/valid-mini";
+const trainDir = "D:/image-classification/data/train-small";
+const validDir = "D:/image-classification/data/valid-small";
 
 // 获取目录中的图片文件，忽略以点开头的文件
 async function getImageFiles(dir) {

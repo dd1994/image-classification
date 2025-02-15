@@ -54,7 +54,7 @@ def process_species_directory(species_dir):
     sorted_paths = [x[0] for x in image_paths]
     
     # 根据图片数量动态设置阈值
-    if len(sorted_paths) > 490:
+    if len(sorted_paths) > 400:
         similarity_threshold = 0.57
     elif len(sorted_paths) > 200:
         similarity_threshold = 0.6
@@ -121,8 +121,8 @@ def process_species_directory(species_dir):
 def main():
     # 遍历所有类别
     for class_name in os.listdir(BASE_DIR):
-        if class_name == 'Amphibia':
-            continue
+        # if class_name == 'Amphibia':
+        #     continue
         class_dir = os.path.join(BASE_DIR, class_name)
         if not os.path.isdir(class_dir):
             continue

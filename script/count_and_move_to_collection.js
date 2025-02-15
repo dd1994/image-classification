@@ -1,8 +1,8 @@
 const fs = require('fs');
 const path = require('path');
 const { imgExt } = require('./const')
-const trainDir = 'D:/image-classification/data/train';
-const outputFile = 'train_stats.csv';
+const trainDir = 'D:/image-classification/data/train-small';
+const outputFile = 'amp_stat.csv';
 const collectionBase = path.join(path.dirname(trainDir), 'collection'); // 自动生成collection路径
 console.log(imgExt)
 // 支持的图片扩展名集合
@@ -66,7 +66,7 @@ try {
   const classDirs = fs.readdirSync(trainDir);
 
   for (const className of classDirs) {
-    if(className !== 'Reptilia') {
+    if(className !== 'Amphibia') {
         continue
     }
     const classPath = path.join(trainDir, className);
@@ -106,42 +106,60 @@ try {
       }
 
       // 处理物种目录内容
-      let validCount = 0;
       const files = fs.readdirSync(taxonPath);
+      const validFiles = [];
 
       for (const file of files) {
-        const filePath = path.join(taxonPath, file);
-        const fileStats = fs.statSync(filePath);
+          const filePath = path.join(taxonPath, file);
+          const fileStats = fs.statSync(filePath);
 
-        // 删除嵌套目录
-        if (fileStats.isDirectory()) {
-          deleteDir(filePath);
-          console.log(`删除嵌套目录: ${filePath}`);
-          continue;
-        }
+          if (fileStats.isDirectory()) {
+              deleteDir(filePath);
+              console.log(`删除嵌套目录: ${filePath}`);
+              continue;
+          }
 
-        // 过滤隐藏文件和非图片文件
-        const ext = path.extname(file).toLowerCase();
-        if (file.startsWith('.') || !IMAGE_EXTENSIONS.has(ext)) {
-          fs.unlinkSync(filePath);
-          console.log(`删除无效文件: ${filePath}`);
-          continue;
-        }
+          const ext = path.extname(file).toLowerCase();
+          if (file.startsWith('.') || !IMAGE_EXTENSIONS.has(ext)) {
+              fs.unlinkSync(filePath);
+              console.log(`删除无效文件: ${filePath}`);
+              continue;
+          }
 
-        validCount++;
+          // 记录有效文件及其修改时间
+          validFiles.push({
+              path: filePath,
+              mtime: fileStats.mtime.getTime()
+          });
       }
 
       // 根据数量决定保留或移动
-      if (validCount > 490) {
+      if (validFiles.length > 500) {
+          // 按修改时间排序（最旧在前）
+          validFiles.sort((a, b) => a.mtime - b.mtime);
+          
+          // 保留最旧的500个，删除多余的
+          validFiles.slice(500).forEach(file => {
+              fs.unlinkSync(file.path);
+              console.log(`删除多余文件: ${file.path}`);
+          });
+          
+          results.push({
+              class: className,
+              taxon_id: taxonId,
+              photo_count: 500
+          });
+          console.log(`保留500个最旧文件，删除了 ${validFiles.length - 500} 个文件`);
+      } else if(validFiles.length < 50) {
+          const destPath = path.join(collectionBase, className, taxonId);
+          console.log(`图片数量 ${validFiles.length}，移动到 ${destPath}`);
+          moveDirectory(taxonPath, destPath);
+      } else {
         results.push({
           class: className,
           taxon_id: taxonId,
-          photo_count: validCount
-        });
-      } else {
-          const destPath = path.join(collectionBase, className, taxonId);
-          console.log('少于 50 张，移动到', destPath)
-//          moveDirectory(taxonPath, destPath);
+          photo_count: validFiles.length
+      });
       }
     }
   }
