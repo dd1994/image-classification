@@ -66,7 +66,7 @@ try {
   const classDirs = fs.readdirSync(trainDir);
 
   for (const className of classDirs) {
-    if(className !== 'Reptilia') {
+    if(className === 'Reptilia') {
         continue
     }
     const classPath = path.join(trainDir, className);
@@ -141,7 +141,7 @@ try {
           // 保留最旧的500个，删除多余的
           validFiles.slice(500).forEach(file => {
               fs.unlinkSync(file.path);
-              console.log(`删除多余文件: ${file.path}`);
+//              console.log(`删除多余文件: ${file.path}`);
           });
           
           results.push({

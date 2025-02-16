@@ -121,7 +121,7 @@ def process_species_directory(species_dir):
 def main():
     # 遍历所有类别
     for class_name in os.listdir(BASE_DIR):
-        if class_name == 'Amphibia':
+        if class_name != 'Amphibia':
             continue
         class_dir = os.path.join(BASE_DIR, class_name)
         if not os.path.isdir(class_dir):

@@ -2,7 +2,7 @@ const fs = require('fs');
 const path = require('path');
 const { imgExt } = require('./const')
 const trainDir = 'D:/image-classification/data/train-small';
-const outputFile = 'reptilia_stat.csv';
+const outputFile = 'amphibia_stat.csv';
 const collectionBase = path.join(path.dirname(trainDir), 'collection'); // 自动生成collection路径
 console.log(imgExt)
 // 支持的图片扩展名集合
@@ -22,7 +22,7 @@ try {
   const classDirs = fs.readdirSync(trainDir);
 
   for (const className of classDirs) {
-    if(className !== 'Reptilia') {
+    if(className !== 'Amphibia') {
         continue
     }
     const classPath = path.join(trainDir, className);
