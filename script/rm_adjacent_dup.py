@@ -29,7 +29,7 @@ from aim.v1.torch.data import val_transforms
 # 配置参数
 BASE_DIR = r"D:\image-classification\data\train-small"
 SIMILARITY_THRESHOLD = 0.6  # 相似度阈值，可调整
-NEIGHBOR_RANGE = 10  # 前后检查范围
+NEIGHBOR_RANGE = 100  # 前后检查范围
 SUPPORTED_EXTENSIONS = ('.png', '.jpg', '.jpeg')
 
 # 初始化模型
@@ -121,8 +121,8 @@ def process_species_directory(species_dir):
 def main():
     # 遍历所有类别
     for class_name in os.listdir(BASE_DIR):
-        # if class_name == 'Amphibia':
-        #     continue
+        if class_name == 'Amphibia':
+            continue
         class_dir = os.path.join(BASE_DIR, class_name)
         if not os.path.isdir(class_dir):
             continue

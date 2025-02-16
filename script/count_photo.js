@@ -15,50 +15,6 @@ const deleteDir = (dirPath) => {
   }
 };
 
-// 移动目录的同步方法
-const moveDirectory = (srcPath, destPath) => {
-  try {
-    if (!fs.existsSync(srcPath)) return;
-
-    // 如果目标目录不存在，直接移动整个目录
-    if (!fs.existsSync(destPath)) {
-      fs.mkdirSync(path.dirname(destPath), { recursive: true });
-      fs.renameSync(srcPath, destPath);
-      console.log(`移动目录成功: ${srcPath} -> ${destPath}`);
-      return;
-    }
-
-    // 目标目录存在时，合并文件
-    const files = fs.readdirSync(srcPath);
-    let movedCount = 0;
-
-    files.forEach(file => {
-      const srcFile = path.join(srcPath, file);
-      const destFile = path.join(destPath, file);
-
-      // 跳过已存在的文件
-      if (fs.existsSync(destFile)) {
-        console.log(`跳过已存在文件: ${destFile}`);
-        return;
-      }
-
-      // 移动文件并保持目录结构
-      fs.renameSync(srcFile, destFile);
-      movedCount++;
-    });
-
-    console.log(`合并完成: 从 ${srcPath} 移动了 ${movedCount} 个文件到 ${destPath}`);
-
-    // 删除已搬空的源目录
-    if (fs.readdirSync(srcPath).length === 0) {
-      fs.rmdirSync(srcPath);
-      console.log(`删除空目录: ${srcPath}`);
-    }
-  } catch (err) {
-    console.error(`操作失败: ${srcPath}`, err);
-  }
-};
-
 try {
   const results = [];
 
@@ -133,34 +89,11 @@ try {
           });
       }
 
-      // 根据数量决定保留或移动
-      if (validFiles.length > 500) {
-          // 按修改时间排序（最旧在前）
-          validFiles.sort((a, b) => a.mtime - b.mtime);
-          
-          // 保留最旧的500个，删除多余的
-          validFiles.slice(500).forEach(file => {
-              fs.unlinkSync(file.path);
-              console.log(`删除多余文件: ${file.path}`);
-          });
-          
-          results.push({
-              class: className,
-              taxon_id: taxonId,
-              photo_count: 500
-          });
-          console.log(`保留500个最旧文件，删除了 ${validFiles.length - 500} 个文件`);
-      } else if(validFiles.length < 50) {
-          const destPath = path.join(collectionBase, className, taxonId);
-          console.log(`图片数量 ${validFiles.length}，移动到 ${destPath}`);
-          moveDirectory(taxonPath, destPath);
-      } else {
         results.push({
           class: className,
           taxon_id: taxonId,
           photo_count: validFiles.length
       });
-      }
     }
   }
 
