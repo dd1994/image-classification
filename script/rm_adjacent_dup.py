@@ -25,6 +25,7 @@ import torch
 from tqdm import tqdm
 from aim.v2.utils import load_pretrained
 from aim.v1.torch.data import val_transforms
+import cv2  # 需要安装 opencv-python 包
 
 # 配置参数
 BASE_DIR = r"D:\image-classification\data\dup_test2"
@@ -38,6 +39,18 @@ model = load_pretrained("aimv2-large-patch14-448", backend="torch").to(device)
 model.eval()
 transform = val_transforms(img_size=448)
 
+def calculate_blur_score(image_path):
+    """计算图像模糊分数（值越小越模糊）"""
+    try:
+        image = cv2.imread(image_path)
+        if image is None:
+            return float('inf')  # 无效文件返回最大值避免误删
+        gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+        laplacian_var = cv2.Laplacian(gray, cv2.CV_64F).var()
+        return laplacian_var
+    except Exception as e:
+        print(f"计算模糊度失败 {image_path}: {e}")
+        return float('inf')
 
 def process_species_directory(species_dir):
     # 获取所有图片并按修改时间排序
@@ -116,13 +129,38 @@ def process_species_directory(species_dir):
         except Exception as e:
             print(f"删除 {valid_paths[idx]} 失败: {e}")
 
+    # 二次处理：模糊度去重
+    remaining_paths = [p for i, p in enumerate(valid_paths) if i not in to_delete]
+    if len(remaining_paths) > 600:
+        print(f"去重后仍有 {len(remaining_paths)} 张，执行模糊度筛选")
+        
+        # 计算所有剩余图片的模糊度
+        blur_scores = []
+        for path in remaining_paths:
+            score = calculate_blur_score(path)
+            blur_scores.append((path, score))
+        
+        # 按模糊度排序（分数低的模糊图片在前）
+        blur_scores.sort(key=lambda x: x[1])
+        
+        # 保留最清晰的600张
+        to_delete_blur = [item[0] for item in blur_scores[600:]]
+        for path in to_delete_blur:
+            try:
+                print(f"{path} 过于模糊被删除")
+                os.remove(path)
+                deleted_count += 1
+            except Exception as e:
+                print(f"删除模糊图片 {path} 失败: {e}")
+        print(f"删除 {len(to_delete_blur)} 张模糊图片")
+    
     return deleted_count
 
 # 79,961
 def main():
     # 遍历所有类别
     for class_name in os.listdir(BASE_DIR):
-        if class_name == 'Amphibia':
+        if class_name != 'test':
             continue
         class_dir = os.path.join(BASE_DIR, class_name)
         if not os.path.isdir(class_dir):

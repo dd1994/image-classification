@@ -20,8 +20,16 @@ def process_images(root_dir):
     for file_path in tqdm(file_list, desc='Processing images'):
         try:
             with Image.open(file_path) as img:
-                # 调整尺寸
-                img.thumbnail((800, 800), Resampling.LANCZOS)
+                # 计算目标尺寸（保持宽高比，最长边=800px）
+                width, height = img.size
+                max_dim = max(width, height)
+                
+                # 计算缩放比例（无论放大缩小都应用）
+                scale = 800 / max_dim
+                new_size = (int(width * scale), int(height * scale))
+                
+                # 应用高质量缩放
+                img = img.resize(new_size, Resampling.LANCZOS)
 
                 # 处理特殊颜色模式
                 if img.mode in ('RGBA', 'P'):
@@ -45,6 +53,6 @@ def process_images(root_dir):
 
 
 if __name__ == "__main__":
-    root_dir = r"D:\image-classification\data\train-mini"
+    root_dir = r"D:\image-classification\data\train-small"
     process_images(root_dir)
 
