@@ -20,21 +20,21 @@ def load_index_to_species_id_from_csv(csv_file_path):
 input_size = 448
 
 def main():
-    csv_file_path = 'index_to_species_reptilia.csv'
+    csv_file_path = 'rep_index_to_species_id.csv'
     index_to_species_id = load_index_to_species_id_from_csv(csv_file_path)
     # 加载检查点文件
-    # checkpoint = torch.load('wandb_logs/identify/hbyxm397/checkpoints/last.ckpt', map_location=torch.device('cuda:0'))
+    checkpoint = torch.load('wandb_logs/identify/wqoq9edn/checkpoints/last.ckpt', map_location=torch.device('cuda:0'))
 
     # 创建模型实例
-    model = SwinV2Model(num_classes = 259)
-    model.load_state_dict(torch.load('./model_reptilia.pth', map_location=torch.device('cuda:0'), weights_only=True))
+    model = SwinV2Model(num_classes = 239)
+    # model.load_state_dict(torch.load('./model_reptilia.pth', map_location=torch.device('cuda:0'), weights_only=True))
 
     # 如果模型是在Lightning中训练的，你可能需要只提取模型状态字典
 
-    # state_dict = checkpoint['state_dict']
+    state_dict = checkpoint['state_dict']
 
     # 加载模型权重
-    # model.load_state_dict(state_dict)
+    model.load_state_dict(state_dict)
 
     # 将模型设置为评估模式
     model.eval()
@@ -48,7 +48,7 @@ def main():
 
 
     # 加载本地图片
-    img_path = 'data/predict/amp/a6abd143ad4bd113caee43895cafa40f4bfb052c.jpg'  # 替换为您的图片路径
+    img_path = r"D:\image-classification\data\predict\rep\1.jpg" # 替换为您的图片路径
     image = Image.open(img_path)
 
     # 预处理图片

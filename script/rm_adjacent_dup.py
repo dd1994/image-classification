@@ -27,7 +27,7 @@ from aim.v2.utils import load_pretrained
 from aim.v1.torch.data import val_transforms
 
 # 配置参数
-BASE_DIR = r"D:\image-classification\data\train-small"
+BASE_DIR = r"D:\image-classification\data\dup_test2"
 SIMILARITY_THRESHOLD = 0.6  # 相似度阈值，可调整
 NEIGHBOR_RANGE = 100  # 前后检查范围
 SUPPORTED_EXTENSIONS = ('.png', '.jpg', '.jpeg')
@@ -35,6 +35,7 @@ SUPPORTED_EXTENSIONS = ('.png', '.jpg', '.jpeg')
 # 初始化模型
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 model = load_pretrained("aimv2-large-patch14-448", backend="torch").to(device)
+model.eval()
 transform = val_transforms(img_size=448)
 
 
@@ -121,7 +122,7 @@ def process_species_directory(species_dir):
 def main():
     # 遍历所有类别
     for class_name in os.listdir(BASE_DIR):
-        if class_name != 'Amphibia':
+        if class_name == 'Amphibia':
             continue
         class_dir = os.path.join(BASE_DIR, class_name)
         if not os.path.isdir(class_dir):
