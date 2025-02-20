@@ -28,10 +28,11 @@ from aim.v1.torch.data import val_transforms
 import cv2  # 需要安装 opencv-python 包
 
 # 配置参数
-BASE_DIR = r"D:\image-classification\data\dup_test2"
+BASE_DIR = r"D:\image-classification\data\train-small"
 SIMILARITY_THRESHOLD = 0.6  # 相似度阈值，可调整
 NEIGHBOR_RANGE = 100  # 前后检查范围
 SUPPORTED_EXTENSIONS = ('.png', '.jpg', '.jpeg')
+MAX_IMG_COUNT= 500
 
 # 初始化模型
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
@@ -131,7 +132,7 @@ def process_species_directory(species_dir):
 
     # 二次处理：模糊度去重
     remaining_paths = [p for i, p in enumerate(valid_paths) if i not in to_delete]
-    if len(remaining_paths) > 600:
+    if len(remaining_paths) > MAX_IMG_COUNT:
         print(f"去重后仍有 {len(remaining_paths)} 张，执行模糊度筛选")
         
         # 计算所有剩余图片的模糊度
@@ -143,11 +144,10 @@ def process_species_directory(species_dir):
         # 按模糊度排序（分数低的模糊图片在前）
         blur_scores.sort(key=lambda x: x[1])
         
-        # 保留最清晰的600张
-        to_delete_blur = [item[0] for item in blur_scores[600:]]
+        # 保留最清晰的 MAX_IMG_COUNT 张
+        to_delete_blur = [item[0] for item in blur_scores[MAX_IMG_COUNT:]]
         for path in to_delete_blur:
             try:
-                print(f"{path} 过于模糊被删除")
                 os.remove(path)
                 deleted_count += 1
             except Exception as e:
@@ -160,7 +160,7 @@ def process_species_directory(species_dir):
 def main():
     # 遍历所有类别
     for class_name in os.listdir(BASE_DIR):
-        if class_name != 'test':
+        if class_name != 'Mollusca':
             continue
         class_dir = os.path.join(BASE_DIR, class_name)
         if not os.path.isdir(class_dir):
