@@ -69,12 +69,12 @@ class BaseModel(pl.LightningModule):
         top1_acc = (preds == y).float().mean()
 
         # 计算 Top-3 准确率
-        top3_preds = torch.topk(outputs, k=3, dim=1).indices
-        top3_acc = (top3_preds == y.view(-1, 1)).sum().float() / len(y)
+        top5_preds = torch.topk(outputs, k=5, dim=1).indices
+        top5_acc = (top5_preds == y.view(-1, 1)).sum().float() / len(y)
 
         self.log('val/loss', loss, prog_bar=True)
         self.log('val/acc_top1', top1_acc, prog_bar=True, on_step=False, on_epoch=True)
-        self.log('val/acc_top3', top3_acc, prog_bar=True, on_step=False, on_epoch=True)
+        self.log('val/acc_top5', top5_acc, prog_bar=True, on_step=False, on_epoch=True)
 
         return loss
 
@@ -86,37 +86,34 @@ class BaseModel(pl.LightningModule):
         top1_acc = (preds == y).float().mean()
 
         # 计算 Top-3 准确率
-        top3_preds = torch.topk(outputs, k=3, dim=1).indices
-        top3_acc = (top3_preds == y.view(-1, 1)).sum().float() / len(y)
+        top5_preds = torch.topk(outputs, k=5, dim=1).indices
+        top5_acc = (top5_preds == y.view(-1, 1)).sum().float() / len(y)
 
         self.log('test/loss', loss, prog_bar=True)
         self.log('test/acc_top1', top1_acc, prog_bar=True, on_step=False, on_epoch=True)
-        self.log('test/acc_top3', top3_acc, prog_bar=True, on_step=False, on_epoch=True)
+        self.log('test/acc_top5', top5_acc, prog_bar=True, on_step=False, on_epoch=True)
 
         return loss
 
     def configure_optimizers(self):
         optimizer = torch.optim.AdamW(self.parameters(), lr=self.learning_rate, weight_decay=2e-5)
-        
-        # 添加学习率预热
-        warmup_epochs = 3
-        warmup_scheduler = torch.optim.lr_scheduler.LinearLR(
-            optimizer, start_factor=0.01, total_iters = warmup_epochs
-        )
 
-        scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(
-            optimizer, T_max=(self.t_max - warmup_epochs), eta_min=self.learning_rate*0.0001
-        )
-
-        combined_scheduler = torch.optim.lr_scheduler.SequentialLR(
+        print(self.trainer.estimated_stepping_batches)
+        scheduler = torch.optim.lr_scheduler.OneCycleLR(
             optimizer,
-            schedulers=[warmup_scheduler, scheduler],
-            milestones=[warmup_epochs]  # 在 warmup_epochs 之后切换到 CosineAnnealingLR
+            max_lr=self.learning_rate,  # 最大學習率設為基礎學習率的5倍
+            total_steps=self.trainer.estimated_stepping_batches,  # 准确计算总step数
+            pct_start=0.3,  # 前20%的訓練過程用於學習率上升
+            cycle_momentum=False,  # AdamW不適合使用momentum cycling
+            div_factor=200,
+            three_phase=True
         )
+
         return {
             "optimizer": optimizer,
             "lr_scheduler": {
-                "scheduler": combined_scheduler,
+                "scheduler": scheduler,
+                "interval": "step",  # OneCycleLR需要按step更新
                 "monitor": "val/loss"
             }
         }
@@ -243,7 +240,7 @@ class HieraModel(BaseModel):
             embed_dim=112,  # 嵌入维度
             num_heads=2,  # 注意力头数
             stages=(2, 3, 16, 3),  # 各个阶段的块数
-            num_classes=num_classes,  # 类���数
+            num_classes=num_classes,  # 类别数
             # 其他参数可以根据需要添加
         )
         print(self.model)
