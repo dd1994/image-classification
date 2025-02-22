@@ -106,7 +106,7 @@ class BaseModel(pl.LightningModule):
             pct_start=0.3,  # 前20%的訓練過程用於學習率上升
             cycle_momentum=False,  # AdamW不適合使用momentum cycling
             div_factor=200,
-            three_phase=True
+            final_div_factor=1.5e6
         )
 
         return {
