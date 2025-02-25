@@ -98,22 +98,25 @@ class BaseModel(pl.LightningModule):
     def configure_optimizers(self):
         optimizer = torch.optim.AdamW(self.parameters(), lr=self.learning_rate, weight_decay=2e-5)
 
-        print(self.trainer.estimated_stepping_batches)
-        scheduler = torch.optim.lr_scheduler.OneCycleLR(
+        warmup_epochs = 3
+        warmup_scheduler = torch.optim.lr_scheduler.LinearLR(
+            optimizer, start_factor=0.01, total_iters=warmup_epochs
+        )
+
+        scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(
+            optimizer, T_max=(self.t_max - warmup_epochs), eta_min=self.learning_rate * 0.0001
+        )
+
+        combined_scheduler = torch.optim.lr_scheduler.SequentialLR(
             optimizer,
-            max_lr=self.learning_rate,  # 最大學習率設為基礎學習率的5倍
-            total_steps=self.trainer.estimated_stepping_batches,  # 准确计算总step数
-            pct_start=0.3,  # 前20%的訓練過程用於學習率上升
-            cycle_momentum=False,  # AdamW不適合使用momentum cycling
-            div_factor=200,
-            final_div_factor=1.5e6
+            schedulers=[warmup_scheduler, scheduler],
+            milestones=[warmup_epochs]  # 在 warmup_epochs 之后切换到 CosineAnnealingLR
         )
 
         return {
             "optimizer": optimizer,
             "lr_scheduler": {
-                "scheduler": scheduler,
-                "interval": "step",  # OneCycleLR需要按step更新
+                "scheduler": combined_scheduler,
                 "monitor": "val/loss"
             }
         }

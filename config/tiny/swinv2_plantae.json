@@ -2,18 +2,17 @@
   "model": {
       "class_path": "SwinV2Model",
       "init_args": {
-          "num_classes": 843,
+          "num_classes": 11,
           "learning_rate": 1e-4,
           "input_size": 448,
-          "t_max": 17
+          "t_max": 12
       }
   },
   "trainer": {
-      "max_epochs": 17,
+      "max_epochs": 12,
       "accelerator": "gpu",
       "devices": 1,
       "precision": "16-mixed",
-      "accumulate_grad_batches": 8,
       "callbacks": [
         {
             "class_path": "pytorch_lightning.callbacks.EarlyStopping",
@@ -27,7 +26,7 @@
             "class_path": "pytorch_lightning.callbacks.ModelCheckpoint",
             "init_args": {
                 "monitor": "val/acc_top1",
-                "filename": "swinv2-arachnida-small-{epoch:02d}-{val/acc_top1:.4f}",
+                "filename": "swinv2-inat2019-tiny-{epoch:02d}-{val/acc_top1:.4f}",
                 "save_top_k": 3,
                 "save_last": true,
                 "mode": "max"
@@ -44,12 +43,12 @@
   "data":  {
     "class_path": "SpecialCateData",
     "init_args": {
-      "data_dir": "./data/train-small/Arachnida",
-      "valid_dir": "./data/valid-small/Arachnida",
-      "id_map_file_path": "arachnida_id_map.csv",
-      "valid_id_map_file_path": "valid_arachnida_id_map.csv",
+      "data_dir": "./data/train-small/Plantae",
+      "valid_dir": "./data/valid-small/Plantae",
+      "id_map_file_path": "plantae_id_map.csv",
+      "valid_id_map_file_path": "valid_plantae_id_map.csv",
       "batch_size": 16,
-      "num_workers": 12,
+      "num_workers": 3,
       "input_size": 448
     }
   }
