@@ -1,8 +1,8 @@
 const fs = require('fs');
 const path = require('path');
 const { imgExt } = require('./const')
-const trainDir = 'D:/image-classification/data/train-small';
-const outputFile = 'reptilia_stat.csv';
+const trainDir = 'D:/image-classification/data/tmp';
+const outputFile = 'animalia_stat.csv';
 const collectionBase = path.join(path.dirname(trainDir), 'collection'); // 自动生成collection路径
 console.log(imgExt)
 // 支持的图片扩展名集合
@@ -66,9 +66,9 @@ try {
   const classDirs = fs.readdirSync(trainDir);
 
   for (const className of classDirs) {
-    if(className === 'Reptilia') {
-        continue
-    }
+//    if(className === 'Reptilia') {
+//        continue
+//    }
     const classPath = path.join(trainDir, className);
     const classStats = fs.statSync(classPath);
 
@@ -134,23 +134,7 @@ try {
       }
 
       // 根据数量决定保留或移动
-      if (validFiles.length > 500) {
-          // 按修改时间排序（最旧在前）
-          validFiles.sort((a, b) => a.mtime - b.mtime);
-          
-          // 保留最旧的500个，删除多余的
-          validFiles.slice(500).forEach(file => {
-              fs.unlinkSync(file.path);
-//              console.log(`删除多余文件: ${file.path}`);
-          });
-          
-          results.push({
-              class: className,
-              taxon_id: taxonId,
-              photo_count: 500
-          });
-          console.log(`保留500个最旧文件，删除了 ${validFiles.length - 500} 个文件`);
-      } else if(validFiles.length < 50) {
+     if(validFiles.length < 50) {
           const destPath = path.join(collectionBase, className, taxonId);
           console.log(`图片数量 ${validFiles.length}，移动到 ${destPath}`);
           moveDirectory(taxonPath, destPath);
