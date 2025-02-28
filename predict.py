@@ -14,19 +14,27 @@ def load_index_to_species_id_from_csv(csv_file_path):
         next(reader)  # 跳过表头行
         for row in reader:
             index, species_id, taxon_name, chinese_name = row
-            index_to_species_id[int(index)] = species_id + ' ' + taxon_name + ' ' + chinese_name
+            # index_to_species_id[int(index)] = taxon_name + ' ' + chinese_name
+            index_to_species_id[int(index)] = taxon_name + ' ' + chinese_name
     return index_to_species_id
 
 input_size = 448
 
 def main():
-    csv_file_path = 'rep_index_to_species_id.csv'
+    torch.cuda.empty_cache()
+
+    # 多GPU环境下清除指定设备的缓存
+    # device_id = 0  # GPU编号
+    # with torch.cuda.device(device_id):
+    #     torch.cuda.empty_cache()
+
+    csv_file_path = 'spider_index_to_species_id.csv'
     index_to_species_id = load_index_to_species_id_from_csv(csv_file_path)
     # 加载检查点文件
-    checkpoint = torch.load('wandb_logs/identify/wqoq9edn/checkpoints/last.ckpt', map_location=torch.device('cuda:0'))
+    checkpoint = torch.load('wandb_logs/identify/a4goljj6/checkpoints/last.ckpt', map_location=torch.device('cuda:0'), weights_only=True)
 
     # 创建模型实例
-    model = SwinV2Model(num_classes = 239)
+    model = SwinV2Model(num_classes = 843)
     # model.load_state_dict(torch.load('./model_reptilia.pth', map_location=torch.device('cuda:0'), weights_only=True))
 
     # 如果模型是在Lightning中训练的，你可能需要只提取模型状态字典
