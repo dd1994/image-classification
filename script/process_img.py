@@ -53,6 +53,6 @@ def process_images(root_dir):
 
 
 if __name__ == "__main__":
-    root_dir = r"D:\image-classification\data\tmp"
+    root_dir = r"D:\image-classification\data\large"
     process_images(root_dir)
 

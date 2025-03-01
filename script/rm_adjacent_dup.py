@@ -29,8 +29,8 @@ import cv2  # 需要安装 opencv-python 包
 import random
 
 # 配置参数
-BASE_DIR = r"D:\image-classification\data\dup_test2"
-SIMILARITY_THRESHOLD = 0.6  # 相似度阈值，可调整
+BASE_DIR = r"D:\image-classification\data\tmp"
+SIMILARITY_THRESHOLD = 0.61  # 相似度阈值，可调整
 NEIGHBOR_RANGE = 900  # 前后检查范围
 SUPPORTED_EXTENSIONS = ('.png', '.jpg', '.jpeg')
 MAX_IMG_COUNT= 600
@@ -73,7 +73,7 @@ def process_species_directory(species_dir):
     if len(sorted_paths) > 400:
         similarity_threshold = 0.583
     elif len(sorted_paths) > 200:
-        similarity_threshold = 0.61
+        similarity_threshold = 0.62
     else:
         similarity_threshold = 0.8
 
@@ -217,7 +217,7 @@ def process_species_directory(species_dir):
 def main():
     # 遍历所有类别
     for class_name in os.listdir(BASE_DIR):
-        if class_name != 'Plantae':
+        if class_name != 'Arachnida':
             continue
         class_dir = os.path.join(BASE_DIR, class_name)
         if not os.path.isdir(class_dir):
