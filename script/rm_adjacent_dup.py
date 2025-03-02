@@ -71,7 +71,7 @@ def process_species_directory(species_dir):
     
     # 根据图片数量动态设置阈值
     if len(sorted_paths) > 600:
-        similarity_threshold = 0.583
+        similarity_threshold = 0.584
     elif len(sorted_paths) > 200:
         similarity_threshold = 0.62
     else:
