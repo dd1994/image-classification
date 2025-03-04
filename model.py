@@ -31,12 +31,11 @@ class BaseModel(pl.LightningModule):
     def training_step(self, batch, batch_idx):
         images, labels = batch
         
-        # 80% 的概率使用 CutMix 或 MixUp
-        if torch.rand(1).item() < 0.8:
+        # 只在非最后3个epoch使用数据增强
+        if self.current_epoch < self.trainer.max_epochs - 3 and torch.rand(1).item() < 0.8:
             cutmix = v2.CutMix(num_classes=self.num_classes)
             mixup = v2.MixUp(num_classes=self.num_classes)
             cutmix_or_mixup = v2.RandomChoice([cutmix, mixup])
-            # 应用 CutMix 或 MixUp
             images, labels = cutmix_or_mixup(images, labels)
 
         outputs = self(images)
