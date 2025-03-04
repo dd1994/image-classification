@@ -30,6 +30,7 @@ def main():
 
     csv_file_path = 'spider_index_to_species_id.csv'
     index_to_species_id = load_index_to_species_id_from_csv(csv_file_path)
+    # amp: agkndjwa
     # 加载检查点文件
     checkpoint = torch.load('wandb_logs/identify/a4goljj6/checkpoints/last.ckpt', map_location=torch.device('cuda:0'), weights_only=True)
 

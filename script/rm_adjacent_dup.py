@@ -29,9 +29,9 @@ import cv2  # 需要安装 opencv-python 包
 import random
 
 # 配置参数
-BASE_DIR = r"D:\image-classification\data\tmp"
+BASE_DIR = r"D:\image-classification\data\train-small"
 SIMILARITY_THRESHOLD = 0.61  # 相似度阈值，可调整
-NEIGHBOR_RANGE = 900  # 前后检查范围
+NEIGHBOR_RANGE = 1000  # 前后检查范围
 SUPPORTED_EXTENSIONS = ('.png', '.jpg', '.jpeg')
 MAX_IMG_COUNT= 600
 
@@ -217,7 +217,7 @@ def process_species_directory(species_dir):
 def main():
     # 遍历所有类别
     for class_name in os.listdir(BASE_DIR):
-        if class_name != 'Arachnida':
+        if class_name != 'Amphibia':
             continue
         class_dir = os.path.join(BASE_DIR, class_name)
         if not os.path.isdir(class_dir):
