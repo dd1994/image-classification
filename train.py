@@ -1,3 +1,4 @@
+import torch.cuda
 from pytorch_lightning.cli import LightningCLI
 
 from data_module import INatBaseDataModule
@@ -8,7 +9,7 @@ from util.win_sleep import prevent_sleep, restore_sleep
 def cli_main():
     # 训练开始前设置防止休眠
     # prevent_sleep()
-    
+        torch.cuda.empty_cache()
     # try:
         cli = LightningCLI(
             model_class=BaseModel,

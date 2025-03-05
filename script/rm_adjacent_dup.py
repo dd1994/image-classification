@@ -29,11 +29,11 @@ import cv2  # 需要安装 opencv-python 包
 import random
 
 # 配置参数
-BASE_DIR = r"D:\image-classification\data\train-small"
+BASE_DIR = r"D:\image-classification\data\train-tiny"
 SIMILARITY_THRESHOLD = 0.61  # 相似度阈值，可调整
-NEIGHBOR_RANGE = 1000  # 前后检查范围
+NEIGHBOR_RANGE = 900  # 前后检查范围
 SUPPORTED_EXTENSIONS = ('.png', '.jpg', '.jpeg')
-MAX_IMG_COUNT= 600
+MAX_IMG_COUNT= 700
 
 # 初始化模型
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
@@ -70,7 +70,7 @@ def process_species_directory(species_dir):
     sorted_paths = [x[0] for x in image_paths]
     
     # 根据图片数量动态设置阈值
-    if len(sorted_paths) > 600:
+    if len(sorted_paths) > MAX_IMG_COUNT:
         similarity_threshold = 0.584
     elif len(sorted_paths) > 300:
         similarity_threshold = 0.61
