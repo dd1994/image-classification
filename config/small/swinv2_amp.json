@@ -44,8 +44,8 @@
   "data":  {
     "class_path": "SpecialCateData",
     "init_args": {
-      "data_dir": "./data/train-small/Amphibia",
-      "valid_dir": "./data/valid-small/Amphibia",
+      "data_dir": "./data/train-tiny/Amphibia",
+      "valid_dir": "./data/valid-tiny/Amphibia",
       "id_map_file_path": "amp_id_map.csv",
       "valid_id_map_file_path": "valid_amp_id_map.csv",
       "batch_size": 16,
