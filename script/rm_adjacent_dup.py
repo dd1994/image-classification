@@ -29,7 +29,7 @@ import cv2  # 需要安装 opencv-python 包
 import random
 
 # 配置参数
-BASE_DIR = r"D:\image-classification\data\train-small"
+BASE_DIR = r"D:\image-classification\data\dup_test2"
 SIMILARITY_THRESHOLD = 0.61  # 相似度阈值，可调整
 NEIGHBOR_RANGE = 100  # 前后检查范围
 SUPPORTED_EXTENSIONS = ('.png', '.jpg', '.jpeg')
@@ -78,7 +78,7 @@ def process_species_directory(species_dir):
         similarity_threshold = 0.8
 
     # 修改特征提取部分为批处理
-    batch_size = 64  # 根据GPU显存调整
+    batch_size = 88  # 根据GPU显存调整
     features = []
     valid_paths = []
     
@@ -145,17 +145,17 @@ def process_species_directory(species_dir):
         for idx in over_threshold:
             j = start + idx.item()
             if j not in to_delete:
-                # print(f"\n相似图片对 (相似度 {similarities[idx].item():.4f}):")
-                # print(f"基准图片: {valid_paths[i]}")
-                # print(f"重复图片: {valid_paths[j]}")
-                # print("-" * 80)
+                print(f"\n相似图片对 (相似度 {similarities[idx].item():.4f}):")
+                print(f"基准图片: {valid_paths[i]}")
+                print(f"重复图片: {valid_paths[j]}")
+                print("-" * 80)
                 to_delete.add(j)
 
     # 执行删除操作
     deleted_count = 0
     for idx in sorted(to_delete, reverse=True):
         try:
-            os.remove(valid_paths[idx])
+            # os.remove(valid_paths[idx])
             deleted_count += 1
         except Exception as e:
             print(f"删除 {valid_paths[idx]} 失败: {e}")
