@@ -1,8 +1,8 @@
 const fs = require('fs');
 const path = require('path');
 const { imgExt } = require('./const')
-const trainDir = 'D:/image-classification/data/plant-tmp';
-const outputFile = 'plant_stat.csv';
+const trainDir = 'D:/image-classification/data/tmp';
+const outputFile = 'fungi_stat.csv';
 const collectionBase = path.join(path.dirname(trainDir), 'collection'); // 自动生成collection路径
 console.log(imgExt)
 // 支持的图片扩展名集合
@@ -22,9 +22,9 @@ try {
   const classDirs = fs.readdirSync(trainDir);
 
   for (const className of classDirs) {
-    if(className !== 'Plantae') {
-        continue
-    }
+//    if(className !== 'Plantae') {
+//        continue
+//    }
     const classPath = path.join(trainDir, className);
     const classStats = fs.statSync(classPath);
 
@@ -76,10 +76,10 @@ try {
           }
 
           const ext = path.extname(file).toLowerCase();
-          if(file.startsWith('ppbc')) {
-            console.log('删除未处理文件', file)
-//              fs.unlinkSync(filePath);
-          }
+//          if(file.startsWith('ppbc')) {
+//            console.log('删除未处理文件', file)
+////              fs.unlinkSync(filePath);
+//          }
           if (file.startsWith('.') || !IMAGE_EXTENSIONS.has(ext)) {
               fs.unlinkSync(filePath);
               console.log(`删除无效文件: ${filePath}`);
@@ -93,11 +93,13 @@ try {
           });
       }
 
-        results.push({
-          class: className,
-          taxon_id: taxonId,
-          photo_count: validFiles.length
-      });
+    if(validFiles.length < 900) {
+            results.push({
+              class: className,
+              taxon_id: taxonId,
+              photo_count: validFiles.length
+          });
+    }
     }
   }
 
