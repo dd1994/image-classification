@@ -30,16 +30,16 @@ import random
 
 # 配置参数
 BASE_DIR = r"D:\image-classification\data\dup_test2"
-SIMILARITY_THRESHOLD = 0.61  # 相似度阈值，可调整
+similarity_threshold = 0.583
 NEIGHBOR_RANGE = 100  # 前后检查范围
 SUPPORTED_EXTENSIONS = ('.png', '.jpg', '.jpeg')
 MAX_IMG_COUNT= 600 # 植物最多 500 张，鸟类最多 800 张，其余最多 600 张
 
 # 初始化模型
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-model = load_pretrained("aimv2-large-patch14-448", backend="torch").to(device)
+model = load_pretrained("aimv2-large-patch14-224-distilled", backend="torch").to(device)
 model.eval()
-transform = val_transforms(img_size=448)
+transform = val_transforms(img_size=224)
 
 def calculate_blur_score(image_path):
     """计算图像模糊分数（值越小越模糊）"""
@@ -69,16 +69,11 @@ def process_species_directory(species_dir):
     image_paths.sort(key=lambda x: x[1])
     sorted_paths = [x[0] for x in image_paths]
     
-    # 根据图片数量动态设置阈值
-    if len(sorted_paths) > 600:
-        similarity_threshold = 0.582
-    elif len(sorted_paths) > 300:
-        similarity_threshold = 0.61
-    else:
-        similarity_threshold = 0.8
-
+    # 新增数量检查
+    if len(sorted_paths) <= MAX_IMG_COUNT:
+        return 0  # 直接跳过处理
     # 修改特征提取部分为批处理
-    batch_size = 88  # 根据GPU显存调整
+    batch_size = 400  # 根据GPU显存调整
     features = []
     valid_paths = []
     
@@ -145,17 +140,17 @@ def process_species_directory(species_dir):
         for idx in over_threshold:
             j = start + idx.item()
             if j not in to_delete:
-                print(f"\n相似图片对 (相似度 {similarities[idx].item():.4f}):")
-                print(f"基准图片: {valid_paths[i]}")
-                print(f"重复图片: {valid_paths[j]}")
-                print("-" * 80)
+                # print(f"\n相似图片对 (相似度 {similarities[idx].item():.4f}):")
+                # print(f"基准图片: {valid_paths[i]}")
+                # print(f"重复图片: {valid_paths[j]}")
+                # print("-" * 80)
                 to_delete.add(j)
 
     # 执行删除操作
     deleted_count = 0
     for idx in sorted(to_delete, reverse=True):
         try:
-            # os.remove(valid_paths[idx])
+            os.remove(valid_paths[idx])
             deleted_count += 1
         except Exception as e:
             print(f"删除 {valid_paths[idx]} 失败: {e}")

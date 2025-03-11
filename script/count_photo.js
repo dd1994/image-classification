@@ -1,7 +1,7 @@
 const fs = require('fs');
 const path = require('path');
 const { imgExt } = require('./const')
-const trainDir = 'D:/image-classification/data/tmp';
+const trainDir = 'D:/image-classification/data/train-mini';
 const outputFile = 'fungi_stat.csv';
 const collectionBase = path.join(path.dirname(trainDir), 'collection'); // 自动生成collection路径
 console.log(imgExt)
@@ -22,9 +22,9 @@ try {
   const classDirs = fs.readdirSync(trainDir);
 
   for (const className of classDirs) {
-//    if(className !== 'Plantae') {
-//        continue
-//    }
+    if(className !== 'Mammalia') {
+        continue
+    }
     const classPath = path.join(trainDir, className);
     const classStats = fs.statSync(classPath);
 
@@ -93,7 +93,7 @@ try {
           });
       }
 
-    if(validFiles.length < 900) {
+    if(validFiles.length < 898) {
             results.push({
               class: className,
               taxon_id: taxonId,

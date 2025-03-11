@@ -1,0 +1,1 @@
+/c/ProgramData/anaconda3/envs/myenv/python.exe ./train.py fit --config ./config/small/swinv2_amp.json

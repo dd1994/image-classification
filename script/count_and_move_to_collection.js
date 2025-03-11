@@ -1,7 +1,7 @@
 const fs = require('fs');
 const path = require('path');
 const { imgExt } = require('./const')
-const trainDir = 'D:/image-classification/data/train-small';
+const trainDir = 'D:/image-classification/data/train-tiny';
 const outputFile = 'animalia_stat.csv';
 const collectionBase = path.join(path.dirname(trainDir), 'collection'); // 自动生成collection路径
 console.log(imgExt)
