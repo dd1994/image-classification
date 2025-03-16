@@ -29,7 +29,7 @@ import cv2  # 需要安装 opencv-python 包
 import random
 
 # 配置参数
-BASE_DIR = r"D:\image-classification\data\dup_test2"
+BASE_DIR = r"D:\image-classification\data\train-tiny"
 similarity_threshold = 0.583
 NEIGHBOR_RANGE = 100  # 前后检查范围
 SUPPORTED_EXTENSIONS = ('.png', '.jpg', '.jpeg')
