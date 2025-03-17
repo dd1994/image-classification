@@ -2,7 +2,7 @@
   "model": {
       "class_path": "SwinV2Model",
       "init_args": {
-          "num_classes": 239,
+          "num_classes": 288,
           "learning_rate": 1.5e-4,
           "input_size": 448,
           "t_max": 17
@@ -44,12 +44,12 @@
   "data":  {
     "class_path": "SpecialCateData",
     "init_args": {
-      "data_dir": "./data/train-small/Reptilia",
-      "valid_dir": "./data/valid-small/Reptilia",
+      "data_dir": "./data/train-tiny/Reptilia",
+      "valid_dir": "./data/valid-tiny/Reptilia",
       "id_map_file_path": "reptilia_id_map.csv",
       "valid_id_map_file_path": "valid_reptilia_id_map.csv",
       "batch_size": 16,
-      "num_workers": 12,
+      "num_workers": 6,
       "input_size": 448
     }
   }

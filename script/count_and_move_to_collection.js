@@ -2,8 +2,9 @@ const fs = require('fs');
 const path = require('path');
 const { imgExt } = require('./const')
 const trainDir = 'D:/image-classification/data/train-tiny';
-const outputFile = 'animalia_stat.csv';
-const collectionBase = path.join(path.dirname(trainDir), 'collection'); // 自动生成collection路径
+const collectionBase = path.join(path.dirname(trainDir), 'collection'); // 自动生成collection路径\
+const ACTIVE = 'Reptilia'
+const outputFile = `${ACTIVE}_stat.csv`
 console.log(imgExt)
 // 支持的图片扩展名集合
 const IMAGE_EXTENSIONS = new Set(imgExt);
@@ -66,9 +67,9 @@ try {
   const classDirs = fs.readdirSync(trainDir);
 
   for (const className of classDirs) {
-//    if(className === 'Reptilia') {
-//        continue
-//    }
+    if(className !== ACTIVE) {
+        continue
+    }
     const classPath = path.join(trainDir, className);
     const classStats = fs.statSync(classPath);
 

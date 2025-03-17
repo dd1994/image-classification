@@ -30,6 +30,7 @@ import random
 
 # 配置参数
 BASE_DIR = r"D:\image-classification\data\train-tiny"
+ACTIVE = 'Reptilia'
 similarity_threshold = 0.583
 NEIGHBOR_RANGE = 100  # 前后检查范围
 SUPPORTED_EXTENSIONS = ('.png', '.jpg', '.jpeg')
@@ -212,7 +213,7 @@ def process_species_directory(species_dir):
 def main():
     # 遍历所有类别
     for class_name in os.listdir(BASE_DIR):
-        if class_name != 'Amphibia':
+        if class_name != ACTIVE:
             continue
         class_dir = os.path.join(BASE_DIR, class_name)
         if not os.path.isdir(class_dir):

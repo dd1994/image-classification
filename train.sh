@@ -1,1 +1,1 @@
-PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True /c/ProgramData/anaconda3/envs/myenv/python.exe ./train.py fit --config ./config/small/swinv2_amp.json
+PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True /c/ProgramData/anaconda3/envs/myenv/python.exe ./train.py fit --config ./config/small/swinv2_reptilia.json

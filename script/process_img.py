@@ -49,6 +49,11 @@ def process_images(root_dir):
 
         except Exception as e:
             print(f"Error processing {file_path}: {str(e)}")
+            # 直接删除文件
+            try:
+                os.remove(file_path)
+            except Exception as e:
+                print(f"删除 {file_path} 失败: {e}")
             # 保留原文件以便排查问题
 
 
