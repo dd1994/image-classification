@@ -29,12 +29,13 @@ import cv2  # 需要安装 opencv-python 包
 import random
 
 # 配置参数
-BASE_DIR = r"D:\image-classification\data\train-tiny"
-ACTIVE = 'Reptilia'
+BASE_DIR = r"D:\image-classification\data\dup_test2"
+ACTIVE = 'Aves'
 similarity_threshold = 0.583
 NEIGHBOR_RANGE = 100  # 前后检查范围
 SUPPORTED_EXTENSIONS = ('.png', '.jpg', '.jpeg')
 MAX_IMG_COUNT= 600 # 植物最多 500 张，鸟类最多 800 张，其余最多 600 张
+batch_size = 400  # 根据GPU显存调整
 
 # 初始化模型
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
@@ -74,7 +75,6 @@ def process_species_directory(species_dir):
     if len(sorted_paths) <= MAX_IMG_COUNT:
         return 0  # 直接跳过处理
     # 修改特征提取部分为批处理
-    batch_size = 400  # 根据GPU显存调整
     features = []
     valid_paths = []
     
