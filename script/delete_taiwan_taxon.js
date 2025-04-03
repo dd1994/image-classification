@@ -5,8 +5,8 @@ const csv = require('csv-parser');
 // 删除指定目录，主要用于删除台湾特有种
 
 // 配置部分
-const parentDir = 'D:/image-classification/data/train'; // 父文件夹路径
-const csvFilePath = './taicol.csv'; // CSV文件路径
+const parentDir = 'D:/image-classification/data/large'; // 父文件夹路径
+const csvFilePath = './inat_blacklist.csv'; // CSV文件路径
 
 // 安全校验函数
 const validatePaths = () => {
@@ -26,7 +26,7 @@ const readTaxonIdsFromCSV = () => {
     fs.createReadStream(csvFilePath)
       .pipe(csv())
       .on('data', (row) => {
-        const taxonId = row.taxonID;
+        const taxonId = row.taxon_id;
         if (taxonId) results.push(String(taxonId));
       })
       .on('end', () => {

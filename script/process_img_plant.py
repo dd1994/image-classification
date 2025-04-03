@@ -71,6 +71,6 @@ def process_images(root_dir):
 
 
 if __name__ == "__main__":
-    root_dir = r"D:\image-classification\data\dup_test2"
+    root_dir = r"D:\image-classification\data\large/plant2"
     process_images(root_dir)
 
