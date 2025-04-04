@@ -32,9 +32,12 @@ import random
 BASE_DIR = r"D:\image-classification\data\dup_test2"
 ACTIVE = 'Aves'
 similarity_threshold = 0.583
+similarity_threshold_plus = 0.588
 NEIGHBOR_RANGE = 100  # 前后检查范围
 SUPPORTED_EXTENSIONS = ('.png', '.jpg', '.jpeg')
-MAX_IMG_COUNT= 600 # 植物最多 500 张，鸟类最多 800 张，其余最多 600 张
+
+MAX_IMG_COUNT= 500 #
+OVERFLOW_IMG_COUNT = 894 # 植物设置为 990，
 batch_size = 400  # 根据GPU显存调整
 
 # 初始化模型
@@ -71,9 +74,22 @@ def process_species_directory(species_dir):
     image_paths.sort(key=lambda x: x[1])
     sorted_paths = [x[0] for x in image_paths]
     
-    # 新增数量检查
-    if len(sorted_paths) <= MAX_IMG_COUNT:
+    # 新增动态调整逻辑
+    current_max = MAX_IMG_COUNT
+    current_threshold = similarity_threshold
+
+   # 修改后的数量检查
+    if len(sorted_paths) <= current_max:
         return 0  # 直接跳过处理
+
+    if len(sorted_paths) < (current_max + 200):
+        # 这种情况下图片没有超出太多，阈值调大一点，不然去重后图片数量太少了。
+        current_threshold = similarity_threshold_plus
+    elif len(sorted_paths) > OVERFLOW_IMG_COUNT:
+        # 因为限制了最多下载 900 张图片，对于达到这个最大值的物种来说，是最常见的物种，为了增加最常见物种的识别率，给它增加 100 张训练图片（用 895 是因为偶尔出现图片下载错误，达不到 900 张）
+        current_max += 100
+
+    
     # 修改特征提取部分为批处理
     features = []
     valid_paths = []
@@ -137,7 +153,7 @@ def process_species_directory(species_dir):
             similarities = similarities / norms
         
         # 找出超过阈值的索引
-        over_threshold = torch.nonzero(similarities > similarity_threshold).squeeze(1)
+        over_threshold = torch.nonzero(similarities > current_threshold).squeeze(1)
         for idx in over_threshold:
             j = start + idx.item()
             if j not in to_delete:
@@ -159,7 +175,7 @@ def process_species_directory(species_dir):
 
     # 二次处理：模糊度去重
     remaining_paths = [p for i, p in enumerate(valid_paths) if i not in to_delete]
-    if len(remaining_paths) > MAX_IMG_COUNT:
+    if len(remaining_paths) > current_max:
         print(f"去重后仍有 {len(remaining_paths)} 张，执行模糊度筛选")
         
         # 计算所有剩余图片的模糊度
@@ -188,15 +204,15 @@ def process_species_directory(species_dir):
         # 更新剩余路径
         remaining_after_blur = [item[0] for item in blur_scores[to_delete_blur_count:]]
         
-        # 第二步：如果仍然超过限制，随机删除到保留 MAX_IMG_COUNT 张
-        if len(remaining_after_blur) > MAX_IMG_COUNT:
+        # 第二步：如果仍然超过限制，随机删除到保留 current_max 张
+        if len(remaining_after_blur) > current_max:
             print(f"模糊筛选后仍有 {len(remaining_after_blur)} 张，执行随机筛选")
             
             # 随机打乱列表
             random.shuffle(remaining_after_blur)
             
-            # 保留前 MAX_IMG_COUNT 张，删除多余的
-            to_delete_random = remaining_after_blur[MAX_IMG_COUNT:]
+            # 保留前 current_max 张，删除多余的
+            to_delete_random = remaining_after_blur[current_max:]
             
             # 执行删除
             for path in to_delete_random:
