@@ -1,8 +1,8 @@
 const fs = require('fs');
 const path = require('path');
 const { imgExt } = require('./const')
-const trainDir = 'D:/image-classification/data/large';
-const outputFile = 'plant_stat.csv';
+const trainDir = 'D:/image-classification/data/train-mini';
+const outputFile = 'aves_stat2.csv';
 const collectionBase = path.join(path.dirname(trainDir), 'collection'); // 自动生成collection路径
 console.log(imgExt)
 // 支持的图片扩展名集合
@@ -22,7 +22,7 @@ try {
   const classDirs = fs.readdirSync(trainDir);
 
   for (const className of classDirs) {
-    if(className !== 'Plantae') {
+    if(className !== 'Aves') {
         continue
     }
     const classPath = path.join(trainDir, className);
@@ -93,13 +93,13 @@ try {
           });
       }
 
-//    if(validFiles.length < 898) {
+    if(validFiles.length === 800) {
             results.push({
               class: className,
               taxon_id: taxonId,
               photo_count: validFiles.length
           });
-//    }
+    }
     }
   }
 
