@@ -32,7 +32,7 @@ import random
 BASE_DIR = r"D:\image-classification\data\dup_test2"
 ACTIVE = 'Aves'
 similarity_threshold = 0.583
-similarity_threshold_plus = 0.590
+similarity_threshold_plus = 0.588
 NEIGHBOR_RANGE = 100  # 前后检查范围
 SUPPORTED_EXTENSIONS = ('.png', '.jpg', '.jpeg')
 
