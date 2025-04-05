@@ -1,11 +1,11 @@
 const fs = require('fs');
 const path = require('path');
 const { imgExt } = require('./const')
-const trainDir = 'D:/image-classification/data/train-tiny';
+const trainDir = 'D:/image-classification/data/train-mini';
 const collectionBase = path.join(path.dirname(trainDir), 'collection'); // 自动生成collection路径\
-const ACTIVE = 'Reptilia'
+const ACTIVE = 'Aves'
 const outputFile = `${ACTIVE}_stat.csv`
-console.log(imgExt)
+const minCount = 50
 // 支持的图片扩展名集合
 const IMAGE_EXTENSIONS = new Set(imgExt);
 
@@ -67,9 +67,9 @@ try {
   const classDirs = fs.readdirSync(trainDir);
 
   for (const className of classDirs) {
-    if(className !== ACTIVE) {
-        continue
-    }
+//    if(className !== ACTIVE) {
+//        continue
+//    }
     const classPath = path.join(trainDir, className);
     const classStats = fs.statSync(classPath);
 
@@ -135,7 +135,7 @@ try {
       }
 
       // 根据数量决定保留或移动
-     if(validFiles.length < 50) {
+     if(validFiles.length < minCount) {
           const destPath = path.join(collectionBase, className, taxonId);
           console.log(`图片数量 ${validFiles.length}，移动到 ${destPath}`);
           moveDirectory(taxonPath, destPath);

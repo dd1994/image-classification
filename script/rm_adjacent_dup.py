@@ -85,9 +85,9 @@ def process_species_directory(species_dir):
     if len(sorted_paths) < (current_max + 200):
         # 这种情况下图片没有超出太多，阈值调大一点，不然去重后图片数量太少了。
         current_threshold = similarity_threshold_plus
-    elif len(sorted_paths) > OVERFLOW_IMG_COUNT:
-        # 因为限制了最多下载 900 张图片，对于达到这个最大值的物种来说，是最常见的物种，为了增加最常见物种的识别率，给它增加 100 张训练图片（用 895 是因为偶尔出现图片下载错误，达不到 900 张）
-        current_max += 100
+    # elif len(sorted_paths) > OVERFLOW_IMG_COUNT:
+    #     # 因为限制了最多下载 900 张图片，对于达到这个最大值的物种来说，是最常见的物种，为了增加最常见物种的识别率，给它增加 100 张训练图片（用 895 是因为偶尔出现图片下载错误，达不到 900 张）
+    #     current_max += 100
 
     
     # 修改特征提取部分为批处理
