@@ -29,16 +29,16 @@ import cv2  # 需要安装 opencv-python 包
 import random
 
 # 配置参数
-BASE_DIR = r"D:\image-classification\data\dup_test2"
-ACTIVE = 'Aves'
-similarity_threshold = 0.583
-similarity_threshold_plus = 0.588
+BASE_DIR = r"D:\image-classification\data\train-small"
+# ACTIVE = 'Insecta'
+similarity_threshold = 0.573
+similarity_threshold_plus = 0.586
 NEIGHBOR_RANGE = 100  # 前后检查范围
 SUPPORTED_EXTENSIONS = ('.png', '.jpg', '.jpeg')
 
-MAX_IMG_COUNT= 500 #
+MAX_IMG_COUNT= 600 #
 OVERFLOW_IMG_COUNT = 894 # 植物设置为 990，
-batch_size = 400  # 根据GPU显存调整
+batch_size = 100  # 根据GPU显存调整
 
 # 初始化模型
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
@@ -82,7 +82,9 @@ def process_species_directory(species_dir):
     if len(sorted_paths) <= current_max:
         return 0  # 直接跳过处理
 
-    if len(sorted_paths) < (current_max + 200):
+    print(f"\n该物种总共有 {len(sorted_paths)} 张图片")
+
+    if len(sorted_paths) <= (current_max + 200):
         # 这种情况下图片没有超出太多，阈值调大一点，不然去重后图片数量太少了。
         current_threshold = similarity_threshold_plus
     # elif len(sorted_paths) > OVERFLOW_IMG_COUNT:
@@ -127,6 +129,7 @@ def process_species_directory(species_dir):
 
     features = np.array(features)
     to_delete = set()
+
 
     # 修改相似度计算部分为GPU加速
     features_tensor = torch.tensor(features, device=device)
@@ -176,7 +179,7 @@ def process_species_directory(species_dir):
     # 二次处理：模糊度去重
     remaining_paths = [p for i, p in enumerate(valid_paths) if i not in to_delete]
     if len(remaining_paths) > current_max:
-        print(f"去重后仍有 {len(remaining_paths)} 张，执行模糊度筛选")
+        print(f"相似度去重删除 {len(to_delete)} 张")
         
         # 计算所有剩余图片的模糊度
         blur_scores = []
@@ -199,14 +202,14 @@ def process_species_directory(species_dir):
                 deleted_count += 1
             except Exception as e:
                 print(f"删除模糊图片 {path} 失败: {e}")
-        print(f"删除 {len(to_delete_blur)} 张模糊图片")
+        print(f"模糊度筛选删除 {len(to_delete_blur)} 张")
         
         # 更新剩余路径
         remaining_after_blur = [item[0] for item in blur_scores[to_delete_blur_count:]]
         
         # 第二步：如果仍然超过限制，随机删除到保留 current_max 张
         if len(remaining_after_blur) > current_max:
-            print(f"模糊筛选后仍有 {len(remaining_after_blur)} 张，执行随机筛选")
+            # print(f"模糊筛选后仍有 {len(remaining_after_blur)} 张，执行随机筛选")
             
             # 随机打乱列表
             random.shuffle(remaining_after_blur)
@@ -221,16 +224,16 @@ def process_species_directory(species_dir):
                     deleted_count += 1
                 except Exception as e:
                     print(f"删除随机图片 {path} 失败: {e}")
-            print(f"删除 {len(to_delete_random)} 张随机图片")
-
+            print(f"随机删除 {len(to_delete_random)} 张")
+    print(f"总共删除{deleted_count} 张，剩余 {len(sorted_paths) - deleted_count} 张")
     return deleted_count
 
 # 79,961
 def main():
     # 遍历所有类别
     for class_name in os.listdir(BASE_DIR):
-        if class_name != ACTIVE:
-            continue
+        # if class_name != ACTIVE:
+        #     continue
         class_dir = os.path.join(BASE_DIR, class_name)
         if not os.path.isdir(class_dir):
             continue
@@ -247,8 +250,9 @@ def main():
             for species_id, species_dir in class_pbar:
                 class_pbar.set_postfix_str(species_id)
                 deleted = process_species_directory(species_dir)
-                if deleted > 0:
-                    class_pbar.write(f"{class_name}/{species_id} 删除 {deleted} 张")
+                class_pbar.write(f"\n{class_name}/{species_id}处理完成")
+                # if deleted > 0:
+                #     class_pbar.write(f"{class_name}/{species_id} 总共删除 {deleted} 张")
 
 
 if __name__ == "__main__":

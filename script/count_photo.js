@@ -2,7 +2,7 @@ const fs = require('fs');
 const path = require('path');
 const { imgExt } = require('./const')
 const trainDir = 'D:/image-classification/data/train-mini';
-const outputFile = 'aves_stat2.csv';
+const outputFile = 'aves_stat3.csv';
 const collectionBase = path.join(path.dirname(trainDir), 'collection'); // 自动生成collection路径
 console.log(imgExt)
 // 支持的图片扩展名集合
@@ -93,7 +93,7 @@ try {
           });
       }
 
-    if(validFiles.length === 800) {
+    if(validFiles.length < 80) {
             results.push({
               class: className,
               taxon_id: taxonId,
