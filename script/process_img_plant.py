@@ -22,21 +22,21 @@ def process_images(root_dir):
         try:
             with Image.open(file_path) as img:
                 # 创建绘图对象
-                # draw = ImageDraw.Draw(img)
-                #
-                # # 去除左上水印（坐标系统原点在左上角）
-                # left_watermark = [94, 0, 94+120, 135]  # left, top, right, bottom
-                # draw.rectangle(left_watermark, fill=(0, 0, 0))  # 用黑色填充
-                #
-                # # 去除右下水印
-                # width, height = img.size
-                # right_watermark = [
-                #     width - 360,  # left
-                #     height - 50,  # top
-                #     width,        # right
-                #     height        # bottom
-                # ]
-                # draw.rectangle(right_watermark, fill=(0, 0, 0))
+                draw = ImageDraw.Draw(img)
+
+                # 去除左上水印（坐标系统原点在左上角）
+                left_watermark = [94, 0, 94+120, 135]  # left, top, right, bottom
+                draw.rectangle(left_watermark, fill=(0, 0, 0))  # 用黑色填充
+
+                # 去除右下水印
+                width, height = img.size
+                right_watermark = [
+                    width - 360,  # left
+                    height - 50,  # top
+                    width,        # right
+                    height        # bottom
+                ]
+                draw.rectangle(right_watermark, fill=(0, 0, 0))
 
                 # 计算目标尺寸（保持宽高比，最长边=800px）
                 width, height = img.size
@@ -67,6 +67,11 @@ def process_images(root_dir):
 
         except Exception as e:
             print(f"Error processing {file_path}: {str(e)}")
+            # 直接删除文件
+            try:
+                os.remove(file_path)
+            except Exception as e:
+                print(f"删除 {file_path} 失败: {e}")
             # 保留原文件以便排查问题
 
 
