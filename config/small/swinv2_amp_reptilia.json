@@ -1,0 +1,56 @@
+{
+  "model": {
+      "class_path": "SwinV2Model",
+      "init_args": {
+          "num_classes": 474,
+          "learning_rate": 1e-4,
+          "input_size": 448,
+          "t_max": 17
+      }
+  },
+  "trainer": {
+      "max_epochs": 17,
+      "accelerator": "gpu",
+      "devices": 1,
+      "precision": "16-mixed",
+      "accumulate_grad_batches": 8,
+      "callbacks": [
+        {
+            "class_path": "pytorch_lightning.callbacks.EarlyStopping",
+            "init_args": {
+                "monitor": "val/acc_top1",
+                "patience": 7,
+                "mode": "max"
+            }
+        },
+        {
+            "class_path": "pytorch_lightning.callbacks.ModelCheckpoint",
+            "init_args": {
+                "monitor": "val/acc_top1",
+                "filename": "swinv2-Amphibians-small-{epoch:02d}-{val/acc_top1:.4f}",
+                "save_top_k": 3,
+                "save_last": true,
+                "mode": "max"
+            }
+        },
+        {
+            "class_path": "pytorch_lightning.callbacks.LearningRateMonitor",
+            "init_args": {
+                "logging_interval": "step"
+            }
+        }
+    ]
+  },
+  "data":  {
+    "class_path": "SpecialCateData",
+    "init_args": {
+      "data_dir": "./data/train-small",
+      "valid_dir": "./data/valid-small",
+      "id_map_file_path": "amp_id_map.csv",
+      "valid_id_map_file_path": "valid_amp_id_map.csv",
+      "batch_size": 16,
+      "num_workers": 6,
+      "input_size": 448
+    }
+  }
+}
