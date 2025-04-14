@@ -38,7 +38,7 @@ SUPPORTED_EXTENSIONS = ('.png', '.jpg', '.jpeg')
 
 MAX_IMG_COUNT= 600 #
 OVERFLOW_IMG_COUNT = 894 # 植物设置为 990，
-batch_size = 100  # 根据GPU显存调整
+batch_size = 380  # 根据GPU显存调整
 
 # 初始化模型
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')

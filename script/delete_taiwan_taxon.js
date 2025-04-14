@@ -5,7 +5,7 @@ const csv = require('csv-parser');
 // 删除指定目录，主要用于删除台湾特有种
 
 // 配置部分
-const parentDir = 'D:/image-classification/data/large'; // 父文件夹路径
+const parentDir = 'D:/image-classification/data/train-mini'; // 父文件夹路径
 const csvFilePath = './inat_blacklist.csv'; // CSV文件路径
 
 // 安全校验函数
