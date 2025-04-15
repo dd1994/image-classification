@@ -13,6 +13,7 @@
       "accelerator": "gpu",
       "devices": 1,
       "precision": "16-mixed",
+      "accumulate_grad_batches": 8,
       "callbacks": [
         {
             "class_path": "pytorch_lightning.callbacks.EarlyStopping",
@@ -44,7 +45,7 @@
     "class_path": "INatDataModule2019",
     "init_args": {
       "data_dir": "./data/tiny",
-      "batch_size": 16,
+      "batch_size": 15,
       "num_workers": 3,
       "input_size": 448
     }
