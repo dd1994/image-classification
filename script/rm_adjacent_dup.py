@@ -32,7 +32,7 @@ import random
 BASE_DIR = r"D:\image-classification\data\train-small"
 # ACTIVE = 'Insecta'
 similarity_threshold = 0.573
-similarity_threshold_plus = 0.586
+similarity_threshold_plus = 0.583
 NEIGHBOR_RANGE = 100  # 前后检查范围
 SUPPORTED_EXTENSIONS = ('.png', '.jpg', '.jpeg')
 
@@ -84,7 +84,7 @@ def process_species_directory(species_dir):
 
     print(f"\n该物种总共有 {len(sorted_paths)} 张图片")
 
-    if len(sorted_paths) <= (current_max + 200):
+    if len(sorted_paths) <= (current_max + 150):
         # 这种情况下图片没有超出太多，阈值调大一点，不然去重后图片数量太少了。
         current_threshold = similarity_threshold_plus
     # elif len(sorted_paths) > OVERFLOW_IMG_COUNT:

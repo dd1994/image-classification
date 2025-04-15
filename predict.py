@@ -28,14 +28,14 @@ def main():
     # with torch.cuda.device(device_id):
     #     torch.cuda.empty_cache()
 
-    csv_file_path = 'spider_index_to_species_id.csv'
+    csv_file_path = 'index_to_species_id.csv'
     index_to_species_id = load_index_to_species_id_from_csv(csv_file_path)
     # amp: agkndjwa
     # 加载检查点文件
-    checkpoint = torch.load('wandb_logs/identify/a4goljj6/checkpoints/last.ckpt', map_location=torch.device('cuda:0'), weights_only=True)
+    checkpoint = torch.load('wandb_logs/identify/svh1u73y/checkpoints/last.ckpt', map_location=torch.device('cuda:0'), weights_only=True)
 
     # 创建模型实例
-    model = SwinV2Model(num_classes = 843)
+    model = SwinV2Model(num_classes = 474)
     # model.load_state_dict(torch.load('./model_reptilia.pth', map_location=torch.device('cuda:0'), weights_only=True))
 
     # 如果模型是在Lightning中训练的，你可能需要只提取模型状态字典
