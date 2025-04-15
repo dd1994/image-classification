@@ -4,7 +4,7 @@
 const fs = require('fs');
 const path = require('path');
 
-const rootDir = 'D:\\image-classification\\data\\train-tiny';
+const rootDir = 'D:\\image-classification\\data\\large';
 
 function processDirectory(dirPath) {
     const entries = fs.readdirSync(dirPath, { withFileTypes: true });
@@ -20,9 +20,9 @@ function processDirectory(dirPath) {
             const fileName = entry.name;
             const ext = path.extname(fileName).toLowerCase();
 
-            if (fileName.startsWith('processed_') && ext === '.jpg') {
+            if (fileName.startsWith('processed_') && (!fileName.startsWith('processed_ppbc')) && (!fileName.startsWith('processed_inaturalist')) && ext === '.jpg') {
                 // 构造新文件名
-                const newName = `processed_kanyu_${fileName.substring('processed_'.length)}`;
+                const newName = `processed_ppbc_${fileName.substring('processed_'.length)}`;
                 const newPath = path.join(dirPath, newName);
 
                 try {
