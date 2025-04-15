@@ -29,10 +29,10 @@ import cv2  # 需要安装 opencv-python 包
 import random
 
 # 配置参数
-BASE_DIR = r"D:\image-classification\data\train-small"
+BASE_DIR = r"D:\image-classification\data\dup_test2"
 # ACTIVE = 'Insecta'
-similarity_threshold = 0.573
-similarity_threshold_plus = 0.583
+similarity_threshold = 0.583
+similarity_threshold_plus = 0.590
 NEIGHBOR_RANGE = 100  # 前后检查范围
 SUPPORTED_EXTENSIONS = ('.png', '.jpg', '.jpeg')
 
@@ -192,7 +192,7 @@ def process_species_directory(species_dir):
         
         # 第一步：删除最模糊的5%
         total = len(blur_scores)
-        to_delete_blur_count = max(1, int(np.ceil(total * 0.05)))  # 至少删除1张
+        to_delete_blur_count = max(1, int(np.ceil(total * 0.04)))  # 至少删除1张
         to_delete_blur = [item[0] for item in blur_scores[:to_delete_blur_count]]
         
         # 执行删除

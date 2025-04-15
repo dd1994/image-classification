@@ -81,8 +81,8 @@ try {
     }
 
     if (!classStats.isDirectory()) {
-      fs.unlinkSync(classPath);
-      console.log(`删除非目录文件: ${classPath}`);
+//      fs.unlinkSync(classPath);
+//      console.log(`删除非目录文件: ${classPath}`);
       continue;
     }
 
