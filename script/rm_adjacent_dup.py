@@ -33,6 +33,7 @@ BASE_DIR = r"D:\image-classification\data\dup_test3"
 # ACTIVE = 'Insecta'
 similarity_threshold = 0.583
 similarity_threshold_plus = 0.590
+similarity_threshold_plus2 = 0.6
 NEIGHBOR_RANGE = 100  # 前后检查范围
 SUPPORTED_EXTENSIONS = ('.png', '.jpg', '.jpeg')
 
@@ -84,9 +85,11 @@ def process_species_directory(species_dir):
 
     print(f"\n该物种总共有 {len(sorted_paths)} 张图片")
 
-    if len(sorted_paths) <= (current_max + 150):
-        # 这种情况下图片没有超出太多，阈值调大一点，不然去重后图片数量太少了。
+    if len(sorted_paths) <= (current_max + 200):
         current_threshold = similarity_threshold_plus
+
+    if len(sorted_paths) <= (current_max + 100):
+        current_threshold = similarity_threshold_plus2
     # elif len(sorted_paths) > OVERFLOW_IMG_COUNT:
     #     # 因为限制了最多下载 900 张图片，对于达到这个最大值的物种来说，是最常见的物种，为了增加最常见物种的识别率，给它增加 100 张训练图片（用 895 是因为偶尔出现图片下载错误，达不到 900 张）
     #     current_max += 100
@@ -181,21 +184,17 @@ def process_species_directory(species_dir):
     if len(remaining_paths) > current_max:
         print(f"相似度去重删除 {len(to_delete)} 张")
         
-        # 计算所有剩余图片的模糊度
-        blur_scores = []
-        for path in remaining_paths:
-            score = calculate_blur_score(path)
-            blur_scores.append((path, score))
-        
-        # 按模糊度排序（分数低的模糊图片在前）
-        blur_scores.sort(key=lambda x: x[1])
-        
-        # 第一步：删除最模糊的5%
-        total = len(blur_scores)
-        to_delete_blur_count = max(1, int(np.ceil(total * 0.05)))  # 至少删除1张
-        to_delete_blur = [item[0] for item in blur_scores[:to_delete_blur_count]]
+        # 第一步：删除最模糊的5%（但确保删除后总数不低于MAX_IMG_COUNT）
+        total = len(remaining_paths)
+        allowed_to_delete = max(0, total - current_max)  # 允许删除的最大数量
+        if allowed_to_delete > 0:
+            # 取5%和允许删除量的较小值，且至少删除1张
+            to_delete_blur_count = min(max(1, int(np.ceil(total * 0.05))), allowed_to_delete)
+        else:
+            to_delete_blur_count = 0  # 不允许删除
         
         # 执行删除
+        to_delete_blur = remaining_paths[:to_delete_blur_count]
         for path in to_delete_blur:
             try:
                 os.remove(path)
@@ -205,7 +204,7 @@ def process_species_directory(species_dir):
         print(f"模糊度筛选删除 {len(to_delete_blur)} 张")
         
         # 更新剩余路径
-        remaining_after_blur = [item[0] for item in blur_scores[to_delete_blur_count:]]
+        remaining_after_blur = remaining_paths[to_delete_blur_count:]
         
         # 第二步：如果仍然超过限制，随机删除到保留 current_max 张
         if len(remaining_after_blur) > current_max:
