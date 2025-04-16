@@ -189,7 +189,7 @@ def process_species_directory(species_dir):
         allowed_to_delete = max(0, total - current_max)  # 允许删除的最大数量
         if allowed_to_delete > 0:
             # 取5%和允许删除量的较小值，且至少删除1张
-            to_delete_blur_count = min(max(1, int(np.ceil(total * 0.05))), allowed_to_delete)
+            to_delete_blur_count = min(max(1, int(np.ceil(total * 0.08))), allowed_to_delete)
         else:
             to_delete_blur_count = 0  # 不允许删除
         
