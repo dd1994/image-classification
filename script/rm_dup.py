@@ -33,7 +33,7 @@ BASE_DIR = r"D:\image-classification\data\dup_test3"
 # ACTIVE = 'Insecta'
 similarity_threshold = 0.583
 similarity_threshold_plus = 0.590
-similarity_threshold_plus2 = 0.62
+similarity_threshold_plus2 = 0.64
 NEIGHBOR_RANGE = 100  # 前后检查范围
 SUPPORTED_EXTENSIONS = ('.png', '.jpg', '.jpeg')
 
