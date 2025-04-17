@@ -1,8 +1,8 @@
 const fs = require('fs');
 const path = require('path');
 const { imgExt } = require('./const')
-const trainDir = 'D:/image-classification/data/train-mini';
-const outputFile = 'aves_stat3.csv';
+const trainDir = 'D:/image-classification/data/collection';
+const outputFile = 'collection_stat_insecta.csv';
 const collectionBase = path.join(path.dirname(trainDir), 'collection'); // 自动生成collection路径
 console.log(imgExt)
 // 支持的图片扩展名集合
@@ -22,7 +22,7 @@ try {
   const classDirs = fs.readdirSync(trainDir);
 
   for (const className of classDirs) {
-    if(className !== 'Aves') {
+    if(!['Insecta', 'Fungi', 'Arachnida'].includes(className)) {
         continue
     }
     const classPath = path.join(trainDir, className);
@@ -30,14 +30,14 @@ try {
 
     // 跳过隐藏目录和文件
     if (className.startsWith('.')) {
-      deleteDir(classPath);
-      console.log(`删除隐藏分类目录: ${classPath}`);
+//      deleteDir(classPath);
+//      console.log(`删除隐藏分类目录: ${classPath}`);
       continue;
     }
 
     if (!classStats.isDirectory()) {
-      fs.unlinkSync(classPath);
-      console.log(`删除非目录文件: ${classPath}`);
+//      fs.unlinkSync(classPath);
+//      console.log(`删除非目录文件: ${classPath}`);
       continue;
     }
 
@@ -50,14 +50,14 @@ try {
 
       // 处理隐藏目录和非目录文件
       if (taxonId.startsWith('.')) {
-        deleteDir(taxonPath);
-        console.log(`删除隐藏物种目录: ${taxonPath}`);
+//        deleteDir(taxonPath);
+//        console.log(`删除隐藏物种目录: ${taxonPath}`);
         continue;
       }
 
       if (!taxonStats.isDirectory()) {
-        fs.unlinkSync(taxonPath);
-        console.log(`删除非目录文件: ${taxonPath}`);
+//        fs.unlinkSync(taxonPath);
+//        console.log(`删除非目录文件: ${taxonPath}`);
         continue;
       }
 
@@ -70,8 +70,8 @@ try {
           const fileStats = fs.statSync(filePath);
 
           if (fileStats.isDirectory()) {
-              deleteDir(filePath);
-              console.log(`删除嵌套目录: ${filePath}`);
+//              deleteDir(filePath);
+//              console.log(`删除嵌套目录: ${filePath}`);
               continue;
           }
 
@@ -81,8 +81,8 @@ try {
 ////              fs.unlinkSync(filePath);
 //          }
           if (file.startsWith('.') || !IMAGE_EXTENSIONS.has(ext)) {
-              fs.unlinkSync(filePath);
-              console.log(`删除无效文件: ${filePath}`);
+//              fs.unlinkSync(filePath);
+//              console.log(`删除无效文件: ${filePath}`);
               continue;
           }
 
@@ -93,13 +93,13 @@ try {
           });
       }
 
-    if(validFiles.length < 80) {
+//    if(validFiles.length < 80) {
             results.push({
               class: className,
               taxon_id: taxonId,
               photo_count: validFiles.length
           });
-    }
+//    }
     }
   }
 

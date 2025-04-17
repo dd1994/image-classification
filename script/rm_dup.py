@@ -29,7 +29,7 @@ import cv2  # 需要安装 opencv-python 包
 import random
 
 # 配置参数
-BASE_DIR = r"D:\image-classification\data\dup_test3"
+BASE_DIR = r"D:\image-classification\data\train-mini"
 # ACTIVE = 'Insecta'
 similarity_threshold = 0.583
 similarity_threshold_plus = 0.590
