@@ -22,9 +22,9 @@ try {
   const classDirs = fs.readdirSync(trainDir);
 
   for (const className of classDirs) {
-    if(!['Insecta', 'Fungi', 'Arachnida'].includes(className)) {
-        continue
-    }
+//    if(!['Insecta', 'Arachnida'].includes(className)) {
+//        continue
+//    }
     const classPath = path.join(trainDir, className);
     const classStats = fs.statSync(classPath);
 
