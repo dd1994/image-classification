@@ -29,7 +29,7 @@ import cv2  # 需要安装 opencv-python 包
 import random
 
 # 配置参数
-BASE_DIR = r"D:\image-classification\data\genus"
+BASE_DIR = r"D:\image-classification\data\spiderGenus"
 # ACTIVE = 'Insecta'
 similarity_threshold = 0.584
 similarity_threshold_plus = 0.592
@@ -37,7 +37,7 @@ similarity_threshold_plus2 = 0.65
 NEIGHBOR_RANGE = 100  # 前后检查范围
 SUPPORTED_EXTENSIONS = ('.png', '.jpg', '.jpeg')
 
-MAX_IMG_COUNT= 900 #
+MAX_IMG_COUNT= 1000 #
 OVERFLOW_IMG_COUNT = 894 # 植物设置为 990，
 batch_size = 380  # 根据GPU显存调整
 

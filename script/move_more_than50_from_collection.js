@@ -8,7 +8,7 @@ const path = require('path');
 
 // 配置路径
 const sourceRoot = 'D:/image-classification/data/collection';
-const targetRoot = 'D:/image-classification/data/train';
+const targetRoot = 'D:/image-classification/data/train-mini';
 const minImageCount = 49;
 
 // 统计结果
@@ -26,6 +26,9 @@ function processDirectories() {
         .map(dirent => dirent.name);
 
     for (const className of classDirs) {
+        if(!['Insecta'].includes(className)) {
+            continue
+        }
         const classPath = path.join(sourceRoot, className);
 
         // 读取物种目录

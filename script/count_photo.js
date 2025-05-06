@@ -1,8 +1,8 @@
 const fs = require('fs');
 const path = require('path');
 const { imgExt } = require('./const')
-const trainDir = 'D:/image-classification/data/collection2';
-const outputFile = 'collection2_stat.csv';
+const trainDir = 'D:/image-classification/data/genus1';
+const outputFile = 'collection_stat.csv';
 console.log(imgExt)
 // 支持的图片扩展名集合
 const IMAGE_EXTENSIONS = new Set(imgExt);
@@ -92,13 +92,13 @@ try {
           });
       }
 
-    if(validFiles.length > 100) {
+//    if(validFiles.length > 80) {
             results.push({
               class: className,
               taxon_id: taxonId,
               photo_count: validFiles.length
           });
-    }
+//    }
     }
   }
 

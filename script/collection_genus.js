@@ -9,7 +9,7 @@ const path = require('path');
 const csv = require('csv-parser');
 
 // 配置路径
-const BASE_DIR = 'D:\\image-classification\\data\\collection2';
+const BASE_DIR = 'D:\\image-classification\\data\\collection';
 const CSV_PATH = path.join(__dirname, 'species_with_genus.csv');
 
 // 存储种属映射关系
@@ -19,7 +19,7 @@ const speciesGenusMap = new Map();
 fs.createReadStream(CSV_PATH)
   .pipe(csv())
   .on('data', (row) => {
-    speciesGenusMap.set(row.species, row.genus);
+    speciesGenusMap.set(row.id, row.genus);
   })
   .on('end', () => {
     processCategories();
