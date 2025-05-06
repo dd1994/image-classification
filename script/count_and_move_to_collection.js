@@ -1,11 +1,11 @@
 const fs = require('fs');
 const path = require('path');
 const { imgExt } = require('./const')
-const trainDir = 'D:/image-classification/data/train-mini';
-const collectionBase = path.join(path.dirname(trainDir), 'collection'); // 自动生成collection路径\
-const ACTIVE = 'Aves'
+const trainDir = 'D:/image-classification/data/spiderGenus';
+const collectionBase = path.join(path.dirname(trainDir), 'spiderGenusCollection'); // 自动生成collection路径\
+const ACTIVE = 'spiderGenus'
 const outputFile = `${ACTIVE}_stat.csv`
-const minCount = 80
+const minCount = 100
 // 支持的图片扩展名集合
 const IMAGE_EXTENSIONS = new Set(imgExt);
 
@@ -70,9 +70,9 @@ try {
 //    if(className !== ACTIVE) {
 //        continue
 //    }
-    if(!['Insecta', 'Arachnida', 'Fungi'].includes(className)) {
-        continue
-    }
+//    if(!['Insecta', 'Arachnida', 'Fungi'].includes(className)) {
+//        continue
+//    }
     const classPath = path.join(trainDir, className);
     const classStats = fs.statSync(classPath);
 
