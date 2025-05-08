@@ -7,9 +7,6 @@ from torch import nn as nn
 from torchvision.transforms import v2
 from transformers import ConvNextV2ForImageClassification
 
-from util.get_inat_2019_class_counts import get_inat2019_class_counts
-from util.seesaw_loss import SeesawLossWithLogits
-
 
 class BaseModel(pl.LightningModule):
     def __init__(self, num_classes: int = 51, t_max=20, learning_rate: float = 1e-4, class_counts=None):
@@ -123,7 +120,7 @@ class BaseModel(pl.LightningModule):
 
 class SwinV2Model(BaseModel):
     def __init__(self, num_classes: int = 51, learning_rate: float = 1e-4, input_size = 448, t_max=20, ckpt: str = ''):
-        super().__init__(t_max=t_max, num_classes=num_classes,class_counts=get_inat2019_class_counts(num_classes), learning_rate=learning_rate)
+        super().__init__(t_max=t_max, num_classes=num_classes, learning_rate=learning_rate)
         self.model = timm.create_model('swinv2_base_window12to24_192to384.ms_in22k_ft_in1k', pretrained=True)
         if ckpt != '' :
             checkpoint = torch.load(ckpt)
@@ -141,7 +138,7 @@ class SwinV2Model(BaseModel):
 
 class SwinV2FixResModel(BaseModel):
     def __init__(self, num_classes: int = 51, learning_rate: float = 1e-4, input_size = 448, t_max=20, ckpt: str = ''):
-        super().__init__(t_max=t_max, num_classes=num_classes,class_counts=get_inat2019_class_counts(num_classes), learning_rate=learning_rate)
+        super().__init__(t_max=t_max, num_classes=num_classes, learning_rate=learning_rate)
         self.model = timm.create_model('swinv2_base_window12to24_192to384.ms_in22k_ft_in1k', pretrained=True)
         # self.model.set_input_size([input_size, input_size])
         self.model.head.fc = nn.Linear(self.model.head.fc.in_features, num_classes)
@@ -167,7 +164,7 @@ class SwinV2FixResModel(BaseModel):
 class ConvNextV2Model(BaseModel):
     # 在小的数据集上和 swin 不相上下，但是在 iNat2019 这样的数据集上只有 84% 的识别率。
     def __init__(self, num_classes: int = 51, learning_rate: float = 1e-4, input_size = 448, t_max=20):
-        super().__init__(t_max=t_max,class_counts=get_inat2019_class_counts(num_classes), num_classes=num_classes,learning_rate=learning_rate)
+        super().__init__(t_max=t_max, num_classes=num_classes,learning_rate=learning_rate)
         self.model = ConvNextV2ForImageClassification.from_pretrained("facebook/convnextv2-base-22k-384")
         self.model.classifier = nn.Linear(self.model.classifier.in_features, num_classes)
 
@@ -176,7 +173,7 @@ class ConvNextV2Model(BaseModel):
 
 class DinoV2Model(BaseModel):
     def __init__(self, num_classes: int = 51, learning_rate: float = 1e-4, input_size = 448, t_max=20):
-        super().__init__(t_max=t_max, class_counts=get_inat2019_class_counts(num_classes), num_classes=num_classes, learning_rate=learning_rate)
+        super().__init__(t_max=t_max, num_classes=num_classes, learning_rate=learning_rate)
 
         # 引入 DINO V2 模型
         self.model =  torch.hub.load('facebookresearch/dinov2', 'dinov2_vitl14_reg_lc')

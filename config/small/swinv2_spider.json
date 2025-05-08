@@ -2,7 +2,7 @@
   "model": {
       "class_path": "SwinV2Model",
       "init_args": {
-          "num_classes": 1107,
+          "num_classes": 1117,
           "learning_rate": 1e-4,
           "input_size": 448,
           "t_max": 17
@@ -27,7 +27,7 @@
             "class_path": "pytorch_lightning.callbacks.ModelCheckpoint",
             "init_args": {
                 "monitor": "val/acc_top1",
-                "filename": "swinv2-Amphibians-small-{epoch:02d}-{val/acc_top1:.4f}",
+                "filename": "swinv2-spider-{epoch:02d}-{val/acc_top1:.4f}",
                 "save_top_k": 3,
                 "save_last": true,
                 "mode": "max"
