@@ -58,7 +58,7 @@ def main():
 
 
     # 加载本地图片
-    img_path = r"D:\image-classification\data\predict\rep\1.jpeg" # 替换为您的图片路径
+    img_path = r"D:\image-classification\data\predict\rep\1.jpg" # 替换为您的图片路径
     image = Image.open(img_path)
 
     # 预处理图片

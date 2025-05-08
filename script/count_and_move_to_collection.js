@@ -1,8 +1,8 @@
 const fs = require('fs');
 const path = require('path');
 const { imgExt } = require('./const')
-const trainDir = 'D:/image-classification/data/spiderGenus';
-const collectionBase = path.join(path.dirname(trainDir), 'spiderGenusCollection'); // 自动生成collection路径\
+const trainDir = 'D:/image-classification/data/genus0';
+const collectionBase = path.join(path.dirname(trainDir), 'genusCollection'); // 自动生成collection路径\
 const ACTIVE = 'spiderGenus'
 const outputFile = `${ACTIVE}_stat.csv`
 const minCount = 100
