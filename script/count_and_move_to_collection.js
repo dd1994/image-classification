@@ -1,11 +1,11 @@
 const fs = require('fs');
 const path = require('path');
 const { imgExt } = require('./const')
-const trainDir = 'D:/image-classification/data/genus0';
+const trainDir = 'D:/image-classification/data/train-insecta';
 const collectionBase = path.join(path.dirname(trainDir), 'genusCollection'); // 自动生成collection路径\
 const ACTIVE = 'spiderGenus'
 const outputFile = `${ACTIVE}_stat.csv`
-const minCount = 100
+const minCount = 80
 // 支持的图片扩展名集合
 const IMAGE_EXTENSIONS = new Set(imgExt);
 

@@ -2,7 +2,7 @@ const fs = require('fs');
 const path = require('path');
 
 const GENUS0_PATH = 'D:/image-classification/data/genus0';
-const GENUS1_PATH = 'D:/image-classification/data/genus2';
+const GENUS1_PATH = 'D:/image-classification/data/genus1';
 const MAX_IMAGES = 1500;
 
 function moveSpeciesImages() {
