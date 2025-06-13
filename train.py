@@ -26,6 +26,7 @@ def cli_main():
                 "logger": {
                     "class_path": "pytorch_lightning.loggers.WandbLogger",
                     "init_args": {
+                        "mode": "offline",
                         "project": "identify",
                         "log_model": False,
                         "save_dir": "wandb_logs"

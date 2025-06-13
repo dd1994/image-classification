@@ -1,1 +1,1 @@
-PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True /c/ProgramData/anaconda3/envs/myenv/python.exe ./train.py fit --config ./config/large/swinv2_all.json
+PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True /c/ProgramData/anaconda3/envs/myenv/python.exe ./train.py fit --config ./config/large/swinv2_all.json --ckpt_path ./wandb_logs/identify/9pz4y8mg/checkpoints/last.ckpt

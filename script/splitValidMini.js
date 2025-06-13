@@ -4,8 +4,8 @@ const path = require('path');
 // 定义图片文件扩展名
 const imageExtensions = ['.jpg', '.jpeg', '.png', '.bmp', '.webp'];
 
-const trainDir = "D:/image-classification/data/train-spider";
-const validDir = "D:/image-classification/data/valid-spider";
+const trainDir = "D:/image-classification/data/train";
+const validDir = "D:/image-classification/data/valid";
 
 // 获取目录中的图片文件，忽略以点开头的文件
 async function getImageFiles(dir) {
@@ -105,9 +105,9 @@ async function main() {
             const train_count = sorted_train_files.length;
 
             // 计算验证集应有图片数量，取 10%，但是至少 10 张，至多 100 张
-            let desired_valid_count = Math.floor(train_count * 0.1);
+            let desired_valid_count = Math.floor(train_count * 0.08);
             desired_valid_count = Math.max(desired_valid_count, 10);
-            desired_valid_count = Math.min(desired_valid_count, 100);
+            desired_valid_count = Math.min(desired_valid_count, 80);
 
             // 获取验证集目录中已有的图片文件名，忽略以点开头的文件
             const existing_valid_files = await getExistingValidFiles(species_valid_path);

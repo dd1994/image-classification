@@ -2,7 +2,7 @@
   "model": {
       "class_path": "SwinV2Model",
       "init_args": {
-          "num_classes": 1117,
+          "num_classes": 38001,
           "learning_rate": 1e-4,
           "input_size": 448,
           "t_max": 17
@@ -30,6 +30,7 @@
                 "filename": "swinv2-all-{epoch:02d}-{val/acc_top1:.4f}",
                 "save_top_k": 3,
                 "save_last": true,
+                "every_n_train_steps": 6000,
                 "mode": "max"
             }
         },
@@ -49,7 +50,7 @@
       "id_map_file_path": "all_map.csv",
       "valid_id_map_file_path": "valid_all_map.csv",
       "batch_size": 15,
-      "num_workers": 6,
+      "num_workers": 5,
       "input_size": 448
     }
   }
