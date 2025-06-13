@@ -28,15 +28,15 @@ def main():
     # with torch.cuda.device(device_id):
     #     torch.cuda.empty_cache()
 
-    csv_file_path = 'spider_index_to_species_id.csv'
+    csv_file_path = 'index_to_species_id.csv'
     index_to_species_id = load_index_to_species_id_from_csv(csv_file_path)
     # amp: agkndjwa
     # 蜘蛛：d22e4crw
     # 加载检查点文件
-    checkpoint = torch.load('wandb_logs/identify/d22e4crw/checkpoints/last.ckpt', map_location=torch.device('cuda:0'), weights_only=True)
+    checkpoint = torch.load('last.ckpt', map_location=torch.device('cpu'), weights_only=True)
 
     # 创建模型实例
-    model = SwinV2Model(num_classes = 1117)
+    model = SwinV2Model(num_classes = 38001)
     # model.load_state_dict(torch.load('./model_reptilia.pth', map_location=torch.device('cuda:0'), weights_only=True))
 
     # 如果模型是在Lightning中训练的，你可能需要只提取模型状态字典
@@ -58,7 +58,7 @@ def main():
 
 
     # 加载本地图片
-    img_path = r"D:\image-classification\data\predict\rep\1.jpg" # 替换为您的图片路径
+    img_path = r"1.jpg" # 替换为您的图片路径
     image = Image.open(img_path)
 
     # 预处理图片

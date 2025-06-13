@@ -1,11 +1,11 @@
 import pytorch_lightning as pl
 import timm
 import torch
-from aim.v2.utils import load_pretrained
-from timm.models.hiera import Hiera
+# from aim.v2.utils import load_pretrained
+# from timm.models.hiera import Hiera
 from torch import nn as nn
 from torchvision.transforms import v2
-from transformers import ConvNextV2ForImageClassification
+# from transformers import ConvNextV2ForImageClassification
 
 
 class BaseModel(pl.LightningModule):
@@ -136,130 +136,130 @@ class SwinV2Model(BaseModel):
     def forward(self, x):
         return self.model(x)
 
-class SwinV2FixResModel(BaseModel):
-    def __init__(self, num_classes: int = 51, learning_rate: float = 1e-4, input_size = 448, t_max=20, ckpt: str = ''):
-        super().__init__(t_max=t_max, num_classes=num_classes, learning_rate=learning_rate)
-        self.model = timm.create_model('swinv2_base_window12to24_192to384.ms_in22k_ft_in1k', pretrained=True)
-        # self.model.set_input_size([input_size, input_size])
-        self.model.head.fc = nn.Linear(self.model.head.fc.in_features, num_classes)
-
-        checkpoint = torch.load(ckpt)
-
-        state_dict = checkpoint['state_dict']
-            # 移除最后一层的权重
-        # state_dict.pop('model.head.fc.weight', None)
-        # state_dict.pop('model.head.fc.bias', None)
-        self.load_state_dict(state_dict, strict=False)
-        self.model.set_input_size([input_size, input_size])
-        # Freeze the backbone layers
-        # for param in self.model.parameters():
-        #     param.requires_grad = False  # Freeze all parameters
-        #
-        # # Unfreeze the classification layer
-        # for param in self.model.head.fc.parameters():
-        #     param.requires_grad = True  # Fine-tune the classification layer
-
-    def forward(self, x):
-        return self.model(x)
-class ConvNextV2Model(BaseModel):
-    # 在小的数据集上和 swin 不相上下，但是在 iNat2019 这样的数据集上只有 84% 的识别率。
-    def __init__(self, num_classes: int = 51, learning_rate: float = 1e-4, input_size = 448, t_max=20):
-        super().__init__(t_max=t_max, num_classes=num_classes,learning_rate=learning_rate)
-        self.model = ConvNextV2ForImageClassification.from_pretrained("facebook/convnextv2-base-22k-384")
-        self.model.classifier = nn.Linear(self.model.classifier.in_features, num_classes)
-
-    def forward(self, x):
-        return self.model(x).logits
-
-class DinoV2Model(BaseModel):
-    def __init__(self, num_classes: int = 51, learning_rate: float = 1e-4, input_size = 448, t_max=20):
-        super().__init__(t_max=t_max, num_classes=num_classes, learning_rate=learning_rate)
-
-        # 引入 DINO V2 模型
-        self.model =  torch.hub.load('facebookresearch/dinov2', 'dinov2_vitl14_reg_lc')
-        self.model.linear_head = nn.Linear(self.model.linear_head.in_features, num_classes)
-
-        # 冻结特征提取层的参数，但不冻结最后一层分类层
-        for name, param in self.model.named_parameters():
-            if 'linear_head' not in name:  # 确保不冻结分类层
-                param.requires_grad = False
-
-    def forward(self, x):
-        return self.model(x)
-
-
-class AIMv2Model(BaseModel):
-    def __init__(self, num_classes: int = 51, learning_rate: float = 1e-4, input_size = 448, t_max=20):
-        super().__init__(t_max=t_max,num_classes=num_classes, learning_rate=learning_rate)
-        self.model = load_pretrained("aimv2-large-patch14-448", backend="torch")
-           # 冻结特征提取层的参数
-        for param in self.model.parameters():
-            param.requires_grad = False
-            
-        self.classifier = nn.Sequential(
-            nn.Flatten(),  # 展平层
-            nn.MaxPool1d(kernel_size=2),  # 添加最大池化层，注意输入输出维度
-            nn.Linear(1024 * 1024 // 2, 1024),  # 第一隐藏层
-            nn.ReLU(),  # 激活函数
-            nn.Dropout(0.5),  # Dropout 层
-            nn.Linear(1024, num_classes)  # 输出层，51 个类别
-        )
-
-    def forward(self, x):
-        features = self.model(x)
-        # print(f"Input shape: {x.shape}")
-        # for layer in self.classifier:
-        #     x = layer(x)
-        #     print(f"After {layer.__class__.__name__}: {x.shape}")
-        # return x
-        return self.classifier(features)
-
-class HieraModel(BaseModel):
-    def __init__(self, num_classes: int = 51, learning_rate: float = 1e-4, input_size=448, t_max=20):
-        super().__init__(t_max=t_max, learning_rate=learning_rate)
-        
-
-        pretrained_model = timm.create_model('hiera_base_plus_224.mae_in1k_ft_in1k', pretrained=True)
-        pretrained_model.head.fc = nn.Linear(pretrained_model.head.fc.in_features, num_classes)
-
-        # 修改模型的输入层以支持 448px 输入
-
-        # self.model = Hiera(
-        #     img_size=(input_size, input_size),  # 设置输入大小为 448x448
-        #     embed_dim=96,  # 嵌入维度
-        #     num_heads=1,   # 注意力头数
-        #     stages=(2, 3, 16, 3),  # 各个阶段的块数
-        #     num_classes=num_classes,  # 类别数
-        #     # 其他参数可以根据需要添加
-        # )
-
-        print(pretrained_model)
-        self.model = Hiera(
-            img_size=(input_size, input_size),  # 设置输入大小为 448x448
-            embed_dim=112,  # 嵌入维度
-            num_heads=2,  # 注意力头数
-            stages=(2, 3, 16, 3),  # 各个阶段的块数
-            num_classes=num_classes,  # 类别数
-            # 其他参数可以根据需要添加
-        )
-        print(self.model)
-        self.model.load_state_dict(pretrained_model.state_dict(), strict=False)
-
-        # self.model.head.fc = nn.Linear(self.model.head.fc.in_features, num_classes)
-
-        # in_features = self.model.head.projection.in_features
-        # self.model.head.projection = nn.Linear(in_features, num_classes)
-
-    def forward(self, x):
-        # 直接使用 448px 的输入
-        return self.model(x)
-
-
-class EfficientNetV2Model(BaseModel):
-    def __init__(self, num_classes: int = 51, learning_rate: float = 1e-4, t_max=20):
-        super().__init__(t_max=t_max, learning_rate=learning_rate)
-        self.model = timm.create_model('tf_efficientnetv2_l.in21k_ft_in1k', pretrained=True)
-        self.model.classifier = nn.Linear(self.model.classifier.in_features, num_classes)
-
-    def forward(self, x):
-        return self.model(x)
+# class SwinV2FixResModel(BaseModel):
+#     def __init__(self, num_classes: int = 51, learning_rate: float = 1e-4, input_size = 448, t_max=20, ckpt: str = ''):
+#         super().__init__(t_max=t_max, num_classes=num_classes, learning_rate=learning_rate)
+#         self.model = timm.create_model('swinv2_base_window12to24_192to384.ms_in22k_ft_in1k', pretrained=True)
+#         # self.model.set_input_size([input_size, input_size])
+#         self.model.head.fc = nn.Linear(self.model.head.fc.in_features, num_classes)
+#
+#         checkpoint = torch.load(ckpt)
+#
+#         state_dict = checkpoint['state_dict']
+#             # 移除最后一层的权重
+#         # state_dict.pop('model.head.fc.weight', None)
+#         # state_dict.pop('model.head.fc.bias', None)
+#         self.load_state_dict(state_dict, strict=False)
+#         self.model.set_input_size([input_size, input_size])
+#         # Freeze the backbone layers
+#         # for param in self.model.parameters():
+#         #     param.requires_grad = False  # Freeze all parameters
+#         #
+#         # # Unfreeze the classification layer
+#         # for param in self.model.head.fc.parameters():
+#         #     param.requires_grad = True  # Fine-tune the classification layer
+#
+#     def forward(self, x):
+#         return self.model(x)
+# class ConvNextV2Model(BaseModel):
+#     # 在小的数据集上和 swin 不相上下，但是在 iNat2019 这样的数据集上只有 84% 的识别率。
+#     def __init__(self, num_classes: int = 51, learning_rate: float = 1e-4, input_size = 448, t_max=20):
+#         super().__init__(t_max=t_max, num_classes=num_classes,learning_rate=learning_rate)
+#         self.model = ConvNextV2ForImageClassification.from_pretrained("facebook/convnextv2-base-22k-384")
+#         self.model.classifier = nn.Linear(self.model.classifier.in_features, num_classes)
+#
+#     def forward(self, x):
+#         return self.model(x).logits
+#
+# class DinoV2Model(BaseModel):
+#     def __init__(self, num_classes: int = 51, learning_rate: float = 1e-4, input_size = 448, t_max=20):
+#         super().__init__(t_max=t_max, num_classes=num_classes, learning_rate=learning_rate)
+#
+#         # 引入 DINO V2 模型
+#         self.model =  torch.hub.load('facebookresearch/dinov2', 'dinov2_vitl14_reg_lc')
+#         self.model.linear_head = nn.Linear(self.model.linear_head.in_features, num_classes)
+#
+#         # 冻结特征提取层的参数，但不冻结最后一层分类层
+#         for name, param in self.model.named_parameters():
+#             if 'linear_head' not in name:  # 确保不冻结分类层
+#                 param.requires_grad = False
+#
+#     def forward(self, x):
+#         return self.model(x)
+#
+#
+# class AIMv2Model(BaseModel):
+#     def __init__(self, num_classes: int = 51, learning_rate: float = 1e-4, input_size = 448, t_max=20):
+#         super().__init__(t_max=t_max,num_classes=num_classes, learning_rate=learning_rate)
+#         self.model = load_pretrained("aimv2-large-patch14-448", backend="torch")
+#            # 冻结特征提取层的参数
+#         for param in self.model.parameters():
+#             param.requires_grad = False
+#
+#         self.classifier = nn.Sequential(
+#             nn.Flatten(),  # 展平层
+#             nn.MaxPool1d(kernel_size=2),  # 添加最大池化层，注意输入输出维度
+#             nn.Linear(1024 * 1024 // 2, 1024),  # 第一隐藏层
+#             nn.ReLU(),  # 激活函数
+#             nn.Dropout(0.5),  # Dropout 层
+#             nn.Linear(1024, num_classes)  # 输出层，51 个类别
+#         )
+#
+#     def forward(self, x):
+#         features = self.model(x)
+#         # print(f"Input shape: {x.shape}")
+#         # for layer in self.classifier:
+#         #     x = layer(x)
+#         #     print(f"After {layer.__class__.__name__}: {x.shape}")
+#         # return x
+#         return self.classifier(features)
+#
+# class HieraModel(BaseModel):
+#     def __init__(self, num_classes: int = 51, learning_rate: float = 1e-4, input_size=448, t_max=20):
+#         super().__init__(t_max=t_max, learning_rate=learning_rate)
+#
+#
+#         pretrained_model = timm.create_model('hiera_base_plus_224.mae_in1k_ft_in1k', pretrained=True)
+#         pretrained_model.head.fc = nn.Linear(pretrained_model.head.fc.in_features, num_classes)
+#
+#         # 修改模型的输入层以支持 448px 输入
+#
+#         # self.model = Hiera(
+#         #     img_size=(input_size, input_size),  # 设置输入大小为 448x448
+#         #     embed_dim=96,  # 嵌入维度
+#         #     num_heads=1,   # 注意力头数
+#         #     stages=(2, 3, 16, 3),  # 各个阶段的块数
+#         #     num_classes=num_classes,  # 类别数
+#         #     # 其他参数可以根据需要添加
+#         # )
+#
+#         print(pretrained_model)
+#         self.model = Hiera(
+#             img_size=(input_size, input_size),  # 设置输入大小为 448x448
+#             embed_dim=112,  # 嵌入维度
+#             num_heads=2,  # 注意力头数
+#             stages=(2, 3, 16, 3),  # 各个阶段的块数
+#             num_classes=num_classes,  # 类别数
+#             # 其他参数可以根据需要添加
+#         )
+#         print(self.model)
+#         self.model.load_state_dict(pretrained_model.state_dict(), strict=False)
+#
+#         # self.model.head.fc = nn.Linear(self.model.head.fc.in_features, num_classes)
+#
+#         # in_features = self.model.head.projection.in_features
+#         # self.model.head.projection = nn.Linear(in_features, num_classes)
+#
+#     def forward(self, x):
+#         # 直接使用 448px 的输入
+#         return self.model(x)
+#
+#
+# class EfficientNetV2Model(BaseModel):
+#     def __init__(self, num_classes: int = 51, learning_rate: float = 1e-4, t_max=20):
+#         super().__init__(t_max=t_max, learning_rate=learning_rate)
+#         self.model = timm.create_model('tf_efficientnetv2_l.in21k_ft_in1k', pretrained=True)
+#         self.model.classifier = nn.Linear(self.model.classifier.in_features, num_classes)
+#
+#     def forward(self, x):
+#         return self.model(x)
