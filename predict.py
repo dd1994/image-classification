@@ -13,9 +13,10 @@ def load_index_to_species_id_from_csv(csv_file_path):
         reader = csv.reader(file)
         next(reader)  # 跳过表头行
         for row in reader:
-            index, species_id, taxon_name, chinese_name = row
-            # index_to_species_id[int(index)] = taxon_name + ' ' + chinese_name
-            index_to_species_id[int(index)] = taxon_name + ' ' + chinese_name
+            index, species_id, chinese_name, taxon_name = row
+            # If chinese_name is empty or only contains whitespace, use taxon_name
+            display_name = taxon_name if chinese_name == 'NULL' else f"{taxon_name} {chinese_name}"
+            index_to_species_id[int(index)] = display_name
     return index_to_species_id
 
 input_size = 448
