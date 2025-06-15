@@ -15,3 +15,7 @@ index_to_species_reptilia.csv
 node_modules
 1.jpg
 last.ckpt
+.onn
+.onnx
+last.onnx
+last_backup.ckpt
