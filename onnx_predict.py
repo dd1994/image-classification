@@ -1,4 +1,5 @@
 import onnxruntime as ort  # 添加ONNX运行时库
+import time  # 添加time模块用于计时
 
 import torch
 import torchvision.transforms as transforms
@@ -31,8 +32,15 @@ def onnx_inference(onnx_file_path, image_tensor, index_to_species_id, top_k=3):
     # 准备输入（注意：ONNX需要numpy数组而不是torch张量）
     ort_inputs = {ort_session.get_inputs()[0].name: image_tensor.numpy()}
 
+    # 开始计时
+    start_time = time.time()
+    
     # 运行推理
     ort_outputs = ort_session.run(None, ort_inputs)
+    
+    # 结束计时
+    end_time = time.time()
+    inference_time = (end_time - start_time) * 1000  # 转换为毫秒
 
     # 处理输出
     outputs = torch.tensor(ort_outputs[0])
@@ -40,7 +48,8 @@ def onnx_inference(onnx_file_path, image_tensor, index_to_species_id, top_k=3):
     top_probs, top_classes = torch.topk(probabilities, top_k)
 
     # 输出结果
-    print("\nONNX推理结果:")
+    print(f"\n推理耗时: {inference_time:.2f}ms")
+    print("\n推理结果:")
     for i in range(top_k):
         class_index = top_classes[0][i].item()
         species_id = index_to_species_id[class_index]
