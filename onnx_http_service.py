@@ -42,6 +42,10 @@ def predict():
         image_tensor = prepare_image(image_bytes)
         cpu_image_tensor = image_tensor.cpu()
         result = onnx_inference(onnx_file_path, cpu_image_tensor, index_to_species_id, top_k=3)
+        # 格式化输出
+        print(f"\n推理耗时: {result['inference_time_ms']:.2f} ms\nTop 3 预测结果:")
+        for idx, item in enumerate(result['results'], 1):
+            print(f"  {idx}. {item['species']} (概率: {item['probability'] * 100:.2f}%)")
         return jsonify(result)
     except Exception as e:
         return jsonify({'error': str(e)}), 500

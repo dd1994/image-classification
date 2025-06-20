@@ -80,7 +80,9 @@ def main():
     cpu_image_tensor = image_tensor.cpu()
 
     # 使用ONNX进行推理
-    onnx_inference(onnx_file_path, cpu_image_tensor, index_to_species_id, top_k)
+    result = onnx_inference(onnx_file_path, cpu_image_tensor, index_to_species_id, top_k)
+    for idx, item in enumerate(result['results'], 1):
+        print(f"预测结果：{item['species']} (概率: {item['probability'] * 100:.2f}%)")
     # =================================================
 
 

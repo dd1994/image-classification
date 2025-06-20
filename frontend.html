@@ -5,7 +5,7 @@
     <title>物种识别</title>
     <style>
         body { font-family: Arial, sans-serif; margin: 40px; background: #f7f7f7; }
-        .container { background: #fff; padding: 30px; border-radius: 8px; box-shadow: 0 2px 8px #ccc; max-width: 400px; margin: auto; }
+        .container { background: #fff; padding: 30px; border-radius: 8px; box-shadow: 0 2px 8px #ccc; max-width: 600px; margin: auto; }
         h2 { text-align: center; }
         #result { margin-top: 20px; white-space: pre-line; color: #333; }
         input[type=file] { margin-bottom: 15px; }
@@ -15,9 +15,10 @@
 </head>
 <body>
 <div class="container">
+    <h2>已支持国内 38001 种物种识别</h2>
     <form id="uploadForm">
         <input type="file" id="fileInput" accept="image/*" required><br>
-        <button type="submit">上传并识别</button>
+        <button type="submit">点击识别</button>
     </form>
     <div id="result"></div>
 </div>
@@ -39,6 +40,7 @@ form.onsubmit = async function(e) {
             body: formData
         });
         const data = await res.json();
+        console.log('推理返回:', data);
         if (data.results) {
             let html = `<b>推理耗时：</b> ${data.inference_time_ms.toFixed(2)} ms<br><b>Top 3 预测结果：</b><ol>`;
             for (const item of data.results) {
