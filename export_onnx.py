@@ -120,7 +120,7 @@ def main():
     model.to(device)
 
     # ================== 添加ONNX导出 ==================
-    onnx_file_path = "model_reptilia.onnx"
+    onnx_file_path = "last.onnx"
     export_to_onnx(model, device, input_size, onnx_file_path)
     # =================================================
 
