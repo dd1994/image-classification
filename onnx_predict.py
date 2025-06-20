@@ -48,8 +48,8 @@ def onnx_inference(onnx_file_path, image_tensor, index_to_species_id, top_k=3):
     top_probs, top_classes = torch.topk(probabilities, top_k)
 
     # 输出结果
-    print(f"\n推理耗时: {inference_time:.2f}ms")
-    print("\n推理结果:")
+    # print(f"\n推理耗时: {inference_time:.2f}ms")
+    # print("\n推理结果:")
     for i in range(top_k):
         class_index = top_classes[0][i].item()
         species_id = index_to_species_id[class_index]
