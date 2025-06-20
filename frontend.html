@@ -2,7 +2,7 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <title>物种识别 - ONNX Demo</title>
+    <title>物种识别</title>
     <style>
         body { font-family: Arial, sans-serif; margin: 40px; background: #f7f7f7; }
         .container { background: #fff; padding: 30px; border-radius: 8px; box-shadow: 0 2px 8px #ccc; max-width: 400px; margin: auto; }
@@ -15,7 +15,6 @@
 </head>
 <body>
 <div class="container">
-    <h2>物种识别 Demo</h2>
     <form id="uploadForm">
         <input type="file" id="fileInput" accept="image/*" required><br>
         <button type="submit">上传并识别</button>
@@ -40,8 +39,13 @@ form.onsubmit = async function(e) {
             body: formData
         });
         const data = await res.json();
-        if (data.result) {
-            resultDiv.textContent = data.result;
+        if (data.results) {
+            let html = `<b>推理耗时：</b> ${data.inference_time_ms.toFixed(2)} ms<br><b>Top 3 预测结果：</b><ol>`;
+            for (const item of data.results) {
+                html += `<li>${item.species} <span style='color:#888;'>(概率: ${(item.probability * 100).toFixed(2)}%)</span></li>`;
+            }
+            html += '</ol>';
+            resultDiv.innerHTML = html;
         } else {
             resultDiv.textContent = '识别失败: ' + (data.error || '未知错误');
         }

@@ -41,15 +41,8 @@ def predict():
         image_bytes = file.read()
         image_tensor = prepare_image(image_bytes)
         cpu_image_tensor = image_tensor.cpu()
-        # 复用 onnx_inference 但捕获输出
-        import sys
-        from contextlib import redirect_stdout
-        import io as sysio
-        f = sysio.StringIO()
-        with redirect_stdout(f):
-            onnx_inference(onnx_file_path, cpu_image_tensor, index_to_species_id, top_k=3)
-        result = f.getvalue()
-        return jsonify({'result': result})
+        result = onnx_inference(onnx_file_path, cpu_image_tensor, index_to_species_id, top_k=3)
+        return jsonify(result)
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 

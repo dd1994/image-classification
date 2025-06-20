@@ -25,36 +25,30 @@ def load_index_to_species_id_from_csv(csv_file_path):
 # ... 保留您原有的导入和函数定义 ...
 
 def onnx_inference(onnx_file_path, image_tensor, index_to_species_id, top_k=3):
-    """使用ONNX运行时进行推理"""
-    # 创建ONNX运行时会话
+    """使用ONNX运行时进行推理，返回结构化结果"""
     ort_session = ort.InferenceSession(onnx_file_path)
-
-    # 准备输入（注意：ONNX需要numpy数组而不是torch张量）
     ort_inputs = {ort_session.get_inputs()[0].name: image_tensor.numpy()}
-
-    # 开始计时
     start_time = time.time()
-    
-    # 运行推理
     ort_outputs = ort_session.run(None, ort_inputs)
-    
-    # 结束计时
     end_time = time.time()
-    inference_time = (end_time - start_time) * 1000  # 转换为毫秒
-
-    # 处理输出
+    inference_time = (end_time - start_time) * 1000  # 毫秒
     outputs = torch.tensor(ort_outputs[0])
     probabilities = torch.softmax(outputs, dim=1)
     top_probs, top_classes = torch.topk(probabilities, top_k)
-
-    # 输出结果
-    # print(f"\n推理耗时: {inference_time:.2f}ms")
-    # print("\n推理结果:")
+    results = []
     for i in range(top_k):
         class_index = top_classes[0][i].item()
         species_id = index_to_species_id[class_index]
         probability = top_probs[0][i].item()
-        print(f"预测物种: {species_id}, 概率: {probability * 100:.2f}%")
+        results.append({
+            'species': species_id,
+            'probability': probability,
+            'class_index': class_index
+        })
+    return {
+        'inference_time_ms': inference_time,
+        'results': results
+    }
 
 def main():
     csv_file_path = 'index_to_species_id.csv'
