@@ -1,5 +1,8 @@
-flask
 onnxruntime
-torch
 torchvision
-pillow 
+pillow
+fastapi
+uvicorn
+onnxruntime
+pillow
+requests
