@@ -9,6 +9,7 @@ import onnxruntime as ort
 import time
 import csv
 from pydantic import BaseModel
+from fastapi.middleware.cors import CORSMiddleware
 
 
 class InferRequest(BaseModel):
@@ -17,6 +18,12 @@ class InferRequest(BaseModel):
 
 app = FastAPI()
 
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 # 模型和配置相关路径
 ONNX_MODEL_PATH = "last.onnx"
 CSV_LABEL_PATH = "index_to_species_id.csv"
@@ -38,7 +45,11 @@ def load_index_to_species_id_from_csv(csv_file_path):
         for row in reader:
             index, species_id, chinese_name, taxon_name = row
             display_name = taxon_name if chinese_name == 'NULL' else f"{taxon_name} {chinese_name}"
-            index_to_species_id[int(index)] = display_name
+            index_to_species_id[int(index)] = {
+                "preferred_common_name": chinese_name,
+                "name": taxon_name,
+                "id": species_id
+            }
     return index_to_species_id
 
 
@@ -85,12 +96,11 @@ def onnx_inference(image_tensor, top_k=3):
     results = []
     for i in range(top_k):
         class_index = top_classes[0][i].item()
-        species_id = index_to_species_id.get(class_index, "未知类别")
+        species= index_to_species_id.get(class_index, "未知类别")
         prob = top_probs[0][i].item()
         results.append({
-            "species": species_id,
+            "species": species,
             "probability": round(prob * 100, 2),
-            "class_index": class_index
         })
     return {
         "inference_time_ms": round(inference_time_ms, 2),
