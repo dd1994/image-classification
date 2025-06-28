@@ -37,7 +37,11 @@ def load_index_to_species_id_from_csv(csv_file_path):
             index_to_species_id[int(index)] = display_name
     return index_to_species_id
 
+# 初始化加载标签映射
 index_to_species_id = load_index_to_species_id_from_csv(CSV_LABEL_PATH)
+
+# 初始化加载 ONNX 模型
+ort_session = ort.InferenceSession(ONNX_MODEL_PATH)
 
 # 图像预处理
 def preprocess_image(image_url):
@@ -58,7 +62,6 @@ def preprocess_image(image_url):
 
 # ONNX 推理函数
 def onnx_inference(image_tensor, top_k=3):
-    ort_session = ort.InferenceSession(ONNX_MODEL_PATH)
     ort_inputs = {ort_session.get_inputs()[0].name: image_tensor}
     start_time = time.time()
     ort_outputs = ort_session.run(None, ort_inputs)
