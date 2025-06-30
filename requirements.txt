@@ -1,8 +1,6 @@
-onnxruntime
-torchvision
-pillow
-fastapi
-uvicorn
-onnxruntime
-pillow
-requests
+onnxruntime~=1.19.2
+fastapi~=0.115.14
+requests~=2.32.3
+numpy~=1.25.0
+pydantic~=2.11.7
+pillow~=10.4.0

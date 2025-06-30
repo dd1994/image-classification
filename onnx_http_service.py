@@ -24,6 +24,12 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+
+@app.get("/")
+def read_root():
+    return {"Hello": "World"}
+
+
 # 模型和配置相关路径
 ONNX_MODEL_PATH = "last.onnx"
 CSV_LABEL_PATH = "index_to_species_id.csv"
