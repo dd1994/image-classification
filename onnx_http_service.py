@@ -1,15 +1,14 @@
-from fastapi import FastAPI, HTTPException, UploadFile, File, Body
+from fastapi import FastAPI, HTTPException, Body
 from fastapi.responses import JSONResponse
 import requests
 from io import BytesIO
 from PIL import Image
-import torch
-import torchvision.transforms as transforms
 import onnxruntime as ort
 import time
 import csv
 from pydantic import BaseModel
 from fastapi.middleware.cors import CORSMiddleware
+import numpy as np
 
 
 class InferRequest(BaseModel):
@@ -24,16 +23,17 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
 # 模型和配置相关路径
 ONNX_MODEL_PATH = "last.onnx"
 CSV_LABEL_PATH = "index_to_species_id.csv"
 INPUT_SIZE = 448
 
 
-# 自定义 ToRGB 转换
-class ToRGBTransform:
-    def __call__(self, img):
-        return img.convert("RGB")
+# NumPy实现的softmax函数
+def softmax(x):
+    e_x = np.exp(x - np.max(x, axis=1, keepdims=True))
+    return e_x / e_x.sum(axis=1, keepdims=True)
 
 
 # 加载标签映射
@@ -60,7 +60,7 @@ index_to_species_id = load_index_to_species_id_from_csv(CSV_LABEL_PATH)
 ort_session = ort.InferenceSession(ONNX_MODEL_PATH)
 
 
-# 图像预处理
+# 图像预处理（使用NumPy替代torch）
 def preprocess_image(image_url):
     download_start_time = time.time()
     try:
@@ -69,39 +69,69 @@ def preprocess_image(image_url):
         download_end_time = time.time()
         download_time_ms = (download_end_time - download_start_time) * 1000
 
-        image = Image.open(BytesIO(response.content)).convert("RGB")
-        transform = transforms.Compose([
-            ToRGBTransform(),
-            transforms.Resize(int(INPUT_SIZE * 1.2)),
-            transforms.CenterCrop(INPUT_SIZE),
-            transforms.ToTensor(),
-            transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225]),
-        ])
-        return transform(image).unsqueeze(0).cpu().numpy(), download_time_ms
+        # 使用PIL处理图像
+        image = Image.open(BytesIO(response.content)).convert('RGB')
+
+        # 调整大小
+        target_resize = int(INPUT_SIZE * 1.2)
+        image = image.resize((target_resize, target_resize), Image.BICUBIC)
+
+        # 中心裁剪
+        left = (image.width - INPUT_SIZE) / 2
+        top = (image.height - INPUT_SIZE) / 2
+        right = (image.width + INPUT_SIZE) / 2
+        bottom = (image.height + INPUT_SIZE) / 2
+        image = image.crop((left, top, right, bottom))
+
+        # 转换为NumPy数组并归一化
+        image_array = np.array(image).astype(np.float32) / 255.0
+
+        # 通道顺序调整为CHW
+        image_array = np.transpose(image_array, (2, 0, 1))
+
+        # 标准化 (ImageNet均值和标准差)
+        mean = np.array([0.485, 0.456, 0.406], dtype=np.float32).reshape(3, 1, 1)
+        std = np.array([0.229, 0.224, 0.225], dtype=np.float32).reshape(3, 1, 1)
+        image_array = (image_array - mean) / std
+
+        # 添加批次维度
+        return np.expand_dims(image_array, axis=0), download_time_ms
     except Exception as e:
         raise HTTPException(status_code=400, detail=f"图像预处理失败: {str(e)}")
 
 
-# ONNX 推理函数
+# ONNX 推理函数（使用NumPy替代torch）
 def onnx_inference(image_tensor, top_k=3):
-    ort_inputs = {ort_session.get_inputs()[0].name: image_tensor}
-    inference_start_time = time.time()
-    ort_outputs = ort_session.run(None, ort_inputs)
-    inference_end_time = time.time()
-    inference_time_ms = (inference_end_time - inference_start_time) * 1000  # 毫秒
+    input_name = ort_session.get_inputs()[0].name
 
-    outputs = torch.tensor(ort_outputs[0])
-    probabilities = torch.softmax(outputs, dim=1)
-    top_probs, top_classes = torch.topk(probabilities, top_k)
+    # 确保输入数据类型是float32
+    if image_tensor.dtype != np.float32:
+        image_tensor = image_tensor.astype(np.float32)
+
+    inference_start_time = time.time()
+    outputs = ort_session.run(None, {input_name: image_tensor})[0]
+    inference_end_time = time.time()
+    inference_time_ms = (inference_end_time - inference_start_time) * 1000
+
+    # 计算softmax概率
+    probabilities = softmax(outputs)
+
+    # 获取top-k结果
+    top_indices = np.argsort(-probabilities, axis=1)[0, :top_k]
+
     results = []
-    for i in range(top_k):
-        class_index = top_classes[0][i].item()
-        species= index_to_species_id.get(class_index, "未知类别")
-        prob = top_probs[0][i].item()
+    for idx in top_indices:
+        species = index_to_species_id.get(int(idx), {
+            "preferred_common_name": "未知",
+            "name": f"未知物种 (ID: {idx})",
+            "id": str(idx)
+        })
+        prob = probabilities[0, idx]
         results.append({
             "species": species,
-            "probability": round(prob * 100, 2),
+            "probability": prob * 1.0,
         })
+
     return {
         "inference_time_ms": round(inference_time_ms, 2),
         "results": results
