@@ -1,8 +1,8 @@
 const fs = require('fs');
 const path = require('path');
 const { imgExt } = require('./const')
-const trainDir = 'D:/image-classification/data/genus1';
-const outputFile = 'collection_stat.csv';
+const trainDir = 'D:/image-classification/data/train';
+const outputFile = 'train_stat.csv';
 console.log(imgExt)
 // 支持的图片扩展名集合
 const IMAGE_EXTENSIONS = new Set(imgExt);
