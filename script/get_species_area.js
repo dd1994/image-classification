@@ -57,7 +57,9 @@ const processSpeciesData = async () => {
               response?.data?.data?.species?.length > 0 &&
               response?.data?.data?.species?.[0]?.accepted_name_info) {
 
-            const distribution = response.data.data.species[0].accepted_name_info.Distribution || '';
+//            const distribution = response.data.data.species[0].accepted_name_info.Distribution || '';
+
+            const distribution = response.data.data.species?.find(i => ((i?.accepted_name_info?.scientificName === species.taxonName) && i.name_status === 'accepted name'))?.accepted_name_info?.Distribution || '';
 
             // 提取中文省份（括号内的内容）
             let provinces = '';
