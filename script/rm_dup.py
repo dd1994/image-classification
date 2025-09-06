@@ -29,15 +29,19 @@ import cv2  # 需要安装 opencv-python 包
 import random
 
 # 配置参数
-BASE_DIR = r"D:\image-classification\data\train"
+BASE_DIR = r"D:\image-classification\data\train-common"
 # ACTIVE = 'Insecta'
-similarity_threshold = 0.584
-similarity_threshold_plus = 0.592
+# 记录下每个类群的阈值
+# 植物 0.564/0.572/0.65
+# 属 0.584/0.592/0.65
+similarity_threshold = 0.564
+similarity_threshold_plus = 0.572
 similarity_threshold_plus2 = 0.65
+
 NEIGHBOR_RANGE = 100  # 前后检查范围
 SUPPORTED_EXTENSIONS = ('.png', '.jpg', '.jpeg')
 
-MAX_IMG_COUNT= 1000 #
+MAX_IMG_COUNT= 500 #
 OVERFLOW_IMG_COUNT = 894 # 植物设置为 990，
 batch_size = 380  # 根据GPU显存调整
 
