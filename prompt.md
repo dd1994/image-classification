@@ -20,3 +20,46 @@ train 文件夹下有几个个文件夹表示爬行/两栖/植物/昆虫等大�
 
 请编写一段 node.js 脚本满足上述需求，一步步思考。
 
+
+
+插入省份分布数据
+
+```sql
+UPDATE index_to_species_id_area
+SET area = CONCAT(area, '、上海')
+WHERE area IS NOT NULL
+  AND area NOT LIKE '%上海%'
+  AND SpeciesID IN (
+    SELECT species_id
+    FROM `nature-observation`.index_to_species_id
+    WHERE taxon_name IN (
+      SELECT SUBSTRING_INDEX(latin_name, ' ', 2)
+      FROM shanghai_plants
+#       WHERE alien_remark != '栽培'
+    )
+);
+```
+
+
+列出所有省份
+
+```sql
+WITH RECURSIVE numbers AS (
+    SELECT 0 AS n
+    UNION ALL
+    SELECT n + 1 FROM numbers WHERE n < 100  -- 支持最多101个省份
+),
+province_data AS (
+    SELECT DISTINCT  -- 添加DISTINCT确保处理唯一行
+        area
+    FROM species_area  -- 替换为您的表名
+)
+SELECT DISTINCT
+    TRIM(SUBSTRING_INDEX(SUBSTRING_INDEX(area, '、', n + 1), '、', -1)) AS province
+FROM province_data
+JOIN numbers
+    ON n < LENGTH(area) - LENGTH(REPLACE(area, '、', '')) + 1
+WHERE TRIM(SUBSTRING_INDEX(SUBSTRING_INDEX(area, '、', n + 1), '、', -1)) != ''
+ORDER BY province;
+```
+
