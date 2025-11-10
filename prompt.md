@@ -20,8 +20,14 @@ train 文件夹下有几个个文件夹表示爬行/两栖/植物/昆虫等大�
 
 请编写一段 node.js 脚本满足上述需求，一步步思考。
 
+查询现有数据库缺少的分布地信息：
 
-
+```sql
+select * from index_to_species_id_area
+         where index_to_species_id_area.SpeciesID in (select species_id from `nature-observation`.index_to_species_id where  index_to_species_id.taxon_name  in (select SUBSTRING_INDEX(latin_name, ' ', 2) from shanghai_plants))
+         and area is not null
+         and area not like '%上海%'
+```
 插入省份分布数据
 
 ```sql
@@ -63,3 +69,19 @@ WHERE TRIM(SUBSTRING_INDEX(SUBSTRING_INDEX(area, '、', n + 1), '、', -1)) != '
 ORDER BY province;
 ```
 
+找出 ppbc id 重复的行：
+
+```sql
+SELECT *
+FROM (
+    SELECT
+        id,
+        ppbcId,
+        chineseName,
+        count,
+        COUNT(*) OVER (PARTITION BY ppbcId) as duplicate_count
+    FROM ppbc_count_result
+) AS subquery
+WHERE duplicate_count > 1
+ORDER BY count DESC
+```

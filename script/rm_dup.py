@@ -45,6 +45,9 @@ MAX_IMG_COUNT= 500 #
 OVERFLOW_IMG_COUNT = 894 # 植物设置为 990，
 batch_size = 380  # 根据GPU显存调整
 
+WHITE_LIST = ['1221', '122123']
+WHITE_LIST_MAX_IMG_COUNT = 1000;
+
 # 初始化模型
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 model = load_pretrained("aimv2-large-patch14-224-distilled", backend="torch").to(device)
@@ -64,7 +67,7 @@ def calculate_blur_score(image_path):
         print(f"计算模糊度失败 {image_path}: {e}")
         return float('inf')
 
-def process_species_directory(species_dir):
+def process_species_directory(species_dir, species_id):
     # 获取所有图片并按修改时间排序
     image_paths = []
     for fname in os.listdir(species_dir):
@@ -82,6 +85,11 @@ def process_species_directory(species_dir):
     # 新增动态调整逻辑
     current_max = MAX_IMG_COUNT
     current_threshold = similarity_threshold
+    
+    # 检查是否在白名单中，如果是则使用白名单最大图片数
+    if species_id in WHITE_LIST:
+        current_max = WHITE_LIST_MAX_IMG_COUNT
+        print(f"物种 {species_id} 在白名单中，使用白名单最大图片数: {current_max}")
 
    # 修改后的数量检查
     if len(sorted_paths) <= current_max:
@@ -252,7 +260,7 @@ def main():
         with tqdm(current_class_species, desc=f"处理 {class_name}", unit="物种") as class_pbar:
             for species_id, species_dir in class_pbar:
                 class_pbar.set_postfix_str(species_id)
-                deleted = process_species_directory(species_dir)
+                deleted = process_species_directory(species_dir, species_id)
                 class_pbar.write(f"\n{class_name}/{species_id}处理完成")
                 # if deleted > 0:
                 #     class_pbar.write(f"{class_name}/{species_id} 总共删除 {deleted} 张")
