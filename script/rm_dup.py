@@ -30,23 +30,44 @@ import random
 
 # 配置参数
 BASE_DIR = r"D:\image-classification\data\train-common"
-# ACTIVE = 'Insecta'
+ACTIVE = 'PlantaeCommon2'
 # 记录下每个类群的阈值
 # 植物 0.564/0.572/0.65
 # 属 0.584/0.592/0.65
-similarity_threshold = 0.564
+similarity_threshold = 0.566
 similarity_threshold_plus = 0.572
 similarity_threshold_plus2 = 0.65
 
 NEIGHBOR_RANGE = 100  # 前后检查范围
 SUPPORTED_EXTENSIONS = ('.png', '.jpg', '.jpeg')
 
-MAX_IMG_COUNT= 500 #
+MAX_IMG_COUNT= 200 #
 OVERFLOW_IMG_COUNT = 894 # 植物设置为 990，
 batch_size = 380  # 根据GPU显存调整
 
-WHITE_LIST = ['1221', '122123']
-WHITE_LIST_MAX_IMG_COUNT = 1000;
+WHITE_LIST = [
+'558884', 
+'539936',
+'30282'
+'30492'
+'101504'
+'966797'
+'1545858'
+'30217'
+'30996'
+'30442'
+'28872'
+'28868'
+'30685'
+'30253'
+'29832'
+'29266'
+'29256'
+'28999'
+'30231'
+'1337912'
+]
+WHITE_LIST_MAX_IMG_COUNT = 1000
 
 # 初始化模型
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
@@ -243,8 +264,8 @@ def process_species_directory(species_dir, species_id):
 def main():
     # 遍历所有类别
     for class_name in os.listdir(BASE_DIR):
-        # if class_name != ACTIVE:
-        #     continue
+        if class_name != ACTIVE:
+            continue
         class_dir = os.path.join(BASE_DIR, class_name)
         if not os.path.isdir(class_dir):
             continue
