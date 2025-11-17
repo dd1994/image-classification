@@ -2,7 +2,7 @@
   "model": {
       "class_path": "SwinV2Model",
       "init_args": {
-          "num_classes": 38001,
+          "num_classes": 325,
           "learning_rate": 1e-4,
           "input_size": 448,
           "t_max": 17
@@ -44,8 +44,8 @@
   "data":  {
     "class_path": "SpecialCateData",
     "init_args": {
-      "data_dir": "./data/train",
-      "valid_dir": "./data/valid",
+      "data_dir": "./data/train-pre",
+      "valid_dir": "./data/valid-pre",
       "id_map_file_path": "all_map.csv",
       "valid_id_map_file_path": "valid_all_map.csv",
       "batch_size": 15,
