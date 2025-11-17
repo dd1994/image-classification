@@ -1,11 +1,11 @@
 const fs = require('fs');
 const path = require('path');
 const { imgExt } = require('./const')
-const trainDir = 'D:/image-classification/data/temp_data';
-const collectionBase = path.join(path.dirname(trainDir), 'collection'); // 自动生成collection路径\
-const ACTIVE = 'fish_images'
+const trainDir = 'D:/image-classification/data/train-pre';
+const collectionBase = path.join(path.dirname(trainDir), 'collection-pre'); // 自动生成collection路径\
+const ACTIVE = 'Reptilia'
 const outputFile = `${ACTIVE}_stat.csv`
-const minCount = 9
+const minCount = 49
 // 支持的图片扩展名集合
 const IMAGE_EXTENSIONS = new Set(imgExt);
 
