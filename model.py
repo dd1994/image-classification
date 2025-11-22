@@ -29,7 +29,7 @@ class BaseModel(pl.LightningModule):
         images, labels = batch
         
         # 只在非最后3个epoch使用数据增强 self.current_epoch < self.trainer.max_epochs - 3 and
-        if torch.rand(1).item() < 0.2:
+        if torch.rand(1).item() < 0.8:
             cutmix = v2.CutMix(num_classes=self.num_classes)
             mixup = v2.MixUp(num_classes=self.num_classes)
             cutmix_or_mixup = v2.RandomChoice([cutmix, mixup])
