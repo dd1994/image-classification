@@ -60,8 +60,6 @@ def balance_dataset(root_dir, min_images=80):
                             
                     except Exception as e:
                         print(f"\n处理图片 {img_file} 时出错: {e}")
-                    
-                    img_pbar.update(1)
             
             # 更新物种进度条
             species_pbar.update(1)
