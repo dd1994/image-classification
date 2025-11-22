@@ -41,11 +41,7 @@ def balance_dataset(root_dir, min_images=80):
         for class_dir, species_dir, species_path, image_files in all_species:
             species_pbar.set_description(f"处理 {class_dir}/{species_dir}")
             
-            # 使用tqdm显示图片处理进度
-            with tqdm(total=len(image_files), desc=f"处理图片", unit="张", 
-                     leave=False, position=1) as img_pbar:
-                # 对每张图片进行复制和翻转
-                for img_file in image_files:
+            for img_file in image_files:
                     img_path = os.path.join(species_path, img_file)
                     
                     try:
