@@ -29,8 +29,8 @@ import cv2  # 需要安装 opencv-python 包
 import random
 
 # 配置参数
-BASE_DIR = r"D:\image-classification\data\train-pre"
-ACTIVE = 'Reptilia'
+BASE_DIR = r"D:\image-classification\data\temp_data"
+ACTIVE = 'Amphibia'
 
 # 不同类群的配置
 CLASS_CONFIGS = {
@@ -71,6 +71,10 @@ CLASS_CONFIGS = {
         'WHITE_LIST_MAX_IMG_COUNT': 1000,
         'WHITE_LIST': [
             '66330', 
+            '26571',
+            '134788',
+            '120791',
+            '134709',
         ]
     },
     'Insecta': {
