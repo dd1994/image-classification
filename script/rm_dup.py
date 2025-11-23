@@ -31,43 +31,80 @@ import random
 # 配置参数
 BASE_DIR = r"D:\image-classification\data\train-pre"
 ACTIVE = 'Reptilia'
-# 记录下每个类群的阈值
-# 植物 0.564/0.572/0.65
-# 属 0.584/0.592/0.65
-similarity_threshold = 0.584
-similarity_threshold_plus = 0.592
-similarity_threshold_plus2 = 0.65
+
+# 不同类群的配置
+CLASS_CONFIGS = {
+    'Reptilia': {
+        'similarity_threshold': 0.584,
+        'similarity_threshold_plus': 0.592,
+        'similarity_threshold_plus2': 0.65,
+        'MAX_IMG_COUNT': 600,
+        'WHITE_LIST_MAX_IMG_COUNT': 1000,
+        'WHITE_LIST': [
+            '558884', 
+            '539936',
+            '30282',
+            '30492',
+            '101504',
+            '966797',
+            '1545858',
+            '30217',
+            '30996',
+            '30442',
+            '28872',
+            '28868',
+            '30685',
+            '30253',
+            '29832',
+            '29266',
+            '29256',
+            '28999',
+            '30231',
+            '1337912'
+        ]
+    },
+    'Amphibia': {
+        'similarity_threshold': 0.584,
+        'similarity_threshold_plus': 0.592,
+        'similarity_threshold_plus2': 0.65,
+        'MAX_IMG_COUNT': 600,
+        'WHITE_LIST_MAX_IMG_COUNT': 1000,
+        'WHITE_LIST': [
+            '66330', 
+        ]
+    },
+    'Insecta': {
+        'similarity_threshold': 0.584,
+        'similarity_threshold_plus': 0.592,
+        'similarity_threshold_plus2': 0.65,
+        'MAX_IMG_COUNT': 600,
+        'WHITE_LIST_MAX_IMG_COUNT': 1000,
+        'WHITE_LIST': []
+    },
+    'Plantae': {
+        'similarity_threshold': 0.564,
+        'similarity_threshold_plus': 0.572,
+        'similarity_threshold_plus2': 0.65,
+        'MAX_IMG_COUNT': 600,
+        'WHITE_LIST_MAX_IMG_COUNT': 1000,
+        'WHITE_LIST': []
+    }
+}
+
+# 获取当前活跃类群的配置
+current_config = CLASS_CONFIGS.get(ACTIVE, CLASS_CONFIGS['Reptilia'])
+similarity_threshold = current_config['similarity_threshold']
+similarity_threshold_plus = current_config['similarity_threshold_plus']
+similarity_threshold_plus2 = current_config['similarity_threshold_plus2']
+MAX_IMG_COUNT = current_config['MAX_IMG_COUNT']
+WHITE_LIST_MAX_IMG_COUNT = current_config['WHITE_LIST_MAX_IMG_COUNT']
+WHITE_LIST = current_config['WHITE_LIST']
 
 NEIGHBOR_RANGE = 100  # 前后检查范围
 SUPPORTED_EXTENSIONS = ('.png', '.jpg', '.jpeg')
 
-MAX_IMG_COUNT= 600 #
 OVERFLOW_IMG_COUNT = 894 # 植物设置为 990，
 batch_size = 380  # 根据GPU显存调整
-
-WHITE_LIST = [
-'558884', 
-'539936',
-'30282'
-'30492'
-'101504'
-'966797'
-'1545858'
-'30217'
-'30996'
-'30442'
-'28872'
-'28868'
-'30685'
-'30253'
-'29832'
-'29266'
-'29256'
-'28999'
-'30231'
-'1337912'
-]
-WHITE_LIST_MAX_IMG_COUNT = 1000
 
 # 初始化模型
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
@@ -260,31 +297,66 @@ def process_species_directory(species_dir, species_id):
     print(f"总共删除{deleted_count} 张，剩余 {len(sorted_paths) - deleted_count} 张")
     return deleted_count
 
+def process_class_with_config(class_name):
+    """根据类群名称使用对应的配置处理该类群"""
+    global current_config, similarity_threshold, similarity_threshold_plus, similarity_threshold_plus2
+    global MAX_IMG_COUNT, WHITE_LIST_MAX_IMG_COUNT, WHITE_LIST
+    
+    # 获取该类群的配置
+    current_config = CLASS_CONFIGS.get(class_name, CLASS_CONFIGS['Reptilia'])
+    similarity_threshold = current_config['similarity_threshold']
+    similarity_threshold_plus = current_config['similarity_threshold_plus']
+    similarity_threshold_plus2 = current_config['similarity_threshold_plus2']
+    MAX_IMG_COUNT = current_config['MAX_IMG_COUNT']
+    WHITE_LIST_MAX_IMG_COUNT = current_config['WHITE_LIST_MAX_IMG_COUNT']
+    WHITE_LIST = current_config['WHITE_LIST']
+    
+    print(f"\n开始处理类群: {class_name}")
+    print(f"使用配置: 相似度阈值={similarity_threshold}, 最大图片数={MAX_IMG_COUNT}")
+    print(f"白名单物种数: {len(WHITE_LIST)}, 白名单最大图片数: {WHITE_LIST_MAX_IMG_COUNT}")
+    
+    class_dir = os.path.join(BASE_DIR, class_name)
+    if not os.path.isdir(class_dir):
+        print(f"类群目录不存在: {class_dir}")
+        return
+
+    # 收集当前类群的所有物种目录
+    current_class_species = []
+    for species_id in os.listdir(class_dir):
+        species_dir = os.path.join(class_dir, species_id)
+        if os.path.isdir(species_dir):
+            current_class_species.append((species_id, species_dir))
+
+    # 使用当前类群的进度条
+    with tqdm(current_class_species, desc=f"处理 {class_name}", unit="物种") as class_pbar:
+        for species_id, species_dir in class_pbar:
+            class_pbar.set_postfix_str(species_id)
+            deleted = process_species_directory(species_dir, species_id)
+            class_pbar.write(f"\n{class_name}/{species_id}处理完成")
+
 # 79,961
 def main():
-    # 遍历所有类别
+    # 方式1: 只处理ACTIVE类群（原有行为）
+    if ACTIVE in CLASS_CONFIGS:
+        process_class_with_config(ACTIVE)
+    else:
+        print(f"未找到类群 {ACTIVE} 的配置，使用默认Reptilia配置")
+        process_class_with_config('Reptilia')
+    
+    # 方式2: 处理所有类群（取消注释以下代码即可启用）
+    """
+    # 遍历所有类群
     for class_name in os.listdir(BASE_DIR):
-        if class_name != ACTIVE:
+        if class_name not in CLASS_CONFIGS:
+            print(f"跳过未配置的类群: {class_name}")
             continue
+            
         class_dir = os.path.join(BASE_DIR, class_name)
         if not os.path.isdir(class_dir):
             continue
-
-        # 收集当前类群的所有物种目录
-        current_class_species = []
-        for species_id in os.listdir(class_dir):
-            species_dir = os.path.join(class_dir, species_id)
-            if os.path.isdir(species_dir):
-                current_class_species.append((species_id, species_dir))
-
-        # 使用当前类群的进度条
-        with tqdm(current_class_species, desc=f"处理 {class_name}", unit="物种") as class_pbar:
-            for species_id, species_dir in class_pbar:
-                class_pbar.set_postfix_str(species_id)
-                deleted = process_species_directory(species_dir, species_id)
-                class_pbar.write(f"\n{class_name}/{species_id}处理完成")
-                # if deleted > 0:
-                #     class_pbar.write(f"{class_name}/{species_id} 总共删除 {deleted} 张")
+            
+        process_class_with_config(class_name)
+    """
 
 
 if __name__ == "__main__":
