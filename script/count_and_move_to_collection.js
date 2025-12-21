@@ -1,7 +1,7 @@
 const fs = require('fs');
 const path = require('path');
 const { imgExt } = require('./const')
-const trainDir = 'D:/image-classification/data/train-pre';
+const trainDir = 'D:/image-classification/data/train-tiny';
 const collectionBase = path.join(path.dirname(trainDir), 'collection-pre'); // 自动生成collection路径\
 const ACTIVE = 'Reptilia'
 const outputFile = `${ACTIVE}_stat.csv`
