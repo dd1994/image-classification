@@ -59,7 +59,7 @@ async function removeInvalidTaxa() {
                     
                     try {
                         // 删除文件夹及其所有内容
-                        // fs.rmSync(folderPath, { recursive: true, force: true });
+                        fs.rmSync(folderPath, { recursive: true, force: true });
                         
                         categoryDeletedFolders++;
                         totalDeletedFolders++;
