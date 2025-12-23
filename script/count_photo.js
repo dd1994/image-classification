@@ -1,7 +1,7 @@
 const fs = require('fs');
 const path = require('path');
 const { imgExt } = require('./const')
-const trainDir = 'D:/image-classification/data/train-common';
+const trainDir = 'D:/image-classification/data/train-pre';
 const outputFile = 'train_stat.csv';
 console.log(imgExt)
 // 支持的图片扩展名集合
@@ -92,13 +92,13 @@ try {
           });
       }
 
-//    if(validFiles.length > 80) {
+   if(validFiles.length > 500) {
             results.push({
               class: className,
               taxon_id: taxonId,
               photo_count: validFiles.length
           });
-//    }
+   }
     }
   }
 
