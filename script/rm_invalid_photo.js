@@ -2,7 +2,7 @@ const fs = require('fs');
 const path = require('path');
 
 async function removeInvalidPhotos() {
-    const csvPath = 'd:/image-classification/invalid_photo.csv';
+    const csvPath = 'd:/image-classification/script/invalid_photo.csv';
     const trainPrePath = 'd:/image-classification/data/train-pre';
     
     try {
@@ -74,7 +74,7 @@ async function removeInvalidPhotos() {
                 
                 if (fs.existsSync(imagePath)) {
                     try {
-                        fs.unlinkSync(imagePath);
+                        // fs.unlinkSync(imagePath);
                         console.log(`  ✓ 删除成功: ${imagePattern} (taxon: ${taxonId})`);
                         totalDeleted++;
                     } catch (error) {

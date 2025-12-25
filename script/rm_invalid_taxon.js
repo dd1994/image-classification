@@ -2,7 +2,7 @@ const fs = require('fs');
 const path = require('path');
 
 async function removeInvalidTaxa() {
-    const csvPath = 'd:/image-classification/temp_valid_other_taxon_count_20251111.csv';
+    const csvPath = 'd:/image-classification/script/valid_taxon_count.csv';
     const trainPrePath = 'd:/image-classification/data/train-pre';
     
     try {
@@ -55,16 +55,17 @@ async function removeInvalidTaxa() {
             for (const speciesFolder of speciesFolders) {
                 // 检查物种ID是否在有效列表中
                 if (!validTaxonIds.has(speciesFolder)) {
+                    console.log(`  发现无效文件夹: ${speciesFolder}`);
                     const folderPath = path.join(categoryPath, speciesFolder);
                     
                     try {
                         // 删除文件夹及其所有内容
-                        fs.rmSync(folderPath, { recursive: true, force: true });
+                        // fs.rmSync(folderPath, { recursive: true, force: true });
                         
                         categoryDeletedFolders++;
                         totalDeletedFolders++;
                         
-                        console.log(`  删除: ${speciesFolder}`);
+                        // console.log(`  删除: ${speciesFolder}`);
                         
                     } catch (error) {
                         console.error(`  删除失败: ${speciesFolder} - ${error.message}`);
