@@ -3,7 +3,7 @@ const path = require('path');
 
 async function removeInvalidTaxa() {
     const csvPath = 'd:/image-classification/script/valid_taxon_count.csv';
-    const trainPrePath = 'd:/image-classification/data/train-pre';
+    const trainPrePath = 'd:/image-classification/data/temp_data';
     
     try {
         // 读取CSV文件
@@ -65,7 +65,7 @@ async function removeInvalidTaxa() {
                         categoryDeletedFolders++;
                         totalDeletedFolders++;
                         
-                        // console.log(`  删除: ${speciesFolder}`);
+                        console.log(`  删除: ${speciesFolder}`);
                         
                     } catch (error) {
                         console.error(`  删除失败: ${speciesFolder} - ${error.message}`);
