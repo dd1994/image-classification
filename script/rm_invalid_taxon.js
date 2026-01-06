@@ -3,7 +3,7 @@ const path = require('path');
 
 async function removeInvalidTaxa() {
     const csvPath = 'd:/image-classification/script/valid_taxon_count.csv';
-    const trainPrePath = 'd:/image-classification/data/temp_data';
+    const trainPrePath = 'd:/image-classification/data/collection-pre';
     
     try {
         // 读取CSV文件
