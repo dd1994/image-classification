@@ -1,8 +1,8 @@
 const fs = require('fs');
 const path = require('path');
 const { imgExt } = require('./const')
-const trainDir = 'D:/image-classification/data/collection-pre';
-const outputFile = 'train_stat.csv';
+const trainDir = 'D:/image-classification/data/train-pre';
+const outputFile = 'train_stat3.csv';
 console.log(imgExt)
 // 支持的图片扩展名集合
 const IMAGE_EXTENSIONS = new Set(imgExt);
@@ -98,14 +98,14 @@ try {
           });
       }
 
-   if(validFiles.length > 600) {
+   if(validFiles.length > 800) {
             results.push({
               class: className,
               taxon_id: taxonId,
               photo_count: validFiles.length
-          });
+    });
    }
-    }
+}
   }
 
   // 生成CSV报告

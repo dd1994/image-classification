@@ -3,7 +3,7 @@ const path = require('path');
 
 async function removeInvalidPhotos() {
     const csvPath = 'd:/image-classification/script/invalid_photo.csv';
-    const trainPrePath = 'd:/image-classification/data/collection-pre';
+    const trainPrePath = 'd:/image-classification/data/train-pre';
     
     try {
         console.log('正在读取CSV文件...');

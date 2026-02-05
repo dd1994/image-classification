@@ -8,7 +8,7 @@ def process_images(root_dir):
     # 遍历目录并收集未处理的图片
     for dirpath, _, filenames in os.walk(root_dir):
         for filename in filenames:
-            if filename.lower().endswith(('.png', '.jpg', '.jpeg', '.bmp', '.webp')):
+            if filename.lower().endswith(('.png', '.jpg', '.jpeg', '.bmp', '.webp', '.gif')):
                 if not filename.startswith('processed_'):
                     file_path = os.path.join(dirpath, filename)
                     file_list.append(file_path)
@@ -58,6 +58,6 @@ def process_images(root_dir):
 
 
 if __name__ == "__main__":
-    root_dir = r"D:\image-classification\data\collection-pre"
+    root_dir = r"D:\image-classification\data\train-pre"
     process_images(root_dir)
 
