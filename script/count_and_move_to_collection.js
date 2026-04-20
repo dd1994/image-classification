@@ -1,10 +1,11 @@
 const fs = require('fs');
 const path = require('path');
 const { imgExt } = require('./const')
-const trainDir = 'D:/image-classification/data/train-tiny';
-const collectionBase = path.join(path.dirname(trainDir), 'collection-pre'); // 自动生成collection路径\
-const ACTIVE = 'Reptilia'
-const outputFile = `${ACTIVE}_stat.csv`
+const trainDir = 'D:/image-classification/data/temp_data';
+const collectionBase = path.join(path.dirname(trainDir), 'collection'); // 自动生成collection路径\
+//const ACTIVE = 'Fungi'
+//const outputFile = `${ACTIVE}_stat.csv`
+const outputFile = `all_stat.csv`
 const minCount = 49
 // 支持的图片扩展名集合
 const IMAGE_EXTENSIONS = new Set(imgExt);
@@ -70,9 +71,9 @@ try {
 //    if(className !== ACTIVE) {
 //        continue
 //    }
-//    if(!['Insecta', 'Arachnida', 'Fungi'].includes(className)) {
-//        continue
-//    }
+    if(['Insecta', 'Fungi'].includes(className)) {
+        continue
+    }
     const classPath = path.join(trainDir, className);
     const classStats = fs.statSync(classPath);
 

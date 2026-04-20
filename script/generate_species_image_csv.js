@@ -1,7 +1,7 @@
 const fs = require('fs');
 const path = require('path');
 
-const trainDir = 'D:/image-classification/data/train-pre';
+const trainDir = 'D:/image-classification/data/large';
 const outputFile = 'species_image_mapping.csv';
 
 console.log('开始生成物种ID和图片ID映射文件...');

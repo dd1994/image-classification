@@ -1,8 +1,9 @@
 const fs = require('fs');
 const path = require('path');
 const { imgExt } = require('./const')
-const trainDir = 'D:/image-classification/data/train-pre';
-const outputFile = 'train_stat3.csv';
+const trainDir = 'D:/image-classification/data/temp_data';
+const outputFile = 'train_stat_actinopterygii.csv';
+const ACTIVE = ['Actinopterygii']
 console.log(imgExt)
 // 支持的图片扩展名集合
 const IMAGE_EXTENSIONS = new Set(imgExt);
@@ -21,9 +22,9 @@ try {
   const classDirs = fs.readdirSync(trainDir);
 
   for (const className of classDirs) {
-//    if(!['Insecta', 'Arachnida'].includes(className)) {
-//        continue
-//    }
+    if(!ACTIVE.includes(className)) {
+        continue
+    }
     const classPath = path.join(trainDir, className);
     const classStats = fs.statSync(classPath);
 
@@ -98,7 +99,7 @@ try {
           });
       }
 
-   if(validFiles.length > 800) {
+   if(validFiles.length > 400) {
             results.push({
               class: className,
               taxon_id: taxonId,
