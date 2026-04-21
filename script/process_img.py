@@ -58,6 +58,6 @@ def process_images(root_dir):
 
 
 if __name__ == "__main__":
-    root_dir = r"D:\image-classification\data\genus"
+    root_dir = r"D:\image-classification\data\genusCollection"
     process_images(root_dir)
 

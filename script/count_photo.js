@@ -1,8 +1,8 @@
 const fs = require('fs');
 const path = require('path');
 const { imgExt } = require('./const')
-const trainDir = 'D:/image-classification/data/temp_data';
-const outputFile = 'train_stat_actinopterygii.csv';
+const trainDir = 'D:/image-classification/data/family';
+const outputFile = 'train_stat_family.csv';
 const ACTIVE = ['Actinopterygii']
 console.log(imgExt)
 // 支持的图片扩展名集合
@@ -22,9 +22,9 @@ try {
   const classDirs = fs.readdirSync(trainDir);
 
   for (const className of classDirs) {
-    if(!ACTIVE.includes(className)) {
-        continue
-    }
+//    if(!ACTIVE.includes(className)) {
+//        continue
+//    }
     const classPath = path.join(trainDir, className);
     const classStats = fs.statSync(classPath);
 
@@ -99,13 +99,13 @@ try {
           });
       }
 
-   if(validFiles.length > 400) {
+//   if(validFiles.length > 300) {
             results.push({
               class: className,
               taxon_id: taxonId,
               photo_count: validFiles.length
     });
-   }
+//   }
 }
   }
 

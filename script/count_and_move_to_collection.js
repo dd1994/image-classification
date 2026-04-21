@@ -1,8 +1,8 @@
 const fs = require('fs');
 const path = require('path');
 const { imgExt } = require('./const')
-const trainDir = 'D:/image-classification/data/temp_data';
-const collectionBase = path.join(path.dirname(trainDir), 'collection'); // 自动生成collection路径\
+const trainDir = 'D:/image-classification/data/family';
+const collectionBase = path.join(path.dirname(trainDir), 'familyCollection'); // 自动生成collection路径\
 //const ACTIVE = 'Fungi'
 //const outputFile = `${ACTIVE}_stat.csv`
 const outputFile = `all_stat.csv`
@@ -71,7 +71,7 @@ try {
 //    if(className !== ACTIVE) {
 //        continue
 //    }
-    if(['Insecta', 'Fungi'].includes(className)) {
+    if(!['Actinopterygii'].includes(className)) {
         continue
     }
     const classPath = path.join(trainDir, className);

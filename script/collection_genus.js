@@ -9,8 +9,8 @@ const path = require('path');
 const csv = require('csv-parser');
 
 // 配置路径
-const BASE_DIR = 'D:\\image-classification\\data\\collection';
-const CSV_PATH = path.join(__dirname, 'species_with_genus4.csv');
+const BASE_DIR = 'D:\\image-classification\\data\\genusCollection';
+const CSV_PATH = path.join(__dirname, 'species_with_family.csv');
 
 // 存储种属映射关系
 const speciesGenusMap = new Map();
