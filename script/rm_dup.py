@@ -289,8 +289,9 @@ def process_species_directory(species_dir, species_id):
                 except Exception as e:
                     print(f"移动随机图片 {path} 失败: {e}")
             print(f"随机移动 {len(to_delete_random)} 张")
-    print(f"总共移动 {len(to_delete)} + {len(to_delete_blur)} + {len(to_delete_random)} 张，剩余 {len(sorted_paths) - len(to_delete) - len(to_delete_blur) - len(to_delete_random)} 张")
-    return len(to_delete) + len(to_delete_blur) + len(to_delete_random)
+    total_moved = len(to_delete) + len(to_delete_blur) + len(to_delete_random)
+    print(f"总共移动 {total_moved} 张，剩余 {len(sorted_paths) - total_moved} 张")
+    return total_moved
 
 # 79,961
 def main():
