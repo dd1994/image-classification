@@ -27,8 +27,10 @@ from aim.v2.utils import load_pretrained
 from aim.v1.torch.data import val_transforms
 import cv2  # 需要安装 opencv-python 包
 import random
+import shutil
 # 配置参数
 BASE_DIR = r"D:\image-classification\data\dup_test"
+TRASH_DIR = r"D:\image-classification\data\trash"
 ACTIVE = ''
 
 # 不同类群的配置参数
@@ -113,6 +115,16 @@ def calculate_blur_score(image_path):
     except Exception as e:
         print(f"计算模糊度失败 {image_path}: {e}")
         return float('inf')
+
+def move_to_trash(file_path):
+    """将文件移动到 TRASH_DIR 目录，保持相同的目录结构"""
+    relative_path = os.path.relpath(file_path, BASE_DIR)
+    dest_path = os.path.join(TRASH_DIR, relative_path)
+    dest_dir = os.path.dirname(dest_path)
+    if not os.path.exists(dest_dir):
+        os.makedirs(dest_dir)
+    shutil.move(file_path, dest_path)
+    return dest_path
 
 def process_species_directory(species_dir, species_id):
     # 获取所有图片并按修改时间排序
@@ -222,18 +234,20 @@ def process_species_directory(species_dir, species_id):
             if j not in to_delete:
                 to_delete.add(j)
 
-    # 执行删除操作
-    deleted_count = 0
+    # 执行移动操作
     for idx in sorted(to_delete, reverse=True):
         try:
-            os.remove(valid_paths[idx])
-            deleted_count += 1
+            move_to_trash(valid_paths[idx])
         except Exception as e:
-            print(f"删除 {valid_paths[idx]} 失败: {e}")
+            print(f"移动 {valid_paths[idx]} 失败: {e}")
     # return
 
     # 二次处理：模糊度去重
     remaining_paths = [p for i, p in enumerate(valid_paths) if i not in to_delete]
+    to_delete_blur_count = 0
+    to_delete_blur = []
+    to_delete_random = []
+    moved_count = len(to_delete)
     if len(remaining_paths) > current_max:
         print(f"相似度去重删除 {len(to_delete)} 张")
         
@@ -246,14 +260,13 @@ def process_species_directory(species_dir, species_id):
         else:
             to_delete_blur_count = 0  # 不允许删除
         
-        # 执行删除
+        # 执行移动
         to_delete_blur = remaining_paths[:to_delete_blur_count]
         for path in to_delete_blur:
             try:
-                os.remove(path)
-                deleted_count += 1
+                move_to_trash(path)
             except Exception as e:
-                print(f"删除模糊图片 {path} 失败: {e}")
+                print(f"移动模糊图片 {path} 失败: {e}")
         print(f"模糊度筛选删除 {len(to_delete_blur)} 张")
         
         # 更新剩余路径
@@ -266,19 +279,18 @@ def process_species_directory(species_dir, species_id):
             # 随机打乱列表
             random.shuffle(remaining_after_blur)
             
-            # 保留前 current_max 张，删除多余的
+            # 保留前 current_max 张，移动多余的
             to_delete_random = remaining_after_blur[current_max:]
-            
-            # 执行删除
+
+            # 执行移动
             for path in to_delete_random:
                 try:
-                    os.remove(path)
-                    deleted_count += 1
+                    move_to_trash(path)
                 except Exception as e:
-                    print(f"删除随机图片 {path} 失败: {e}")
-            print(f"随机删除 {len(to_delete_random)} 张")
-    print(f"总共删除{deleted_count} 张，剩余 {len(sorted_paths) - deleted_count} 张")
-    return deleted_count
+                    print(f"移动随机图片 {path} 失败: {e}")
+            print(f"随机移动 {len(to_delete_random)} 张")
+    print(f"总共移动 {len(to_delete)} + {len(to_delete_blur)} + {len(to_delete_random)} 张，剩余 {len(sorted_paths) - len(to_delete) - len(to_delete_blur) - len(to_delete_random)} 张")
+    return len(to_delete) + len(to_delete_blur) + len(to_delete_random)
 
 # 79,961
 def main():
