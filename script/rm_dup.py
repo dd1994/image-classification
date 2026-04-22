@@ -33,9 +33,9 @@ ACTIVE = ''
 
 # 不同类群的配置参数
 DEFAULT_CONFIG = {
-    'similarity_threshold': 0.584,
+    'similarity_threshold': 0.6,
     'similarity_threshold_plus': 0.64, # 比如 700 张图片，只能删除高度相似的少数图片，所以这个相似度要设置得高
-    'similarity_threshold_plus2': 0.592,
+    'similarity_threshold_plus2': 0.62,
     'max_img_count': 600,
     'overflow_img_count': 850,
     'white_list_max_img_count': 1000,
@@ -143,13 +143,14 @@ def process_species_directory(species_dir, species_id):
         return 0  # 直接跳过处理
 
     print(f"\n该物种总共有 {len(sorted_paths)} 张图片")
-    print(f"使用的相似度阈值: {current_threshold:.4f} (基础: {similarity_threshold}, +100: {similarity_threshold_plus}, +200: {similarity_threshold_plus2})")
 
     if len(sorted_paths) <= (current_max + 200):
         current_threshold = similarity_threshold_plus2
 
     if len(sorted_paths) <= (current_max + 100):
         current_threshold = similarity_threshold_plus
+
+    print(f"使用的相似度阈值: {current_threshold:.4f} (基础: {similarity_threshold}, +100: {similarity_threshold_plus}, +200: {similarity_threshold_plus2})")
     
     # 修改特征提取部分为批处理
     features = []
@@ -282,6 +283,7 @@ def process_species_directory(species_dir, species_id):
 # 79,961
 def main():
     # 遍历所有类别
+    all_species = []
     for class_name in os.listdir(BASE_DIR):
         if ACTIVE and class_name != ACTIVE:
             continue
@@ -289,21 +291,15 @@ def main():
         if not os.path.isdir(class_dir):
             continue
 
-        # 收集当前类群的所有物种目录
-        current_class_species = []
         for species_id in os.listdir(class_dir):
             species_dir = os.path.join(class_dir, species_id)
             if os.path.isdir(species_dir):
-                current_class_species.append((species_id, species_dir))
+                all_species.append((class_name, species_id, species_dir))
 
-        # 使用当前类群的进度条
-        with tqdm(current_class_species, desc=f"处理 {class_name}", unit="物种") as class_pbar:
-            for species_id, species_dir in class_pbar:
-                class_pbar.set_postfix_str(species_id)
-                deleted = process_species_directory(species_dir, species_id)
-                class_pbar.write(f"\n{class_name}/{species_id}处理完成")
-                # if deleted > 0:
-                #     class_pbar.write(f"{class_name}/{species_id} 总共删除 {deleted} 张")
+    with tqdm(all_species, desc="处理进度", unit="物种") as pbar:
+        for class_name, species_id, species_dir in pbar:
+            pbar.set_postfix_str(f"{class_name}/{species_id}")
+            process_species_directory(species_dir, species_id)
 
 
 if __name__ == "__main__":
