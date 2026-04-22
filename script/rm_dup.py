@@ -27,20 +27,23 @@ from aim.v2.utils import load_pretrained
 from aim.v1.torch.data import val_transforms
 import cv2  # 需要安装 opencv-python 包
 import random
-
 # 配置参数
-BASE_DIR = r"D:\image-classification\data\temp_data"
-ACTIVE = 'Amphibia'
+BASE_DIR = r"D:\image-classification\data\dup_test"
+ACTIVE = ''
 
 # 不同类群的配置参数
+DEFAULT_CONFIG = {
+    'similarity_threshold': 0.584,
+    'similarity_threshold_plus': 0.592,
+    'similarity_threshold_plus2': 0.64,
+    'max_img_count': 600,
+    'overflow_img_count': 850,
+    'white_list_max_img_count': 1000,
+    'white_list': []
+}
+
 CLASS_CONFIG = {
     'Amphibia': {
-        'similarity_threshold': 0.584,
-        'similarity_threshold_plus': 0.592,
-        'similarity_threshold_plus2': 0.64,
-        'max_img_count': 600,
-        'overflow_img_count': 894,
-        'white_list_max_img_count': 1000,
         'white_list': [
             '66330',
             '134932',
@@ -49,31 +52,9 @@ CLASS_CONFIG = {
             '134709'
         ]
     },
-    'Insecta': {
-        'similarity_threshold': 0.584,
-        'similarity_threshold_plus': 0.592,
-        'similarity_threshold_plus2': 0.64,
-        'max_img_count': 600,
-        'overflow_img_count': 850,
-        'white_list_max_img_count': 1000,
-        'white_list': []
-    },
-    'Plantae':  {
-        'similarity_threshold': 0.584,
-        'similarity_threshold_plus': 0.592,
-        'similarity_threshold_plus2': 0.64,
-        'max_img_count': 600,
-        'overflow_img_count': 850,
-        'white_list_max_img_count': 1000,
-        'white_list': []
-    },
+    'Insecta': {},
+    'Plantae': {},
     'Reptilia': {
-        'similarity_threshold': 0.586,
-        'similarity_threshold_plus': 0.592,
-        'similarity_threshold_plus2': 0.64,
-        'max_img_count': 600,
-        'overflow_img_count': 850,
-        'white_list_max_img_count': 1000,
         'white_list': [
             '539936',
             '30282',
@@ -96,24 +77,16 @@ CLASS_CONFIG = {
             '1337912'
         ]
     },
-    'Arachnida':  {
-        'similarity_threshold': 0.584,
-        'similarity_threshold_plus': 0.592,
-        'similarity_threshold_plus2': 0.64,
-        'max_img_count': 600,
-        'overflow_img_count': 850,
-        'white_list_max_img_count': 1000,
-        'white_list': []
-    },
+    'Arachnida': {},
 }
 
 NEIGHBOR_RANGE = 100  # 前后检查范围
-SUPPORTED_EXTENSIONS = ('.png', '.jpg', '.jpeg')
+SUPPORTED_EXTENSIONS = ('.png', '.jpg', '.jpeg', 'webp')
 
 batch_size = 380  # 根据GPU显存调整
 
 # 获取当前类群的配置
-current_config = CLASS_CONFIG.get(ACTIVE, CLASS_CONFIG['Amphibia'])
+current_config = {**DEFAULT_CONFIG, **CLASS_CONFIG.get(ACTIVE, {})} if ACTIVE in CLASS_CONFIG else DEFAULT_CONFIG
 similarity_threshold = current_config['similarity_threshold']
 similarity_threshold_plus = current_config['similarity_threshold_plus']
 similarity_threshold_plus2 = current_config['similarity_threshold_plus2']
@@ -172,10 +145,10 @@ def process_species_directory(species_dir, species_id):
     print(f"\n该物种总共有 {len(sorted_paths)} 张图片")
 
     if len(sorted_paths) <= (current_max + 200):
-        current_threshold = similarity_threshold_plus
+        current_threshold = similarity_threshold_plus2
 
     if len(sorted_paths) <= (current_max + 100):
-        current_threshold = similarity_threshold_plus2
+        current_threshold = similarity_threshold_plus
     # elif len(sorted_paths) > OVERFLOW_IMG_COUNT:
     #     # 因为限制了最多下载 900 张图片，对于达到这个最大值的物种来说，是最常见的物种，为了增加最常见物种的识别率，给它增加 100 张训练图片（用 895 是因为偶尔出现图片下载错误，达不到 900 张）
     #     current_max += 100
@@ -249,10 +222,7 @@ def process_species_directory(species_dir, species_id):
         for idx in over_threshold:
             j = start + idx.item()
             if j not in to_delete:
-                # print(f"\n相似图片对 (相似度 {similarities[idx].item():.4f}):")
-                # print(f"基准图片: {valid_paths[i]}")
-                # print(f"重复图片: {valid_paths[j]}")
-                # print("-" * 80)
+                print(f"[去重] 基准: {valid_paths[i]} | 重复: {valid_paths[j]} | 相似度: {similarities[idx].item():.4f} | 阈值: {current_threshold:.4f}")
                 to_delete.add(j)
 
     # 执行删除操作
@@ -317,7 +287,7 @@ def process_species_directory(species_dir, species_id):
 def main():
     # 遍历所有类别
     for class_name in os.listdir(BASE_DIR):
-        if class_name != ACTIVE:
+        if ACTIVE and class_name != ACTIVE:
             continue
         class_dir = os.path.join(BASE_DIR, class_name)
         if not os.path.isdir(class_dir):
