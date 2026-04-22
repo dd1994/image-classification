@@ -29,7 +29,7 @@ import cv2  # 需要安装 opencv-python 包
 import random
 import shutil
 # 配置参数
-BASE_DIR = r"D:\image-classification\data\dup_test"
+BASE_DIR = r"D:\image-classification\data\train-mini"
 TRASH_DIR = r"D:\image-classification\data\trash"
 ACTIVE = ''
 
@@ -288,9 +288,9 @@ def process_species_directory(species_dir, species_id):
                     move_to_trash(path)
                 except Exception as e:
                     print(f"移动随机图片 {path} 失败: {e}")
-            print(f"随机移动 {len(to_delete_random)} 张")
+            print(f"随机删除 {len(to_delete_random)} 张")
     total_moved = len(to_delete) + len(to_delete_blur) + len(to_delete_random)
-    print(f"总共移动 {total_moved} 张，剩余 {len(sorted_paths) - total_moved} 张")
+    print(f"总共删除 {total_moved} 张，剩余 {len(sorted_paths) - total_moved} 张")
     return total_moved
 
 # 79,961
