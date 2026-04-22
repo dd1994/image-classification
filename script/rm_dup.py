@@ -34,8 +34,8 @@ ACTIVE = ''
 # 不同类群的配置参数
 DEFAULT_CONFIG = {
     'similarity_threshold': 0.584,
-    'similarity_threshold_plus': 0.592,
-    'similarity_threshold_plus2': 0.64,
+    'similarity_threshold_plus': 0.64, # 比如 700 张图片，只能删除高度相似的少数图片，所以这个相似度要设置得高
+    'similarity_threshold_plus2': 0.592,
     'max_img_count': 600,
     'overflow_img_count': 850,
     'white_list_max_img_count': 1000,
@@ -143,16 +143,13 @@ def process_species_directory(species_dir, species_id):
         return 0  # 直接跳过处理
 
     print(f"\n该物种总共有 {len(sorted_paths)} 张图片")
+    print(f"使用的相似度阈值: {current_threshold:.4f} (基础: {similarity_threshold}, +100: {similarity_threshold_plus}, +200: {similarity_threshold_plus2})")
 
     if len(sorted_paths) <= (current_max + 200):
         current_threshold = similarity_threshold_plus2
 
     if len(sorted_paths) <= (current_max + 100):
         current_threshold = similarity_threshold_plus
-    # elif len(sorted_paths) > OVERFLOW_IMG_COUNT:
-    #     # 因为限制了最多下载 900 张图片，对于达到这个最大值的物种来说，是最常见的物种，为了增加最常见物种的识别率，给它增加 100 张训练图片（用 895 是因为偶尔出现图片下载错误，达不到 900 张）
-    #     current_max += 100
-
     
     # 修改特征提取部分为批处理
     features = []
@@ -222,7 +219,6 @@ def process_species_directory(species_dir, species_id):
         for idx in over_threshold:
             j = start + idx.item()
             if j not in to_delete:
-                print(f"[去重] 基准: {valid_paths[i]} | 重复: {valid_paths[j]} | 相似度: {similarities[idx].item():.4f} | 阈值: {current_threshold:.4f}")
                 to_delete.add(j)
 
     # 执行删除操作
