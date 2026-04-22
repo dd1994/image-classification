@@ -126,8 +126,13 @@ def move_to_trash(file_path):
     shutil.move(file_path, dest_path)
     return dest_path
 
-def process_species_directory(species_dir, species_id):
-    # 获取所有图片并按修改时间排序
+def process_species_directory(species_dir, species_id, class_name):
+    if class_name.endswith('Genus'):
+        current_max = 1000
+    elif class_name.endswith('Family'):
+        current_max = 6000
+    else:
+        current_max = MAX_IMG_COUNT
     image_paths = []
     for fname in os.listdir(species_dir):
         if fname.lower().endswith(SUPPORTED_EXTENSIONS):
@@ -141,8 +146,7 @@ def process_species_directory(species_dir, species_id):
     image_paths.sort(key=lambda x: x[1])
     sorted_paths = [x[0] for x in image_paths]
     
-    # 新增动态调整逻辑
-    current_max = MAX_IMG_COUNT
+    # 动态调整阈值
     current_threshold = similarity_threshold
     
     # 检查是否在白名单中，如果是则使用白名单最大图片数
@@ -312,7 +316,7 @@ def main():
     with tqdm(all_species, desc="处理进度", unit="物种") as pbar:
         for class_name, species_id, species_dir in pbar:
             pbar.set_postfix_str(f"{class_name}/{species_id}")
-            process_species_directory(species_dir, species_id)
+            process_species_directory(species_dir, species_id, class_name)
 
 
 if __name__ == "__main__":
