@@ -51,7 +51,7 @@ CLASS_CONFIG = {
     },
     'Insecta': {
         'similarity_threshold': 0.584,
-        'similarity_threshold_plus': 0.594,
+        'similarity_threshold_plus': 0.592,
         'similarity_threshold_plus2': 0.64,
         'max_img_count': 600,
         'overflow_img_count': 850,
@@ -60,7 +60,7 @@ CLASS_CONFIG = {
     },
     'Plantae':  {
         'similarity_threshold': 0.584,
-        'similarity_threshold_plus': 0.594,
+        'similarity_threshold_plus': 0.592,
         'similarity_threshold_plus2': 0.64,
         'max_img_count': 600,
         'overflow_img_count': 850,
@@ -69,8 +69,8 @@ CLASS_CONFIG = {
     },
     'Reptilia': {
         'similarity_threshold': 0.586,
-        'similarity_threshold_plus': 0.594,
-        'similarity_threshold_plus2': 0.66,
+        'similarity_threshold_plus': 0.592,
+        'similarity_threshold_plus2': 0.64,
         'max_img_count': 600,
         'overflow_img_count': 850,
         'white_list_max_img_count': 1000,
@@ -98,7 +98,7 @@ CLASS_CONFIG = {
     },
     'Arachnida':  {
         'similarity_threshold': 0.584,
-        'similarity_threshold_plus': 0.594,
+        'similarity_threshold_plus': 0.592,
         'similarity_threshold_plus2': 0.64,
         'max_img_count': 600,
         'overflow_img_count': 850,
