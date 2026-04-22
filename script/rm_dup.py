@@ -80,7 +80,7 @@ CLASS_CONFIG = {
     'Arachnida': {},
 }
 
-NEIGHBOR_RANGE = 100  # 前后检查范围
+NEIGHBOR_RANGE = 70  # 前后检查范围
 SUPPORTED_EXTENSIONS = ('.png', '.jpg', '.jpeg', 'webp')
 
 batch_size = 380  # 根据GPU显存调整
