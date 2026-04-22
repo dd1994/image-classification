@@ -1,8 +1,8 @@
 const fs = require('fs');
 const path = require('path');
 const { imgExt } = require('./const')
-const trainDir = 'D:/image-classification/data/family';
-const outputFile = 'train_stat_family.csv';
+const trainDir = 'D:/image-classification/data/train';
+const outputFile = 'train_stat_all.csv';
 const ACTIVE = ['Actinopterygii']
 console.log(imgExt)
 // 支持的图片扩展名集合

@@ -37,7 +37,7 @@ CLASS_CONFIG = {
     'Amphibia': {
         'similarity_threshold': 0.584,
         'similarity_threshold_plus': 0.592,
-        'similarity_threshold_plus2': 0.65,
+        'similarity_threshold_plus2': 0.64,
         'max_img_count': 600,
         'overflow_img_count': 894,
         'white_list_max_img_count': 1000,
@@ -50,30 +50,22 @@ CLASS_CONFIG = {
         ]
     },
     'Insecta': {
-        'similarity_threshold': 0.58,
-        'similarity_threshold_plus': 0.59,
+        'similarity_threshold': 0.584,
+        'similarity_threshold_plus': 0.594,
         'similarity_threshold_plus2': 0.64,
-        'max_img_count': 500,
-        'overflow_img_count': 800,
-        'white_list_max_img_count': 800,
-        'white_list': [
-            '123456',  # 示例ID，需要替换为实际ID
-            '789012',
-            '345678'
-        ]
+        'max_img_count': 600,
+        'overflow_img_count': 850,
+        'white_list_max_img_count': 1000,
+        'white_list': []
     },
-    'Plantae': {
-        'similarity_threshold': 0.564,
-        'similarity_threshold_plus': 0.572,
-        'similarity_threshold_plus2': 0.65,
-        'max_img_count': 400,
-        'overflow_img_count': 990,
-        'white_list_max_img_count': 1200,
-        'white_list': [
-            '111111',  # 示例ID，需要替换为实际ID
-            '222222',
-            '333333'
-        ]
+    'Plantae':  {
+        'similarity_threshold': 0.584,
+        'similarity_threshold_plus': 0.594,
+        'similarity_threshold_plus2': 0.64,
+        'max_img_count': 600,
+        'overflow_img_count': 850,
+        'white_list_max_img_count': 1000,
+        'white_list': []
     },
     'Reptilia': {
         'similarity_threshold': 0.586,
@@ -104,19 +96,15 @@ CLASS_CONFIG = {
             '1337912'
         ]
     },
-    'Arachnida': {
-        'similarity_threshold': 0.582,
-        'similarity_threshold_plus': 0.59,
-        'similarity_threshold_plus2': 0.648,
-        'max_img_count': 480,
-        'overflow_img_count': 780,
-        'white_list_max_img_count': 750,
-        'white_list': [
-            '777777',  # 示例ID，需要替换为实际ID
-            '888888',
-            '999999'
-        ]
-    }
+    'Arachnida':  {
+        'similarity_threshold': 0.584,
+        'similarity_threshold_plus': 0.594,
+        'similarity_threshold_plus2': 0.64,
+        'max_img_count': 600,
+        'overflow_img_count': 850,
+        'white_list_max_img_count': 1000,
+        'white_list': []
+    },
 }
 
 NEIGHBOR_RANGE = 100  # 前后检查范围
