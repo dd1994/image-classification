@@ -104,10 +104,10 @@ async function main() {
             const sorted_train_files = await sortFilesByMtime(species_train_path, train_imageFiles);
             const train_count = sorted_train_files.length;
 
-            // 计算验证集应有图片数量，取 10%，但是至少 10 张，至多 100 张
+            // 计算验证集应有图片数量，取 5%，但是至少 5 张，至多 50 张
             let desired_valid_count = Math.floor(train_count * 0.05);
             desired_valid_count = Math.max(desired_valid_count, 5);
-            desired_valid_count = Math.min(desired_valid_count, 80);
+            desired_valid_count = Math.min(desired_valid_count, 50);
 
             // 获取验证集目录中已有的图片文件名，忽略以点开头的文件
             const existing_valid_files = await getExistingValidFiles(species_valid_path);
