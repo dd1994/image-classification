@@ -18,7 +18,7 @@
         {
             "class_path": "pytorch_lightning.callbacks.EarlyStopping",
             "init_args": {
-                "monitor": "val/acc_top1",
+                "monitor": "val/acc_top3",
                 "patience": 7,
                 "mode": "max"
             }
@@ -26,8 +26,8 @@
         {
             "class_path": "pytorch_lightning.callbacks.ModelCheckpoint",
             "init_args": {
-                "monitor": "val/acc_top1",
-                "filename": "swinv2-all-{epoch:02d}-{val/acc_top1:.4f}",
+                "monitor": "val/acc_top3",
+                "filename": "swinv2-all-{epoch:02d}-{val/acc_top3:.4f}",
                 "save_top_k": 3,
                 "save_last": true,
                 "every_n_train_steps": 6000,

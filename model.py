@@ -64,13 +64,12 @@ class BaseModel(pl.LightningModule):
         _, preds = torch.max(outputs, 1)
         top1_acc = (preds == y).float().mean()
 
-        # 计算 Top-3 准确率
-        top5_preds = torch.topk(outputs, k=5, dim=1).indices
-        top5_acc = (top5_preds == y.view(-1, 1)).sum().float() / len(y)
+        top3_preds = torch.topk(outputs, k=3, dim=1).indices
+        top3_acc = (top3_preds == y.view(-1, 1)).sum().float() / len(y)
 
         self.log('val/loss', loss, prog_bar=True)
         self.log('val/acc_top1', top1_acc, prog_bar=True, on_step=False, on_epoch=True)
-        self.log('val/acc_top5', top5_acc, prog_bar=True, on_step=False, on_epoch=True)
+        self.log('val/acc_top3', top3_acc, prog_bar=True, on_step=False, on_epoch=True)
 
         return loss
 
@@ -81,13 +80,12 @@ class BaseModel(pl.LightningModule):
         _, preds = torch.max(outputs, 1)
         top1_acc = (preds == y).float().mean()
 
-        # 计算 Top-3 准确率
-        top5_preds = torch.topk(outputs, k=5, dim=1).indices
-        top5_acc = (top5_preds == y.view(-1, 1)).sum().float() / len(y)
+        top3_preds = torch.topk(outputs, k=3, dim=1).indices
+        top3_acc = (top3_preds == y.view(-1, 1)).sum().float() / len(y)
 
         self.log('test/loss', loss, prog_bar=True)
         self.log('test/acc_top1', top1_acc, prog_bar=True, on_step=False, on_epoch=True)
-        self.log('test/acc_top5', top5_acc, prog_bar=True, on_step=False, on_epoch=True)
+        self.log('test/acc_top3', top3_acc, prog_bar=True, on_step=False, on_epoch=True)
 
         return loss
 
