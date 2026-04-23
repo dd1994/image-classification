@@ -108,6 +108,20 @@ python train.py fit --config ./config/<size>/<model>.json
 - Project: "identify"
 - Logs saved to: wandb_logs/identify/<run_id>/checkpoints/
 
+## Wandb Sync (Offline Runs)
+离线训练日志同步到 wandb 服务器：
+
+```bash
+# 查看所有离线运行
+cd wandb_logs; python -m wandb sync --show 20 --include-offline --no-include-online
+
+# 同步最新的离线运行（79gm4hjy，你需要根据实际来找出最新的 run_id ）
+cd wandb_logs; python -m wandb sync wandb\offline-run-20260423_200036-79gm4hjy
+
+# 同步所有离线运行
+cd wandb_logs; python -m wandb sync --sync-all
+```
+
 ## Callbacks (Standard)
 - EarlyStopping: monitor=val/acc_top1, patience=7, mode=max
 - ModelCheckpoint: monitor=val/acc_top1, save_top_k=3, save_last=true
@@ -125,3 +139,6 @@ python train.py fit --config ./config/<size>/<model>.json
 ## CUDA Memory
 - PYTCH_CUDA_ALLOC_CONF=expandable_segments:True for better memory management
 - Use torch.cuda.empty_cache() before loading models for prediction
+
+## 消融实验
+- 依次在 tiny/mini/small 下进行试验。
