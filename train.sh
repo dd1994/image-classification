@@ -1,1 +1,1 @@
-PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True /c/ProgramData/anaconda3/envs/myenv/python.exe ./train.py fit --config ./config/large/swinv2_all.json --ckpt_path ./wandb_logs/identify/bt5plmll/checkpoints/swinv2-all-epoch=13-val/acc_top1=0.7907.ckpt
+PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True /c/ProgramData/anaconda3/envs/myenv/python.exe ./train.py fit --config ./config/tiny/swinv2_tiny.json ## --ckpt_path ./wandb_logs/identify/bt5plmll/checkpoints/swinv2-all-epoch=13-val/acc_top1=0.7907.ckpt
