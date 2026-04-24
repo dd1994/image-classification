@@ -115,7 +115,7 @@ python train.py fit --config ./config/<size>/<model>.json
 # 查看所有离线运行
 cd wandb_logs; python -m wandb sync --show 20 --include-offline --no-include-online
 
-# 同步最新的离线运行（79gm4hjy，你需要根据实际来找出最新的 run_id ）
+# 同步最新的离线运行（79gm4hjy，你需要根据时间戳来找出最新的 run_id ）
 cd wandb_logs; python -m wandb sync wandb\offline-run-20260423_200036-79gm4hjy
 
 # 同步所有离线运行
@@ -141,4 +141,7 @@ cd wandb_logs; python -m wandb sync --sync-all
 - Use torch.cuda.empty_cache() before loading models for prediction
 
 ## 消融实验
-- 依次在 tiny/mini/small 下进行试验。
+- 模型使用 swinV2Model 即可。
+- 依次使用 data 目录下的 train-tiny/train-mini/train-small 数据集进行试验，参考 config/tiny/swinv2_tiny.json 。
+- 使用 train.sh 里的命令来运行实验，先尝试提升 train-tiny 的识别率，每个 epoch 运行可能要 20 分钟。你要监控它的 top1 和 top3 成功率来决定实验结果。
+- 每次进行实验时，要使用控制变量法。要列一个计划，写清楚理由。
