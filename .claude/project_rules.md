@@ -4,7 +4,8 @@
 python: C:\ProgramData\anaconda3\envs\myenv\python.exe
 
 ## Project Overview
-This is an image classification project using PyTorch Lightning with various vision transformers (SwinV2, ConvNextV2, DinoV2, AIMv2, Hiera, EfficientNetV2).
+This is an image classification project using PyTorch Lightning with SwinV2 vision transformers.
+支持识别约 4.4 万 种国内动植物识别，差不多 800 万张训练图片，每个类最多 1000 张，最少 50 张训练图片。
 
 ## Key Dependencies
 - pytorch_lightning
@@ -13,6 +14,8 @@ This is an image classification project using PyTorch Lightning with various vis
 - transformers (for ConvNextV2)
 - aim (for AIMv2)
 - torch
+
+
 
 ## Project Structure
 ```
