@@ -3,7 +3,14 @@
     "allow": [
       "Bash(python -m wandb sync --show 20 --include-offline --no-include-online)",
       "Bash(python -m wandb sync wandb/offline-run-20260423_200036-79gm4hjy)",
-      "Bash(PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True /c/ProgramData/anaconda3/envs/myenv/python.exe ./train.py fit --config ./config/tiny/swinv2_tiny.json)"
+      "Bash(PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True /c/ProgramData/anaconda3/envs/myenv/python.exe ./train.py fit --config ./config/tiny/swinv2_tiny.json)",
+      "Bash(python -m wandb sync --show 10 --include-offline --no-include-online)",
+      "Bash(python -m wandb sync --show 5 --include-offline --no-include-online)",
+      "Bash(python -m wandb sync --show 6 --include-offline --no-include-online)",
+      "Bash(python -m wandb sync wandb/offline-run-20260425_075353-iwlmwnjz)",
+      "Bash(git add *)",
+      "Bash(git commit -m ' *)",
+      "Bash(git push *)"
     ]
   }
 }
