@@ -76,7 +76,6 @@ class SpecialCateData(INatBaseDataModule):
             id_map_file_path=self.valid_id_map_file_path
         )
 
-                                                                                 [train_size, val_size])
         self.train_dataset = train_dataset
         self.val_dataset = valid_dataset
 

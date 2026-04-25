@@ -26,8 +26,8 @@ class BaseModel(pl.LightningModule):
     def training_step(self, batch, batch_idx):
         images, labels = batch
         
-        # 最后30% epoch降低数据增强触发概率
-        threshold = int(self.trainer.max_epochs * 0.2)
+        # 最后 30% epoch降低数据增强触发概率
+        threshold = int(self.trainer.max_epochs * 0.3)
         if self.current_epoch >= self.trainer.max_epochs - threshold:
             mix_prob = 0.2
         else:
