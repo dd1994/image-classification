@@ -2,7 +2,7 @@
   "model": {
       "class_path": "SwinV2Model",
       "init_args": {
-          "num_classes": 168,
+          "num_classes": 352,
           "learning_rate": 1e-4,
           "input_size": 512,
           "t_max": 17
@@ -45,10 +45,10 @@
   "data":  {
     "class_path": "SpecialCateData",
     "init_args": {
-      "data_dir": "./data/train-tiny",
-      "valid_dir": "./data/valid-tiny",
-      "id_map_file_path": "tiny_map.csv",
-      "valid_id_map_file_path": "valid_tiny_map.csv",
+      "data_dir": "./data/train-mini",
+      "valid_dir": "./data/valid-mini",
+      "id_map_file_path": "mini_map.csv",
+      "valid_id_map_file_path": "valid_mini_map.csv",
       "batch_size": 9,
       "num_workers": 5,
       "input_size": 512

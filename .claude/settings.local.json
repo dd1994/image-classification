@@ -24,7 +24,9 @@
       "Bash(wandb sync *)",
       "Bash(python -m wandb sync --project identify run-8fb63c6m.wandb)",
       "Bash(python -m wandb sync --project identify run-gtnq16ud.wandb)",
-      "Bash(python -m wandb sync --project identify run-b9vtw1ti.wandb)"
+      "Bash(python -m wandb sync --project identify run-b9vtw1ti.wandb)",
+      "Bash(dir /b *.sh)",
+      "Bash(dir train.py)"
     ]
   }
 }

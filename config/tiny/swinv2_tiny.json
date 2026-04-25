@@ -47,8 +47,8 @@
     "init_args": {
       "data_dir": "./data/train-tiny",
       "valid_dir": "./data/valid-tiny",
-      "id_map_file_path": "all_map.csv",
-      "valid_id_map_file_path": "valid_all_map.csv",
+      "id_map_file_path": "tiny_map.csv",
+      "valid_id_map_file_path": "valid_tiny_map.csv",
       "batch_size": 15,
       "num_workers": 5,
       "input_size": 448
