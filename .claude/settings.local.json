@@ -26,7 +26,11 @@
       "Bash(python -m wandb sync --project identify run-gtnq16ud.wandb)",
       "Bash(python -m wandb sync --project identify run-b9vtw1ti.wandb)",
       "Bash(dir /b *.sh)",
-      "Bash(dir train.py)"
+      "Bash(dir train.py)",
+      "Bash(wandb --version)",
+      "Bash(python -c \"import wandb; print\\(wandb.__version__\\)\")",
+      "Bash(python -c ' *)",
+      "Bash(python -m wandb sync \"wandb_logs/wandb/offline-run-20260426_063113-rkhsx1ps\")"
     ]
   }
 }
