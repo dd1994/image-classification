@@ -27,11 +27,7 @@
 | **类别不平衡** | 当前 `class_counts` 未传入分类器，可用 `WeightedRandomSampler` 或 `loss_weight` | +0.5~2% |
 | **SWA / 指数移动平均** | 添加 `StochasticWeightAveraging` 或 EMA | +0.3~0.8% |
 
----
 
-## 最值得尝试的 Top3
-
-2. **调整 `RandomErasing` 参数或替换增强策略** — 当前该增强形同虚设
 3. **处理类别不平衡** — 如果数据存在长尾分布，用 `WeightedRandomSampler` 或 loss weighting 可显著提升少数类的识别率
 
 
