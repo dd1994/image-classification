@@ -1,57 +1,57 @@
 {
-  "model": {
-      "class_path": "SwinV2Model",
-      "init_args": {
-          "num_classes": 168,
-          "learning_rate": 1e-4,
-          "input_size": 512,
-          "t_max": 17
-      }
-  },
-  "trainer": {
-      "max_epochs": 17,
-      "accelerator": "gpu",
-      "devices": 1,
-      "precision": "16-mixed",
-      "accumulate_grad_batches": 10,
-      "callbacks": [
-        {
-            "class_path": "pytorch_lightning.callbacks.EarlyStopping",
-            "init_args": {
-                "monitor": "val/acc_top1",
-                "patience": 7,
-                "mode": "max"
-            }
-        },
-        {
-            "class_path": "pytorch_lightning.callbacks.ModelCheckpoint",
-            "init_args": {
-                "monitor": "val/acc_top1",
-                "filename": "swinv2-all-{epoch:02d}-{val/acc_top1:.4f}",
-                "save_top_k": 3,
-                "save_last": true,
-                "every_n_train_steps": 6000,
-                "mode": "max"
-            }
-        },
-        {
-            "class_path": "pytorch_lightning.callbacks.LearningRateMonitor",
-            "init_args": {
-                "logging_interval": "step"
-            }
+    "model": {
+        "class_path": "SwinV2Model",
+        "init_args": {
+            "num_classes": 168,
+            "learning_rate": 1e-4,
+            "input_size": 512,
+            "t_max": 17
         }
-    ]
-  },
-  "data":  {
-    "class_path": "SpecialCateData",
-    "init_args": {
-      "data_dir": "./data/train-tiny",
-      "valid_dir": "./data/valid-tiny",
-      "id_map_file_path": "tiny_map.csv",
-      "valid_id_map_file_path": "valid_tiny_map.csv",
-      "batch_size": 9,
-      "num_workers": 5,
-      "input_size": 512
+    },
+    "trainer": {
+        "max_epochs": 17,
+        "accelerator": "gpu",
+        "devices": 1,
+        "precision": "16-mixed",
+        "accumulate_grad_batches": 10,
+        "callbacks": [
+            {
+                "class_path": "pytorch_lightning.callbacks.EarlyStopping",
+                "init_args": {
+                    "monitor": "val/acc_top1",
+                    "patience": 7,
+                    "mode": "max"
+                }
+            },
+            {
+                "class_path": "pytorch_lightning.callbacks.ModelCheckpoint",
+                "init_args": {
+                    "monitor": "val/acc_top1",
+                    "filename": "swinv2-all-{epoch:02d}-{val/acc_top1:.4f}",
+                    "save_top_k": 3,
+                    "save_last": true,
+                    "every_n_train_steps": 6000,
+                    "mode": "max"
+                }
+            },
+            {
+                "class_path": "pytorch_lightning.callbacks.LearningRateMonitor",
+                "init_args": {
+                    "logging_interval": "step"
+                }
+            }
+        ]
+    },
+    "data": {
+        "class_path": "SpecialCateData",
+        "init_args": {
+            "data_dir": "./data/train-tiny",
+            "valid_dir": "./data/valid-tiny",
+            "id_map_file_path": "tiny_map.csv",
+            "valid_id_map_file_path": "valid_tiny_map.csv",
+            "batch_size": 9,
+            "num_workers": 5,
+            "input_size": 512
+        }
     }
-  }
 }

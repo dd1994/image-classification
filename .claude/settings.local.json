@@ -30,7 +30,8 @@
       "Bash(wandb --version)",
       "Bash(python -c \"import wandb; print\\(wandb.__version__\\)\")",
       "Bash(python -c ' *)",
-      "Bash(python -m wandb sync \"wandb_logs/wandb/offline-run-20260426_063113-rkhsx1ps\")"
+      "Bash(python -m wandb sync \"wandb_logs/wandb/offline-run-20260426_063113-rkhsx1ps\")",
+      "Bash(python -m wandb sync wandb_logs/wandb/offline-run-20260426_225418-4eiw1s55)"
     ]
   }
 }
