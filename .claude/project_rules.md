@@ -1,50 +1,48 @@
-# Project Rules for image-classification
+# image-classification 项目规则
 
-## Python Interpreter
-python: C:\ProgramData\anaconda3\envs\myenv\python.exe
-
-## Project Overview
-This is an image classification project using PyTorch Lightning with SwinV2 vision transformers.
+## 项目概述
+这是一个使用 PyTorch Lightning 和 SwinV2 transformer(base 型号)的图像分类项目。
 支持识别约 4.4 万 种国内动植物识别，差不多 800 万张训练图片，每个类最多 1000 张，最少 50 张训练图片。
 
-## Key Dependencies
-- pytorch_lightning
-- timm (for SwinV2, Hiera, EfficientNetV2 models)
+## 关键依赖
+- torch && pytorch_lightning
+- timm（用于 SwinV2、Hiera、EfficientNetV2 模型）
 - torchvision
-- transformers (for ConvNextV2)
-- aim (for AIMv2)
-- torch
+- transformers（用于 ConvNextV2）
+- aim（用于 AIMv2）
+- 
 
+## Python 解释器
+python: C:\ProgramData\anaconda3\envs\myenv\python.exe
 
-
-## Project Structure
+## 项目结构
 ```
 image-classification/
-├── config/              # JSON configuration files for different models/datasets
-│   ├── large/           # Large model configs
-│   ├── medium/          # Medium model configs
-│   ├── small/           # Small model configs
-│   └── tiny/            # Tiny model configs
-├── data/                # Training and validation data
-├── dataSet/             # Custom dataset classes
+├── config/              # 不同模型/数据集的 JSON 配置文件
+│   ├── large/           # 大模型配置
+│   ├── medium/          # 中等模型配置
+│   ├── small/           # 小模型配置
+│   └── tiny/            # 微型模型配置
+├── data/                # 训练和验证数据
+├── dataSet/             # 自定义数据集类
 │   └── SpecialCateDataset.py
-├── script/              # Utility scripts for data processing
-├── trash/               # Deprecated/experimental code
-├── util/                # Utility modules (transforms, losses)
-├── train.py             # Main training entry point
-├── model.py             # Model definitions
-├── data_module.py       # DataModule definitions
-├── predict.py           # Prediction script
-└── train.sh             # Training shell script
+├── script/              # 数据处理工具脚本
+├── trash/               # 已废弃/实验性代码
+├── util/                # 工具模块（数据增强、损失函数）
+├── train.py             # 主训练入口
+├── model.py             # 模型定义
+├── data_module.py       # DataModule 定义
+├── predict.py           # 预测脚本
+└── train.sh             # 训练 shell 脚本
 ```
 
-## Configuration File Format
-JSON configs follow LightningCLI format with three main sections:
-- **model**: Model class and initialization arguments
-- **trainer**: Trainer configuration (epochs, accelerator, callbacks)
-- **data**: DataModule class and data paths
+## 配置文件格式
+JSON 配置文件遵循 LightningCLI 格式，包含三个主要部分：
+- **model**：模型类及初始化参数
+- **trainer**：训练器配置（epochs、accelerator、callbacks）
+- **data**：DataModule 类及数据路径
 
-Example config structure:
+配置示例：
 ```json
 {
   "model": {
@@ -66,85 +64,74 @@ Example config structure:
 }
 ```
 
-## Available Model Classes (in model.py)
-- **BaseModel**: Base class with training/validation/test steps, uses CrossEntropyLoss
-- **SwinV2Model**: SwinV2 with timm pretrained backbone (input_size: 448)
-- **SwinV2FixResModel**: SwinV2 variant with fixed resolution
-- **ConvNextV2Model**: Facebook ConvNextV2 (from transformers)
-- **DinoV2Model**: DINO V2 with frozen backbone (linear_head trainable)
-- **AIMv2Model**: AIMv2 with custom classifier head
-- **HieraModel**: Meta Hiera model (from timm)
-- **EfficientNetV2Model**: EfficientNetV2-L from timm
+## 可用的模型类（model.py 中）
+- **BaseModel**：基类，包含训练/验证/测试步骤，使用 CrossEntropyLoss
+- **SwinV2Model**：使用 timm 预训练主干的 SwinV2（input_size: 448）
+- **SwinV2FixResModel**：固定分辨率的 SwinV2 变体
+- **ConvNextV2Model**：Facebook ConvNextV2（来自 transformers）
+- **DinoV2Model**：冻结主干的 DINO V2（linear_head 可训练）
+- **AIMv2Model**：带自定义分类头的 AIMv2
+- **HieraModel**：Meta Hiera 模型（来自 timm）
+- **EfficientNetV2Model**：来自 timm 的 EfficientNetV2-L
 但是除了 SwinV2Model 其他都是测试用的
 
-## Available DataModule Classes (in data_module.py)
-- **INatBaseDataModule**: Base class with standard transforms (TrivialAugmentWide, RandomErasing, Normalize)
-- **SpecialCateData**: For custom category datasets with id_map_file_path
-- **INatDataModule2019**: iNaturalist 2019 dataset (train/val/test split 80/10/10)
-- **INatDataModule2021Mini**: iNaturalist 2021 mini dataset (separate train/valid dirs)
-目前只有 SpecialCateData 在用。
+## 可用的 DataModule 类（data_module.py 中）
+- **INatBaseDataModule**：基类，包含标准数据增强（TrivialAugmentWide、RandomErasing、Normalize）
+- **SpecialCateData**：目前在用的自定义分类数据集，支持 id_map_file_path
 
-## Data Directory Structure (SpecialCateData)
+
+## 数据目录结构（SpecialCateData）
 ```
 data_dir/
-├── class_dir/           # Top-level category (e.g., "arachnida")
-│   └── species_id/      # Species folder
-│       └── *.jpg        # Image files
+├── class_dir/           # 物种大类（如 Insecta/FungiArachnida）
+│   └── species_id/      # 物种文件夹
+│       └── *.jpg        # 图片文件
 ```
 
-## Standard Training Command
+## 标准训练命令
 ```bash
 python train.py fit --config ./config/<size>/<model>.json
 ```
 
-## Training Configuration Defaults
-- Optimizer: AdamW (lr=1e-4, weight_decay=2e-5)
-- Scheduler: CosineAnnealingLR with linear warmup (3 epochs)
-- Loss: CrossEntropyLoss
-- Mixed Precision: 16-mixed
-- Gradient Accumulation: 8 batches
-- Data Augmentation: CutMix/MixUp (80% probability), TrivialAugmentWide, RandomErasing
-- ImageNet normalization: mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]
+## 训练配置默认值
+- 优化器：AdamW（lr=1e-4，weight_decay=2e-5）
+- 学习率调度器：CosineAnnealingLR + 线性预热（3 个 epoch）
+- 损失函数：CrossEntropyLoss
+- 混合精度：16-mixed
+- 梯度累积：8 个批次
+- 数据增强：CutMix/MixUp（80% 概率）、TrivialAugmentWide、RandomErasing
+- ImageNet 归一化：mean=[0.485, 0.456, 0.406]，std=[0.229, 0.224, 0.225]
 
-## Logging
-- Logger: WandbLogger (offline mode)
-- Project: "identify"
-- Logs saved to: wandb_logs/identify/<run_id>/checkpoints/
+## 日志记录
+- 日志器：WandbLogger（离线模式）
+- 项目名称："identify"
+- 日志保存路径：wandb_logs/identify/<run_id>/checkpoints/
 
-## Wandb Sync (Offline Runs)
-离线训练日志同步到 wandb 服务器：
+## Wandb 同步（离线运行）
 
-```bash
-# 查看所有离线运行
-cd wandb_logs; python -m wandb sync --show 20 --include-offline --no-include-online
+运行 sync_wandb.sh 脚本进行同步
 
-# 同步最新的离线运行（79gm4hjy，你需要根据时间戳来找出最新的 run_id ）
-cd wandb_logs; python -m wandb sync wandb\offline-run-20260423_200036-79gm4hjy
 
-# 同步所有离线运行
-cd wandb_logs; python -m wandb sync --sync-all
-```
+## 回调函数（标准配置）
+- EarlyStopping：monitor=val/acc_top1，patience=7，mode=max
+- ModelCheckpoint：monitor=val/acc_top1，save_top_k=3，save_last=true
+- LearningRateMonitor：logging_interval=step
 
-## Callbacks (Standard)
-- EarlyStopping: monitor=val/acc_top1, patience=7, mode=max
-- ModelCheckpoint: monitor=val/acc_top1, save_top_k=3, save_last=true
-- LearningRateMonitor: logging_interval=step
+## 图像尺寸规范
+- 标准 input_size：448
+- 验证/测试resize：input_size * 1.2 然后中心裁剪
 
-## Image Size Conventions
-- Standard input_size: 448
-- Validation/test resize: input_size * 1.2 then center crop
+## 预测（predict.py）
+- 从 wandb_logs/identify/<run_id>/checkpoints/last.ckpt 加载模型
+- 需要 index_to_species_id CSV 文件用于物种名称映射
+- 输出 top-3 预测结果及概率
 
-## Prediction (predict.py)
-- Loads checkpoint from wandb_logs/identify/<run_id>/checkpoints/last.ckpt
-- Requires index_to_species_id CSV mapping for species names
-- Outputs top-3 predictions with probabilities
-
-## CUDA Memory
-- PYTCH_CUDA_ALLOC_CONF=expandable_segments:True for better memory management
-- Use torch.cuda.empty_cache() before loading models for prediction
+## CUDA 内存
+- PYTCH_CUDA_ALLOC_CONF=expandable_segments:True 用于更好的内存管理
+- 预测加载模型前使用 torch.cuda.empty_cache()
 
 ## 消融实验
 - 模型使用 swinV2Model 即可。
-- 依次使用 data 目录下的 train-tiny/train-mini/train-small 数据集进行试验，参考 config/tiny/swinv2_tiny.json 。
+- 依次使用 data 目录下的 train-tiny/train-mini/train-small 数据集进行试验，参考 config/tiny/swinv2_tiny.json。
 - 使用 train.sh 里的命令来运行实验，先尝试提升 train-tiny 的识别率，每个 epoch 运行可能要 20 分钟。你要监控它的 top1 和 top3 成功率来决定实验结果。
 - 每次进行实验时，要使用控制变量法。要列一个计划，写清楚理由。

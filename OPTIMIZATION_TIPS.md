@@ -24,7 +24,6 @@
 
 | 方向 | 具体做法 | 预期收益 |
 |------|---------|---------|
-| **数据增强** | 调整 `RandomErasing` 参数（ratio, probability） | +0.5~2% |
 | **类别不平衡** | 当前 `class_counts` 未传入分类器，可用 `WeightedRandomSampler` 或 `loss_weight` | +0.5~2% |
 | **SWA / 指数移动平均** | 添加 `StochasticWeightAveraging` 或 EMA | +0.3~0.8% |
 
