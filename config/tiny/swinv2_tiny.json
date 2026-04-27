@@ -41,7 +41,7 @@
                 }
             },
             {
-                "class_path": "epoch_stopping.EpochStoppingCallback",
+                "class_path": "callbacks.epoch_stopping.EpochStoppingCallback",
                 "init_args": {
                     "stop_at_epoch": 10
                 }
