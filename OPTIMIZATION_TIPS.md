@@ -32,7 +32,7 @@
 
 
 ## 已尝试但无效的方法
-1. 加入标签平滑: 实测识别率没有上升反而略微下降。可能原因分析：CutMix/MixUp 已经在创建软标签（混合样本的标签本身就是 soft target）。标签平滑 + CutMix/MixUp 叠加可能导致过度正则化，模型学习信号被削弱。
+1. 加入标签平滑（Label Smoothing）: 实测识别率没有上升反而略微下降。可能原因分析：CutMix/MixUp 已经在创建软标签（混合样本的标签本身就是 soft target）。标签平滑 + CutMix/MixUp 叠加可能导致过度正则化，模型学习信号被削弱。
 2. 用 `RandAugment` / `AutoAugment` 替换 `TrivialAugmentWide`，基本沒有提升；
 
 ## 决定不再尝试的方法
