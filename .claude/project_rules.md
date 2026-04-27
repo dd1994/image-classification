@@ -118,7 +118,12 @@ python train.py fit --config ./config/<size>/<model>.json
 - LearningRateMonitor：logging_interval=step
 
 ## 图像尺寸规范
-- 标准 input_size：448
+分两阶段进行训练，前 70% epoch:
+- 标准 input_size：448px
+- 验证/测试resize：input_size * 1.2 然后中心裁剪
+
+后 30% epoch
+- 标准 input_size：512px
 - 验证/测试resize：input_size * 1.2 然后中心裁剪
 
 ## 预测（predict.py）

@@ -33,7 +33,10 @@
       "Bash(python -m wandb sync \"wandb_logs/wandb/offline-run-20260426_063113-rkhsx1ps\")",
       "Bash(python -m wandb sync wandb_logs/wandb/offline-run-20260426_225418-4eiw1s55)",
       "Bash(python -c \"import wandb; print\\(wandb.__file__\\)\")",
-      "Bash(bash sync_wandb.sh)"
+      "Bash(bash sync_wandb.sh)",
+      "WebFetch(domain:lightning.ai)",
+      "WebFetch(domain:blog.csdn.net)",
+      "WebFetch(domain:raw.githubusercontent.com)"
     ]
   }
 }
