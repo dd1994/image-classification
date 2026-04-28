@@ -25,7 +25,7 @@
 | 方向 | 具体做法 | 预期收益 |
 |------|---------|---------|
 | **类别不平衡** | 当前 `class_counts` 未传入分类器，可用 `WeightedRandomSampler` 或 `loss_weight` | +0.5~2% |
-| **SWA / 指数移动平均** | 添加 `StochasticWeightAveraging` 或 EMA | +0.3~0.8% |
+| **SWA / 指数移动平均** | 已实现 `StochasticWeightAveraging`（70% epoch 启动，swa_lrs=1e-4）| +0.3~0.8% |
 
 
 3. **处理类别不平衡** — 如果数据存在长尾分布，用 `WeightedRandomSampler` 或 loss weighting 可显著提升少数类的识别率

@@ -38,6 +38,14 @@
                 "init_args": {
                     "logging_interval": "step"
                 }
+            },
+            {
+                "class_path": "pytorch_lightning.callbacks.StochasticWeightAveraging",
+                "init_args": {
+                    "swa_epoch_start": 13,
+                    "swa_lrs": 1e-6,
+                    "annealing_epochs": 4
+                }
             }
         ]
     },

@@ -36,7 +36,8 @@
       "Bash(bash sync_wandb.sh)",
       "WebFetch(domain:lightning.ai)",
       "WebFetch(domain:blog.csdn.net)",
-      "WebFetch(domain:raw.githubusercontent.com)"
+      "WebFetch(domain:raw.githubusercontent.com)",
+      "Bash(python -c \"from pytorch_lightning.callbacks import StochasticWeightAveraging; import inspect; print\\(inspect.getsource\\(StochasticWeightAveraging.__init__\\)\\)\")"
     ]
   }
 }
