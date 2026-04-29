@@ -43,7 +43,11 @@
       "Bash(python3 -c \"import torchvision.transforms.functional as F; import inspect; src = inspect.getsource\\(F._apply_op\\); print\\(src\\)\")",
       "Bash(python -c \"import torchvision.transforms.functional as F; import inspect; src = inspect.getsource\\(F._apply_op\\); print\\(src\\)\")",
       "Bash(python3 -c \"from torchvision.transforms import functional as F; print\\(F.adjust_color.__doc__\\)\")",
-      "Bash(python3 -c \"from torchvision.transforms import functional as F; import inspect; print\\(inspect.getsourcefile\\(F\\)\\)\")"
+      "Bash(python3 -c \"from torchvision.transforms import functional as F; import inspect; print\\(inspect.getsourcefile\\(F\\)\\)\")",
+      "Bash(python3 -c \"import torchvision.transforms as T; import inspect; print\\(inspect.getsource\\(T.RandomErasing\\)\\)\")",
+      "Bash(python -c \"import torchvision.transforms as T; import inspect; print\\(inspect.getsource\\(T.RandomErasing\\)\\)\")",
+      "Bash(python3 -c \"import torchvision.transforms as T; import inspect; print\\(inspect.getsource\\(T.RandomResizedCrop\\)\\)\")",
+      "Bash(python -c \"import torchvision.transforms as T; import inspect; print\\(inspect.getsource\\(T.RandomResizedCrop\\)\\)\")"
     ]
   }
 }
