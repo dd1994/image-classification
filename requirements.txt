@@ -1,0 +1,21 @@
+# Core ML frameworks
+torch>=2.0.0
+torchvision>=0.15.0
+
+# Lightning
+pytorch-lightning>=2.0.0
+
+# Model zoos
+timm>=0.9.0
+transformers>=4.30.0
+
+# Pretrained models
+aim>=2.0.0
+facebookresearch-dinov2 @ git+https://github.com/facebookresearch/dinov2.git
+
+# Data processing
+numpy>=1.24.0
+Pillow>=9.0.0
+
+# Logging
+wandb>=0.15.0
