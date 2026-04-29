@@ -37,7 +37,13 @@
       "WebFetch(domain:lightning.ai)",
       "WebFetch(domain:blog.csdn.net)",
       "WebFetch(domain:raw.githubusercontent.com)",
-      "Bash(python -c \"from pytorch_lightning.callbacks import StochasticWeightAveraging; import inspect; print\\(inspect.getsource\\(StochasticWeightAveraging.__init__\\)\\)\")"
+      "Bash(python -c \"from pytorch_lightning.callbacks import StochasticWeightAveraging; import inspect; print\\(inspect.getsource\\(StochasticWeightAveraging.__init__\\)\\)\")",
+      "Bash(python3 -c \"import torchvision.transforms as T; import inspect; print\\(inspect.getsource\\(T.TrivialAugmentWide\\)\\)\")",
+      "Bash(python -c \"import torchvision.transforms as T; import inspect; print\\(inspect.getsource\\(T.TrivialAugmentWide\\)\\)\")",
+      "Bash(python3 -c \"import torchvision.transforms.functional as F; import inspect; src = inspect.getsource\\(F._apply_op\\); print\\(src\\)\")",
+      "Bash(python -c \"import torchvision.transforms.functional as F; import inspect; src = inspect.getsource\\(F._apply_op\\); print\\(src\\)\")",
+      "Bash(python3 -c \"from torchvision.transforms import functional as F; print\\(F.adjust_color.__doc__\\)\")",
+      "Bash(python3 -c \"from torchvision.transforms import functional as F; import inspect; print\\(inspect.getsourcefile\\(F\\)\\)\")"
     ]
   }
 }
