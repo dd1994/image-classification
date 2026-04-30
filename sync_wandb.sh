@@ -1,20 +1,31 @@
 #!/bin/bash
-# Sync the two most recent wandb offline runs to cloud
+# Sync wandb offline runs to cloud
+# Usage: ./sync_wandb.sh [run_id]
+#   run_id: optional, specific wandb run id to sync
+#   If not provided, syncs the most recent run with changes
 
 source /c/ProgramData/anaconda3/etc/profile.d/conda.sh
 conda activate myenv
 
-LATEST=$(ls -t wandb_logs/wandb/offline-run-* 2>/dev/null | head -2 | sed 's/:$//')
+if [ -n "$1" ]; then
+  MATCH=$(ls -t wandb_logs/wandb/offline-run-* 2>/dev/null | grep "$1" | head -1 | sed 's/:$//')
 
-if [ -z "$LATEST" ]; then
-  echo "No offline wandb runs found."
-  exit 1
+  if [ -z "$MATCH" ]; then
+    echo "No offline run found containing: $1"
+    exit 1
+  fi
+
+  echo "Syncing run: $MATCH"
+  python -m wandb sync "$MATCH"
+else
+  LATEST=$(ls -t wandb_logs/wandb/offline-run-* 2>/dev/null | head -1 | sed 's/:$//')
+
+  if [ -z "$LATEST" ]; then
+    echo "No offline wandb runs found."
+    exit 1
+  fi
+
+  echo "Syncing most recent run:"
+  echo "$LATEST"
+  python -m wandb sync "$LATEST"
 fi
-
-echo "Syncing the two most recent runs:"
-echo "$LATEST"
-echo ""
-for RUN in $LATEST; do
-  echo "Syncing: $RUN"
-  python -m wandb sync "$RUN"
-done

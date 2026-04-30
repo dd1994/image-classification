@@ -47,7 +47,8 @@
       "Bash(python3 -c \"import torchvision.transforms as T; import inspect; print\\(inspect.getsource\\(T.RandomErasing\\)\\)\")",
       "Bash(python -c \"import torchvision.transforms as T; import inspect; print\\(inspect.getsource\\(T.RandomErasing\\)\\)\")",
       "Bash(python3 -c \"import torchvision.transforms as T; import inspect; print\\(inspect.getsource\\(T.RandomResizedCrop\\)\\)\")",
-      "Bash(python -c \"import torchvision.transforms as T; import inspect; print\\(inspect.getsource\\(T.RandomResizedCrop\\)\\)\")"
+      "Bash(python -c \"import torchvision.transforms as T; import inspect; print\\(inspect.getsource\\(T.RandomResizedCrop\\)\\)\")",
+      "Bash(./sync_wandb.sh pb8rox7h *)"
     ]
   }
 }
