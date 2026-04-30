@@ -33,7 +33,7 @@ class INatBaseDataModule(pl.LightningDataModule):
                 v2.RandomHorizontalFlip(p=0.5),
                 v2.ToDtype(torch.float32, scale=True),
                 v2.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225]),
-                v2.RandomErasing(scale=(0.02, 0.2), value='random')
+                v2.RandomErasing(p=0.25, scale=(0.02, 0.2), value='random')
             ]),
             'val_test': v2.Compose([
                 ToRGBTransform(),

@@ -35,7 +35,7 @@ class BaseModel(pl.LightningModule):
 
         if torch.rand(1).item() < mix_prob:
             cutmix = v2.CutMix(num_classes=self.num_classes)
-            mixup = v2.MixUp(num_classes=self.num_classes)
+            mixup = v2.MixUp(alpha=0.2, num_classes=self.num_classes)
             cutmix_or_mixup = v2.RandomChoice([cutmix, mixup])
             images, labels = cutmix_or_mixup(images, labels)
 

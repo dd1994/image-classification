@@ -10,20 +10,7 @@
 ### 数据增强 (`data_module.py`)
 - `RandomResizedCrop(512)` + `TrivialAugmentWide()` + `RandomErasing()`
 - `CutMix` + `MixUp`（`model.py` 中实现），前70% epoch 80% 概率触发， 最后 30% epoch 20%概率触发
-- cutmix/mixup 每次只能二选一
-
-#### 可优化方向
-1. **添加 `RandomHorizontalFlip`**：`TrivialAugmentWide` 包含 14 种增强操作（Rotate, Shear, Translate, AutoContrast, Equalize, Invert, Posterize, Contrast, Brightness, Sharpness, Color），但**不包含水平翻转**，需单独添加：
-   ```python
-   v2.RandomHorizontalFlip(p=0.5)  # 加在 TrivialAugmentWide 之后
-   ```
-
-2. **`RandomResizedCrop` 的 `scale` 参数**：当前默认 `scale=(0.08, 1.0)` 最小裁剪到原图 8%，对细粒度分类偏小。建议 `scale=(0.3, 1.0)`，保留更多原始分辨率的局部细节（羽毛纹理、翅脉、花瓣边缘等判别特征）。
-
-4. Mixup 的 alpha 参数调整：
-Mixup：alpha=0.5。过大（如1.0）会产生过多不真实幻象，4万类中更容易混淆判别特征。
-
-CutMix：alpha=1.0（默认），但可以对长尾类别降低混合比例，或使用 TokenCutMix / SnapMix（保留局部语义块）更贴合细粒度场景。   
+- cutmix/mixup 每次只能二选一 
 
 ### Backbone 模型选择
 - 当前使用 `swinv2_base_window12to24_192to384.ms_in22k_ft_in1k`，约 88M 参数，预训练权重来自 ImageNet-22k 微调至 ImageNet-1k
