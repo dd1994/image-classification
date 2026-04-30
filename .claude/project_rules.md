@@ -2,7 +2,7 @@
 
 ## 项目概述
 这是一个使用 PyTorch Lightning 和 SwinV2 transformer(base 型号)的图像分类项目。
-支持识别约 4.4 万 种国内动植物识别，差不多 800 万张训练图片，每个类最多 1000 张，最少 50 张训练图片。
+支持识别约 4.4 万 种国内动植物识别（细粒度分类），差不多 800 万张训练图片，每个类最多 1000 张，最少 50 张训练图片。
 
 ## 关键依赖
 - torch && pytorch_lightning
@@ -99,7 +99,6 @@ python train.py fit --config ./config/<size>/<model>.json
 - 损失函数：CrossEntropyLoss
 - 混合精度：16-mixed
 - 梯度累积：8 个批次
-- 数据增强：CutMix/MixUp（80% 概率）、TrivialAugmentWide、RandomErasing
 - ImageNet 归一化：mean=[0.485, 0.456, 0.406]，std=[0.229, 0.224, 0.225]
 
 ## 日志记录
@@ -109,7 +108,7 @@ python train.py fit --config ./config/<size>/<model>.json
 
 ## Wandb 同步（离线运行）
 
-运行 sync_wandb.sh 脚本进行同步
+运行 sync_wandb.sh 脚本进行同步最近一个 run id, 也可命令行参数制定 run id.
 
 
 ## 回调函数（标准配置）

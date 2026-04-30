@@ -7,10 +7,26 @@
 ### 输入
 两阶段训练：前 70% epoch 使用 448px, 后 30% epoch 使用 512px(配置文件示例：前 70% epoch 使用 `config/tiny/swinv2_tiny.json`，后 30% epoch 使用 `config/tiny/swinv2_tiny512.json`)
 
-### 数据增强 (`data_module.py`)
-- `RandomResizedCrop(512)` + `TrivialAugmentWide()` + `RandomErasing()`
-- `CutMix` + `MixUp`（`model.py` 中实现），前70% epoch 80% 概率触发， 最后 30% epoch 20%概率触发
-- cutmix/mixup 每次只能二选一 
+### 数据增强
+
+详见 `.claude/project_rules.md` 中的"数据增强详解"章节。
+
+**样本级增强** (`data_module.py`，按顺序应用)：
+* `RandomResizedCrop(input_size, scale=(0.3, 1.0))` — 随机裁剪缩放，scale 下界 0.3 提供较强尺度多样性
+* `TrivialAugmentWide()` — 无参数自动增强，每张图片随机选一种操作+强度
+* `RandomHorizontalFlip(p=0.5)` — 50% 水平翻转
+* `ToDtype(float32, scale=True)` — 归一化到 [0, 1]
+*  `Normalize(ImageNet mean/std)` — ImageNet 标准归一化
+* `RandomErasing(p=0.25, scale=(0.02, 0.2))` — 25% 概率随机擦除，模拟遮挡
+
+**批次级增强** (`model.py` → `training_step`)：
+- `CutMix` 或 `MixUp(alpha=0.2)`，每次随机二选一（`RandomChoice`）
+- 前 70% epoch：**80%** 概率触发（强力正则化）
+- 后 30% epoch：**20%** 概率触发（降低干扰，专注真实分布）
+
+**验证/测试增强**：
+- `Resize(input_size × 1.2)` → `CenterCrop(input_size)` → `Normalize`
+- 不应用任何随机增强，保证评估可复现 
 
 ### Backbone 模型选择
 - 当前使用 `swinv2_base_window12to24_192to384.ms_in22k_ft_in1k`，约 88M 参数，预训练权重来自 ImageNet-22k 微调至 ImageNet-1k
