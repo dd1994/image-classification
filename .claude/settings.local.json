@@ -49,7 +49,11 @@
       "Bash(python3 -c \"import torchvision.transforms as T; import inspect; print\\(inspect.getsource\\(T.RandomResizedCrop\\)\\)\")",
       "Bash(python -c \"import torchvision.transforms as T; import inspect; print\\(inspect.getsource\\(T.RandomResizedCrop\\)\\)\")",
       "Bash(./sync_wandb.sh pb8rox7h *)",
-      "Bash(python -c \"import inspect; from torchvision.transforms import TrivialAugmentWide; print\\(inspect.getfile\\(TrivialAugmentWide\\)\\)\")"
+      "Bash(python -c \"import inspect; from torchvision.transforms import TrivialAugmentWide; print\\(inspect.getfile\\(TrivialAugmentWide\\)\\)\")",
+      "WebFetch(domain:arxiv.org)",
+      "WebFetch(domain:zhuanlan.zhihu.com)",
+      "Bash(/c/ProgramData/anaconda3/envs/myenv/python.exe -c ' *)",
+      "Bash(/c/ProgramData/anaconda3/envs/myenv/python.exe -c \"import py_compile; py_compile.compile\\('script/ablation_augment.py', doraise=True\\); print\\('OK'\\)\")"
     ]
   }
 }

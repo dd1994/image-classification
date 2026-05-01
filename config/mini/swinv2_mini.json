@@ -5,7 +5,9 @@
             "num_classes": 352,
             "learning_rate": 1e-4,
             "input_size": 448,
-            "t_max": 17
+            "t_max": 17,
+            "mix_prob_early": 0.8,
+            "mix_prob_late": 0.2
         }
     },
     "trainer": {
@@ -56,7 +58,9 @@
             "valid_id_map_file_path": "valid_mini_map.csv",
             "batch_size": 15,
             "num_workers": 5,
-            "input_size": 448
+            "input_size": 448,
+            "rrc_scale_min": 0.3,
+            "random_erase_prob": 0.25
         }
     }
 }

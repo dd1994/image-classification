@@ -1,15 +1,13 @@
 # 训练识别率提升方法
 
 ## 基本信息
-支持 4.4 万种国内动植物分类的图像分类模型，基于 swin v2 base(imageNet 22k 上训练，1k 上微调后的预训练模型)，在 4090 单卡上进行训练，总共训练约 800 万张图片。
+支持 4.4 万种国内动植物分类的图像分类模型（大规模细粒度分类），基于 swin v2 base(imageNet 22k 上训练，1k 上微调后的预训练模型)，在 4090 单卡上进行训练，总共训练约 800 万张图片。
 
 ## 训练流程分析
 ### 输入
 两阶段训练：前 70% epoch 使用 448px, 后 30% epoch 使用 512px(配置文件示例：前 70% epoch 使用 `config/tiny/swinv2_tiny.json`，后 30% epoch 使用 `config/tiny/swinv2_tiny512.json`)
 
 ### 数据增强
-
-详见 `.claude/project_rules.md` 中的"数据增强详解"章节。
 
 **样本级增强** (`data_module.py`，按顺序应用)：
 * `RandomResizedCrop(input_size, scale=(0.3, 1.0))` — 随机裁剪缩放，scale 下界 0.3 提供较强尺度多样性
@@ -46,6 +44,9 @@
 2. 知识蒸馏。同理也是因为算力限制。
 3. Test-Time Augmentation (TTA)。因为实际使用场景时，没有足够的资源进行 TTA
 
-## 待尝试
-* WeightedRandomSampler 解决类别不平衡问题
+## 待尝试的数据增强方案
+* 降低 cutmix 和 mixup 触发概率
+* RandomResizedCrop scale 的下限值调高、
+* 随机 RandomErasing 的概率调低
+
 

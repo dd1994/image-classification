@@ -10,7 +10,7 @@ from util.transform import ToRGBTransform
 
 
 class INatBaseDataModule(pl.LightningDataModule):
-    def __init__(self, data_dir: str = './data/tiny', valid_dir= './data/tiny', id_map_file_path = '', valid_id_map_file_path = '',batch_size: int = 32, num_workers: int = 3, input_size: int = 448, num_classes = 51):
+    def __init__(self, data_dir: str = './data/tiny', valid_dir= './data/tiny', id_map_file_path = '', valid_id_map_file_path = '',batch_size: int = 32, num_workers: int = 3, input_size: int = 448, num_classes = 51, rrc_scale_min: float = 0.3, random_erase_prob: float = 0.25):
         super().__init__()
         self.data_dir = data_dir
         self.valid_dir = valid_dir
@@ -20,6 +20,8 @@ class INatBaseDataModule(pl.LightningDataModule):
         self.valid_id_map_file_path = valid_id_map_file_path
         self.input_size = input_size
         self.num_classes = num_classes
+        self.rrc_scale_min = rrc_scale_min
+        self.random_erase_prob = random_erase_prob
         self.train_dataset = None
         self.test_dataset = None
         self.val_dataset = None
@@ -28,12 +30,12 @@ class INatBaseDataModule(pl.LightningDataModule):
             'train': v2.Compose([
                 ToRGBTransform(),
                 v2.ToImage(), # Convert to tensor, only needed if you had a PIL image
-                v2.RandomResizedCrop(self.input_size, scale=(0.3, 1.0)),
+                v2.RandomResizedCrop(self.input_size, scale=(self.rrc_scale_min, 1.0)),
                 TrivialAugmentWide(),
                 v2.RandomHorizontalFlip(p=0.5),
                 v2.ToDtype(torch.float32, scale=True),
                 v2.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225]),
-                v2.RandomErasing(p=0.25, scale=(0.02, 0.2), value='random')
+                v2.RandomErasing(p=self.random_erase_prob, scale=(0.02, 0.2), value='random')
             ]),
             'val_test': v2.Compose([
                 ToRGBTransform(),

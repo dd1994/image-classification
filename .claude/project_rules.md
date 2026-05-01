@@ -2,7 +2,7 @@
 
 ## 项目概述
 这是一个使用 PyTorch Lightning 和 SwinV2 transformer(base 型号)的图像分类项目。
-支持识别约 4.4 万 种国内动植物识别（细粒度分类），差不多 800 万张训练图片，每个类最多 1000 张，最少 50 张训练图片。
+支持识别约 4.4 万 种国内动植物识别（细粒度分类），差不多 800 万张训练图片，每个类最多 1000 张，最少 50 张训练图片。使用两阶段训练（前 70% epoch 使用 448px, 后 30% epoch 使用 512px）
 
 ## 关键依赖
 - torch && pytorch_lightning
@@ -14,6 +14,7 @@
 
 ## Python 解释器
 python: C:\ProgramData\anaconda3\envs\myenv\python.exe
+
 
 ## 项目结构
 ```
@@ -42,38 +43,15 @@ JSON 配置文件遵循 LightningCLI 格式，包含三个主要部分：
 - **trainer**：训练器配置（epochs、accelerator、callbacks）
 - **data**：DataModule 类及数据路径
 
-配置示例：
-```json
-{
-  "model": {
-    "class_path": "SwinV2Model",
-    "init_args": { "num_classes": 168, "learning_rate": 1e-4, "input_size": 448, "t_max": 17 }
-  },
-  "trainer": {
-    "max_epochs": 17,
-    "accelerator": "gpu",
-    "devices": 1,
-    "precision": "16-mixed",
-    "accumulate_grad_batches": 8,
-    "callbacks": [...]
-  },
-  "data": {
-    "class_path": "SpecialCateData",
-    "init_args": { "data_dir": "./data/train-tiny", "batch_size": 15, "num_workers": 5, "input_size": 448 }
-  }
-}
-```
+配置示例
+* `./config/mini/swinv2_mini.json`
+* `./config/mini/swinv2_mini512.json`
 
 ## 可用的模型类（model.py 中）
 - **BaseModel**：基类，包含训练/验证/测试步骤，使用 CrossEntropyLoss
 - **SwinV2Model**：使用 timm 预训练主干的 SwinV2（input_size: 448）
-- **SwinV2FixResModel**：固定分辨率的 SwinV2 变体
-- **ConvNextV2Model**：Facebook ConvNextV2（来自 transformers）
-- **DinoV2Model**：冻结主干的 DINO V2（linear_head 可训练）
-- **AIMv2Model**：带自定义分类头的 AIMv2
-- **HieraModel**：Meta Hiera 模型（来自 timm）
-- **EfficientNetV2Model**：来自 timm 的 EfficientNetV2-L
-但是除了 SwinV2Model 其他都是测试用的
+
+除了 SwinV2Model,还有些其他 model 都是测试用的，无需关注。
 
 ## 可用的 DataModule 类（data_module.py 中）
 - **INatBaseDataModule**：基类，包含标准数据增强（TrivialAugmentWide、RandomErasing、Normalize）
@@ -97,7 +75,7 @@ python train.py fit --config ./config/<size>/<model>.json
 - 优化器：AdamW（lr=1e-4，weight_decay=2e-5）
 - 学习率调度器：CosineAnnealingLR + 线性预热（3 个 epoch）
 - 损失函数：CrossEntropyLoss
-- 混合精度：16-mixed
+- 混合精度：bf16-mixed
 - 梯度累积：8 个批次
 - ImageNet 归一化：mean=[0.485, 0.456, 0.406]，std=[0.229, 0.224, 0.225]
 
@@ -139,3 +117,6 @@ python train.py fit --config ./config/<size>/<model>.json
 - 依次使用 data 目录下的 train-tiny/train-mini/train-small 数据集进行试验，参考 config/tiny/swinv2_tiny.json。
 - 使用 train.sh 里的命令来运行实验，先尝试提升 train-tiny 的识别率，每个 epoch 运行可能要 20 分钟。你要监控它的 top1 和 top3 成功率来决定实验结果。
 - 每次进行实验时，要使用控制变量法。要列一个计划，写清楚理由。
+
+## 注意点
+- 该项目在 windows 上进行训练，注意兼容性
