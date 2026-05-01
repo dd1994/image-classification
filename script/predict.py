@@ -1,9 +1,13 @@
+import sys
+import os
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
 import torch
 import torchvision.transforms as transforms
 from PIL import Image
 
-from model import SwinV2Model  # 或者您使用的其他模型类
-from util.transform import ToRGBTransform  # 添加导入
+from model import SwinV2Model
+from util.transform import ToRGBTransform
 import csv
 
 

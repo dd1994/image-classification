@@ -53,7 +53,8 @@
       "WebFetch(domain:arxiv.org)",
       "WebFetch(domain:zhuanlan.zhihu.com)",
       "Bash(/c/ProgramData/anaconda3/envs/myenv/python.exe -c ' *)",
-      "Bash(/c/ProgramData/anaconda3/envs/myenv/python.exe -c \"import py_compile; py_compile.compile\\('script/ablation_augment.py', doraise=True\\); print\\('OK'\\)\")"
+      "Bash(/c/ProgramData/anaconda3/envs/myenv/python.exe -c \"import py_compile; py_compile.compile\\('script/ablation_augment.py', doraise=True\\); print\\('OK'\\)\")",
+      "Bash(python -c \"import wandb; print\\(wandb.util.generate_id\\(\\)\\)\")"
     ]
   }
 }
