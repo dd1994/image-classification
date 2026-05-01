@@ -8,9 +8,6 @@
 - torch && pytorch_lightning
 - timm（用于 SwinV2、Hiera、EfficientNetV2 模型）
 - torchvision
-- transformers（用于 ConvNextV2）
-- aim（用于 AIMv2）
-- 
 
 ## Python 解释器
 python: C:\ProgramData\anaconda3\envs\myenv\python.exe
