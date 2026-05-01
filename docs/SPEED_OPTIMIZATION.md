@@ -7,10 +7,10 @@
 ## 0. 当前配置确认
 
 - 硬件：单卡 4090
-- 精度：`16-mixed`（FP16），**建议升级为 `bf16-mixed`**
+- 精度: `bf16-mixed`**
 - 模型：`swinv2_base_window12to24_192to384.ms_in22k_ft_in1k`
-- 输入分辨率：448 / 512
-- 4 万类动植物分类任务
+- 输入分辨率：前 70% epoch 448px / 后 30% epoch 512px 微调
+- 4 万类动植物分类任务，大规模细粒度分类任务
 
 ---
 
@@ -83,27 +83,6 @@ def test_dataloader(self):
 
 ---
 
-## 2. 精度升级
-
-### 2.1 FP16 → BF16
-
-**问题**：`16-mixed` 使用 FP16，动态范围有限。
-
-**方案**：所有 config 文件中将 `16-mixed` 替换为 `bf16-mixed`。
-
-```json
-"precision": "bf16-mixed"
-```
-
-**收益**：
-- 4090 原生 BF16 硬件加速
-- 动态范围更大，训练更稳定
-- 同等显存下可增大 batch size
-
-> **注意**：确认 PyTorch ≥ 1.10，CUDA ≥ 11.0。
-
----
-
 ## 3. 模型推理优化
 
 ### 3.1 cudnn.benchmark
@@ -154,11 +133,7 @@ self.model = torch.compile(self.model, mode='reduce-overhead')
 
 ### 4.1 梯度累积
 
-当前 `accumulate_grad_batches=8`，effective batch = 32×8=256。
-
-如切换 BF16 后显存充裕，可尝试：
-- per-GPU batch 增大到 64，`accumulate_grad_batches` 相应减小到 4
-- 减少梯度同步次数，提升吞吐量
+当前 `accumulate_grad_batches=8`，effective batch = 15×8=120
 
 ### 4.2 验证集不做无意义 shuffle
 
