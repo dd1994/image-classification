@@ -47,18 +47,17 @@ JSON 配置文件遵循 LightningCLI 格式，包含三个主要部分：
 ## 可用的模型类（model.py 中）
 - **BaseModel**：基类，包含训练/验证/测试步骤，使用 CrossEntropyLoss
 - **SwinV2Model**：使用 timm 预训练主干的 SwinV2（input_size: 448）
-
 除了 SwinV2Model,还有些其他 model 都是测试用的，无需关注。
 
 ## 可用的 DataModule 类（data_module.py 中）
 - **INatBaseDataModule**：基类，包含标准数据增强（TrivialAugmentWide、RandomErasing、Normalize）
-- **SpecialCateData**：目前在用的自定义分类数据集，支持 id_map_file_path
+- **SpecialCateData**：目前在用的自定义分类数据集
 
 
 ## 数据目录结构（SpecialCateData）
 ```
 data_dir/
-├── class_dir/           # 物种大类（如 Insecta/FungiArachnida）
+├── class_dir/           # 物种大类（如 Insecta/Fungi/Arachnida）
 │   └── species_id/      # 物种文件夹
 │       └── *.jpg        # 图片文件
 ```
@@ -68,14 +67,6 @@ data_dir/
 python train.py fit --config ./config/<size>/<model>.json
 ```
 
-## 训练配置默认值
-- 优化器：AdamW（lr=1e-4，weight_decay=2e-5）
-- 学习率调度器：CosineAnnealingLR + 线性预热（3 个 epoch）
-- 损失函数：CrossEntropyLoss
-- 混合精度：bf16-mixed
-- 梯度累积：8 个批次
-- ImageNet 归一化：mean=[0.485, 0.456, 0.406]，std=[0.229, 0.224, 0.225]
-
 ## 日志记录
 - 日志器：WandbLogger（离线模式）
 - 项目名称："identify"
@@ -83,13 +74,7 @@ python train.py fit --config ./config/<size>/<model>.json
 
 ## Wandb 同步（离线运行）
 
-运行 sync_wandb.sh 脚本进行同步最近一个 run id, 也可命令行参数制定 run id.
-
-
-## 回调函数（标准配置）
-- EarlyStopping：monitor=val/acc_top1，patience=7，mode=max
-- ModelCheckpoint：monitor=val/acc_top1，save_top_k=3，save_last=true
-- LearningRateMonitor：logging_interval=step
+运行 ./scripts/sync_wandb.sh 脚本进行同步最近一个 run id, 也可命令行参数制定 run id.
 
 ## 图像尺寸规范
 分两阶段进行训练，前 70% epoch:
@@ -112,7 +97,7 @@ python train.py fit --config ./config/<size>/<model>.json
 ## 消融实验
 - 模型使用 swinV2Model 即可。
 - 依次使用 data 目录下的 train-tiny/train-mini/train-small 数据集进行试验，参考 config/tiny/swinv2_tiny.json。
-- 使用 train.sh 里的命令来运行实验，先尝试提升 train-tiny 的识别率，每个 epoch 运行可能要 20 分钟。你要监控它的 top1 和 top3 成功率来决定实验结果。
+- 使用 ./scripts/train.sh 里的命令来运行实验，先尝试提升 train-tiny 的识别率，每个 epoch 运行可能要 20 分钟。你要监控它的 top1 和 top3 成功率来决定实验结果。
 - 每次进行实验时，要使用控制变量法。要列一个计划，写清楚理由。
 
 ## 注意点
