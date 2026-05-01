@@ -10,7 +10,8 @@ from transformers import ConvNextV2ForImageClassification
 
 class BaseModel(pl.LightningModule):
     def __init__(self, num_classes: int = 51, t_max=20, learning_rate: float = 1e-4,
-                 mix_prob_early: float = 0.8, mix_prob_late: float = 0.2, class_counts=None):
+                 mix_prob_early: float = 0.8, mix_prob_late: float = 0.2, mix_alpha: float = 0.2,
+                 class_counts=None):
         super().__init__()
         self.save_hyperparameters()
         self.criterion = nn.CrossEntropyLoss()
@@ -35,7 +36,7 @@ class BaseModel(pl.LightningModule):
 
         if torch.rand(1).item() < mix_prob:
             cutmix = v2.CutMix(num_classes=self.num_classes)
-            mixup = v2.MixUp(alpha=0.2, num_classes=self.num_classes)
+            mixup = v2.MixUp(alpha=self.hparams.mix_alpha, num_classes=self.num_classes)
             cutmix_or_mixup = v2.RandomChoice([cutmix, mixup])
             images, labels = cutmix_or_mixup(images, labels)
 
@@ -122,9 +123,11 @@ class BaseModel(pl.LightningModule):
 
 class SwinV2Model(BaseModel):
     def __init__(self, num_classes: int = 51, learning_rate: float = 1e-4, input_size = 448, t_max=20,
-                 mix_prob_early: float = 0.8, mix_prob_late: float = 0.2, ckpt: str = ''):
+                 mix_prob_early: float = 0.8, mix_prob_late: float = 0.2, mix_alpha: float = 0.2,
+                 ckpt: str = ''):
         super().__init__(t_max=t_max, num_classes=num_classes, learning_rate=learning_rate,
-                         mix_prob_early=mix_prob_early, mix_prob_late=mix_prob_late)
+                         mix_prob_early=mix_prob_early, mix_prob_late=mix_prob_late,
+                         mix_alpha=mix_alpha)
         self.model = timm.create_model('swinv2_base_window12to24_192to384.ms_in22k_ft_in1k', pretrained=True)
         if ckpt != '' :
             checkpoint = torch.load(ckpt)
