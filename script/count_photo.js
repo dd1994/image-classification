@@ -2,8 +2,8 @@ const fs = require('fs');
 const path = require('path');
 const { imgExt } = require('./const')
 const trainDir = 'D:/image-classification/data/train';
-const outputFile = 'train_stat_all.csv';
-const ACTIVE = ['Actinopterygii']
+const outputFile = 'train_aves_all.csv';
+const ACTIVE = ['Aves']
 console.log(imgExt)
 // 支持的图片扩展名集合
 const IMAGE_EXTENSIONS = new Set(imgExt);
@@ -22,9 +22,9 @@ try {
   const classDirs = fs.readdirSync(trainDir);
 
   for (const className of classDirs) {
-//    if(!ACTIVE.includes(className)) {
-//        continue
-//    }
+   if(!ACTIVE.includes(className)) {
+       continue
+   }
     const classPath = path.join(trainDir, className);
     const classStats = fs.statSync(classPath);
 
