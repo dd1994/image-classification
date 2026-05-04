@@ -55,7 +55,7 @@
             "batch_size": 9,
             "num_workers": 5,
             "input_size": 512,
-            "rrc_scale_min": 0.5,
+            "rrc_scale_min": 0.3,
             "random_erase_prob": 0.25
         }
     }

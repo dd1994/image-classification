@@ -1,5 +1,5 @@
 {
-    "seed_everything": 42,
+    "seed_everything": 1,
     "model": {
         "class_path": "SwinV2Model",
         "init_args": {
@@ -9,7 +9,7 @@
             "t_max": 17,
             "mix_prob_early": 0.8,
             "mix_prob_late": 0.2,
-            "mix_alpha": 0.2
+            "mix_alpha": 0.8
         }
     },
     "trainer": {

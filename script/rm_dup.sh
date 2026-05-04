@@ -1,1 +1,1 @@
-/c/ProgramData/anaconda3/envs/myenv/python.exe ./rm_dup.py
+/c/ProgramData/anaconda3/envs/myenv/python.exe ./script/rm_dup.py

@@ -3,8 +3,8 @@ const path = require('path');
 
 // ====== Config ======
 const sourceDir = 'D:/image-classification/data/train';
-const targetDir = 'D:/image-classification/data/fgvc-aves-tiny';
-const whitelistCsv = 'D:/image-classification/script/fgvc-aves_taxon_tiny.csv';
+const targetDir = 'D:/image-classification/data/fgvc-plantae-tiny';
+const whitelistCsv = 'D:/image-classification/script/fgvc-plantae_taxon_tiny.csv';
 // ====================
 
 // Read CSV and parse IDs into a Set (skip header line)
