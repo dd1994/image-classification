@@ -56,7 +56,11 @@
             "valid_id_map_file_path": "valid_tiny_map.csv",
             "batch_size": 15,
             "num_workers": 5,
-            "input_size": 448
+            "input_size": 448,
+            "rrc_scale_min": 0.3,
+            "random_erase_prob": 0.25,
+            "re_scale_min": 0.02,
+            "re_scale_max": 0.2
         }
     }
 }
