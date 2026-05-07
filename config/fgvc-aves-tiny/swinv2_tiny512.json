@@ -55,7 +55,7 @@
             "batch_size": 9,
             "num_workers": 5,
             "input_size": 512,
-            "rrc_scale_min": 0.3,
+            "rrc_scale_min": 0.5,
             "random_erase_prob": 0.25,
             "re_scale_min": 0.02,
             "re_scale_max": 0.2
