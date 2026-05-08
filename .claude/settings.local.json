@@ -59,7 +59,9 @@
       "Bash(rm -rf data/fgvc-aves-tiny)",
       "Bash(node script/copy_by_whitelist.js)",
       "Bash(python -c \"from script.data_module import INatBaseDataModule; m = INatBaseDataModule\\(\\); print\\(f're_scale_min={m.re_scale_min}, re_scale_max={m.re_scale_max}'\\); print\\(f'rrc_scale_min={m.rrc_scale_min}, random_erase_prob={m.random_erase_prob}'\\)\")",
-      "Bash(python -c \"import json; files=['config/tiny/swinv2_tiny.json','config/tiny/swinv2_tiny512.json','config/fgvc-aves-tiny/swinv2_tiny.json','config/fgvc-aves-tiny/swinv2_tiny512.json']; [print\\(f'{f}: valid JSON'\\) if json.load\\(open\\(f\\)\\) else None for f in files]\")"
+      "Bash(python -c \"import json; files=['config/tiny/swinv2_tiny.json','config/tiny/swinv2_tiny512.json','config/fgvc-aves-tiny/swinv2_tiny.json','config/fgvc-aves-tiny/swinv2_tiny512.json']; [print\\(f'{f}: valid JSON'\\) if json.load\\(open\\(f\\)\\) else None for f in files]\")",
+      "WebFetch(domain:ceur-ws.org)",
+      "WebFetch(domain:web.archive.org)"
     ]
   }
 }
