@@ -1,5 +1,5 @@
 {
-    "seed_everything": 42,
+    "seed_everything": 1,
     "model": {
         "class_path": "SwinV2Model",
         "init_args": {
