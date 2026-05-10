@@ -17,22 +17,77 @@ python: C:\ProgramData\anaconda3\envs\myenv\python.exe
 ```
 image-classification/
 ├── config/              # 不同模型/数据集的 JSON 配置文件
+│   ├── fgvc-aves-tiny/  # FGVC 鸟类细粒度分类（75 类）
 │   ├── large/           # 大模型配置
 │   ├── medium/          # 中等模型配置
 │   ├── small/           # 小模型配置
-│   └── tiny/            # 微型模型配置
+│   └── tiny/            # 微型模型配置（168 类）
 ├── data/                # 训练和验证数据
 ├── dataSet/             # 自定义数据集类
 │   └── SpecialCateDataset.py
-├── script/              # 数据处理工具脚本
+├── script/              # 核心脚本（train.py, model.py 等在此目录）
 ├── trash/               # 已废弃/实验性代码
-├── util/                # 工具模块（数据增强、损失函数）
-├── train.py             # 主训练入口
-├── model.py             # 模型定义
-├── data_module.py       # DataModule 定义
-├── predict.py           # 预测脚本
-└── train.sh             # 训练 shell 脚本
+├── util/                # 工具模块（数据增强、损失函数、ArcFace）
+├── train.sh             # 训练 shell 脚本
+└── wandb_logs/          # Wandb 日志和 checkpoint
 ```
+
+重要：`train.py`, `model.py`, `data_module.py`, `predict.py` 均在 `script/` 目录下，训练命令需使用 `python script/train.py fit --config ...`
+
+## ArcFace Loss
+
+项目已集成 ArcFace 作为可选 loss（`util/arcface_loss.py`）。ArcFace 通过在角度空间给正确类别施加 margin，提升细粒度分类的类间可分性。
+
+### 使用方式
+在 JSON 配置的 `model.init_args` 中添加：
+```json
+"use_arcface": true,
+"arcface_s": 30.0,
+"arcface_m": 0.5,
+"arcface_sub_center": 1,
+"arcface_easy_margin": false,
+"arcface_ls_eps": 0.0
+```
+
+### 关键实现细节
+- ArcFaceLoss 内部持有类别中心权重（`self.weight`），替换了 fc 层（fc 设为 `nn.Identity()`）
+- `SwinV2Model.forward_features(x)` 通过 `model.forward_features(x) + model.forward_head(x, pre_logits=True)` 获取 fc 前 embedding
+- 当 MixUp/CutMix 激活时（labels 为 2D soft labels），ArcFaceLoss 自动跳过 margin，仅使用 s*cosine
+- ArcFaceLoss 权重由 SwinV2Model 管理，通过 `self.arcface_loss` 属性访问
+
+### ArcFace 参数含义
+| 参数 | 含义 | 推荐值 |
+|------|------|--------|
+| arcface_s | 余弦相似度缩放因子 | 30（小数据集）, 50-64（大数据集）|
+| arcface_m | 角度 margin（弧度）| 0.5 |
+| arcface_sub_center | 每类子中心数 | 1（标准）|
+| arcface_easy_margin | 边界处理策略 | false（ArcFace 标准）|
+| arcface_ls_eps | Label smoothing | 0.0（过拟合时 0.05-0.1）|
+
+## 已踩过的坑
+
+### 1. `torch.cuda.amp.autocast` 版本兼容
+此环境的 PyTorch 版本 `torch.cuda.amp.autocast` 不接受 `device_type` 参数。不要使用该 API 强制 float32，改用显式 `.float()` 转换：
+```python
+# 错误（此环境不支持）
+with torch.cuda.amp.autocast(enabled=False, device_type='cuda'):
+    ...
+
+# 正确
+embedding = embedding.float()
+weight = self.weight.float()
+```
+
+### 2. `save_hyperparameters()` 不会设置实例属性
+`save_hyperparameters()` 将参数存入 `self.hparams`，但不会自动添加为 `self.xxx` 属性。如需在代码中直接访问 `self.use_arcface`，必须在 `__init__` 中显式设置 `self.use_arcface = use_arcface`。
+
+### 3. timm SwinV2 特征提取
+获取 fc 层之前的 embedding 向量：
+```python
+x = self.model.forward_features(x)          # 返回 feature maps
+embedding = self.model.forward_head(x, pre_logits=True)  # 返回 fc 前向量 [B, in_features]
+```
+`model.head.fc.in_features` 可获取 embedding 维度（SwinV2 base 为 1024）。
 
 ## 配置文件格式
 JSON 配置文件遵循 LightningCLI 格式，包含三个主要部分：
@@ -64,7 +119,7 @@ data_dir/
 
 ## 标准训练命令
 ```bash
-python train.py fit --config ./config/<size>/<model>.json
+python script/train.py fit --config ./config/<size>/<model>.json
 ```
 
 ## 日志记录
@@ -86,9 +141,11 @@ python train.py fit --config ./config/<size>/<model>.json
 - 验证/测试resize：input_size * 1.2 然后中心裁剪
 
 ## 预测（predict.py）
+- predict.py 位于 script/ 目录下
 - 从 wandb_logs/identify/<run_id>/checkpoints/last.ckpt 加载模型
 - 需要 index_to_species_id CSV 文件用于物种名称映射
 - 输出 top-3 预测结果及概率
+- 注意：加载 ArcFace checkpoint 时需从 `checkpoint['hyper_parameters']` 读取 arcface 参数来初始化模型
 
 ## CUDA 内存
 - PYTCH_CUDA_ALLOC_CONF=expandable_segments:True 用于更好的内存管理

@@ -6,14 +6,23 @@ from timm.models.hiera import Hiera
 from torch import nn as nn
 from torchvision.transforms import v2
 from transformers import ConvNextV2ForImageClassification
+from util.arcface_loss import ArcFaceLoss
 
 
 class BaseModel(pl.LightningModule):
     def __init__(self, num_classes: int = 51, t_max=20, learning_rate: float = 1e-4,
                  mix_prob_early: float = 0.8, mix_prob_late: float = 0.2, mix_alpha: float = 0.2,
-                 class_counts=None):
+                 class_counts=None,
+                 use_arcface: bool = False,
+                 arcface_s: float = 30.0,
+                 arcface_m: float = 0.5,
+                 arcface_sub_center: int = 1,
+                 arcface_easy_margin: bool = False,
+                 arcface_ls_eps: float = 0.0,
+                 arcface_margin_warmup_epochs: int = 0):
         super().__init__()
         self.save_hyperparameters()
+        self.use_arcface = use_arcface
         self.criterion = nn.CrossEntropyLoss()
         self.t_max = t_max
         self.learning_rate = learning_rate
@@ -24,6 +33,18 @@ class BaseModel(pl.LightningModule):
             self.class_counts = [1] * num_classes
         else:
             self.class_counts = class_counts
+
+    def on_train_epoch_start(self):
+        if not self.use_arcface:
+            return
+        warmup = self.hparams.arcface_margin_warmup_epochs
+        if warmup <= 0:
+            return
+        if self.current_epoch < warmup:
+            m = self.hparams.arcface_m * (self.current_epoch + 1) / warmup
+        else:
+            m = self.hparams.arcface_m
+        self.arcface_loss.set_margin(m)
 
     def training_step(self, batch, batch_idx):
         images, labels = batch
@@ -40,8 +61,12 @@ class BaseModel(pl.LightningModule):
             cutmix_or_mixup = v2.RandomChoice([cutmix, mixup])
             images, labels = cutmix_or_mixup(images, labels)
 
-        outputs = self(images)
-        loss = self.criterion(outputs, labels)
+        if self.use_arcface:
+            embedding = self.forward_features(images)
+            loss, outputs = self.arcface_loss(embedding, labels)
+        else:
+            outputs = self(images)
+            loss = self.criterion(outputs, labels)
 
         # 获取预测的类别
         preds = torch.argmax(outputs, dim=1)  # 预测类别索引
@@ -124,10 +149,24 @@ class BaseModel(pl.LightningModule):
 class SwinV2Model(BaseModel):
     def __init__(self, num_classes: int = 51, learning_rate: float = 1e-4, input_size = 448, t_max=20,
                  mix_prob_early: float = 0.8, mix_prob_late: float = 0.2, mix_alpha: float = 0.2,
-                 ckpt: str = ''):
+                 ckpt: str = '',
+                 use_arcface: bool = False,
+                 arcface_s: float = 30.0,
+                 arcface_m: float = 0.5,
+                 arcface_sub_center: int = 1,
+                 arcface_easy_margin: bool = False,
+                 arcface_ls_eps: float = 0.0,
+                 arcface_margin_warmup_epochs: int = 0):
         super().__init__(t_max=t_max, num_classes=num_classes, learning_rate=learning_rate,
                          mix_prob_early=mix_prob_early, mix_prob_late=mix_prob_late,
-                         mix_alpha=mix_alpha)
+                         mix_alpha=mix_alpha,
+                         use_arcface=use_arcface,
+                         arcface_s=arcface_s,
+                         arcface_m=arcface_m,
+                         arcface_sub_center=arcface_sub_center,
+                         arcface_easy_margin=arcface_easy_margin,
+                         arcface_ls_eps=arcface_ls_eps,
+                         arcface_margin_warmup_epochs=arcface_margin_warmup_epochs)
         self.model = timm.create_model('swinv2_base_window12to24_192to384.ms_in22k_ft_in1k', pretrained=True)
         if ckpt != '' :
             checkpoint = torch.load(ckpt)
@@ -138,9 +177,25 @@ class SwinV2Model(BaseModel):
 
 
         self.model.set_input_size([input_size, input_size])
-        self.model.head.fc = nn.Linear(self.model.head.fc.in_features, num_classes)
+        in_features = self.model.head.fc.in_features
+        if use_arcface:
+            self.model.head.fc = nn.Identity()
+            self.arcface_loss = ArcFaceLoss(
+                in_features, num_classes,
+                s=arcface_s, m=arcface_m,
+                number_sub_center=arcface_sub_center,
+                easy_margin=arcface_easy_margin,
+                ls_eps=arcface_ls_eps)
+        else:
+            self.model.head.fc = nn.Linear(in_features, num_classes)
+
+    def forward_features(self, x):
+        x = self.model.forward_features(x)
+        return self.model.forward_head(x, pre_logits=True)
 
     def forward(self, x):
+        if self.use_arcface:
+            return self.arcface_loss.get_logits(self.forward_features(x))
         return self.model(x)
 
 class SwinV2FixResModel(BaseModel):

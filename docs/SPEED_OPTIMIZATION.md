@@ -131,13 +131,9 @@ self.model = torch.compile(self.model, mode='reduce-overhead')
 
 ## 4. 其他优化
 
-### 4.1 梯度累积
-
-当前 `accumulate_grad_batches=8`，effective batch = 15×8=120
-
-### 4.2 验证集不做无意义 shuffle
-
-`val_dataloader` 中 `shuffle=False` 已经是正确的，无需修改。
+* partial FC
+* 梯度检查点
+* 
 
 ---
 

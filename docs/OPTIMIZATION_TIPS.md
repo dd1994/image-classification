@@ -5,7 +5,7 @@
 
 ## 训练流程分析
 ### 输入
-两阶段训练：前 70% epoch 使用 448px, 后 30% epoch 使用 512px(配置文件示例：前 70% epoch 使用 `config/tiny/swinv2_tiny.json`，后 30% epoch 使用 `config/tiny/swinv2_tiny512.json`)
+两阶段训练：前 70% epoch 使用 448px, 后 30% epoch 使用 512px(配置文件示例：前 70% epoch 使用 `config/fgvc-aves-tiny/swinv2_tiny.json`，后 30% epoch 使用 `config/fgvc-aves-tiny/swinv2_tiny512.json`)
 
 ### 数据增强
 
@@ -20,7 +20,7 @@
 **批次级增强** (`model.py` → `training_step`)：
 - `CutMix` 或 `MixUp(alpha=0.2)`，每次随机二选一（`RandomChoice`）
 - 前 70% epoch：**80%** 概率触发（强力正则化）
-- 后 30% epoch：**20%** 概率触发（降低干扰，专注真实分布）
+- 后 30% epoch：**0%** 概率触发（降低干扰，专注真实分布）
 
 **验证/测试增强**：
 - `Resize(input_size × 1.2)` → `CenterCrop(input_size)` → `Normalize`
@@ -44,9 +44,10 @@
 2. 知识蒸馏。同理也是因为算力限制。
 3. Test-Time Augmentation (TTA)。因为实际使用场景时，没有足够的资源进行 TTA
 
-## 待尝试的数据增强方案
-* 降低 cutmix 和 mixup 触发概率
-* RandomResizedCrop scale 的下限值调高、
-* 随机 RandomErasing 的概率调低
+## 待尝试的方案
+* 直方图均衡化
+* 两阶段训练(重采样)解决数据不平衡问题
+* 重复增强
+
 
 
