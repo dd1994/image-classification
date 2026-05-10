@@ -1,5 +1,5 @@
 {
-    "seed_everything": 1,
+    "seed_everything": 42,
     "model": {
         "class_path": "SwinV2Model",
         "init_args": {
@@ -12,11 +12,12 @@
             "mix_alpha": 0.8,
             "use_arcface": true,
             "arcface_s": 30.0,
-            "arcface_m": 0.5,
+            "arcface_m": 0.4,
             "arcface_sub_center": 3,
             "arcface_easy_margin": false,
             "arcface_ls_eps": 0.0,
-            "arcface_margin_warmup_epochs": 17
+            "arcface_margin_warmup_epochs": 3,
+            "arcface_margin_warmup_start": 0.2
         }
     },
     "trainer": {

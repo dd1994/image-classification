@@ -19,7 +19,8 @@ class BaseModel(pl.LightningModule):
                  arcface_sub_center: int = 1,
                  arcface_easy_margin: bool = False,
                  arcface_ls_eps: float = 0.0,
-                 arcface_margin_warmup_epochs: int = 0):
+                 arcface_margin_warmup_epochs: int = 0,
+                 arcface_margin_warmup_start: float = 0.0):
         super().__init__()
         self.save_hyperparameters()
         self.use_arcface = use_arcface
@@ -34,14 +35,20 @@ class BaseModel(pl.LightningModule):
         else:
             self.class_counts = class_counts
 
+    def on_train_start(self):
+        self._warmup_start_epoch = self.current_epoch
+
     def on_train_epoch_start(self):
         if not self.use_arcface:
             return
         warmup = self.hparams.arcface_margin_warmup_epochs
         if warmup <= 0:
             return
-        if self.current_epoch < warmup:
-            m = self.hparams.arcface_m * (self.current_epoch + 1) / warmup
+        stage_epoch = self.current_epoch - self._warmup_start_epoch
+        if stage_epoch < warmup:
+            start = self.hparams.arcface_margin_warmup_start
+            target = self.hparams.arcface_m
+            m = start + (target - start) * (stage_epoch + 1) / warmup
         else:
             m = self.hparams.arcface_m
         self.arcface_loss.set_margin(m)
@@ -156,7 +163,8 @@ class SwinV2Model(BaseModel):
                  arcface_sub_center: int = 1,
                  arcface_easy_margin: bool = False,
                  arcface_ls_eps: float = 0.0,
-                 arcface_margin_warmup_epochs: int = 0):
+                 arcface_margin_warmup_epochs: int = 0,
+                 arcface_margin_warmup_start: float = 0.0):
         super().__init__(t_max=t_max, num_classes=num_classes, learning_rate=learning_rate,
                          mix_prob_early=mix_prob_early, mix_prob_late=mix_prob_late,
                          mix_alpha=mix_alpha,
@@ -166,7 +174,8 @@ class SwinV2Model(BaseModel):
                          arcface_sub_center=arcface_sub_center,
                          arcface_easy_margin=arcface_easy_margin,
                          arcface_ls_eps=arcface_ls_eps,
-                         arcface_margin_warmup_epochs=arcface_margin_warmup_epochs)
+                         arcface_margin_warmup_epochs=arcface_margin_warmup_epochs,
+                         arcface_margin_warmup_start=arcface_margin_warmup_start)
         self.model = timm.create_model('swinv2_base_window12to24_192to384.ms_in22k_ft_in1k', pretrained=True)
         if ckpt != '' :
             checkpoint = torch.load(ckpt)
