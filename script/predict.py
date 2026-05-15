@@ -32,18 +32,24 @@ def main():
     # with torch.cuda.device(device_id):
     #     torch.cuda.empty_cache()
 
-    csv_file_path = 'spider_index_to_species_id.csv'
+    csv_file_path = 'D:\image-classification\script\spider_index_to_species_id.csv'
     index_to_species_id = load_index_to_species_id_from_csv(csv_file_path)
     # amp: agkndjwa
     # 蜘蛛：d22e4crw
     # 加载检查点文件
-    checkpoint = torch.load('wandb_logs/identify/d22e4crw/checkpoints/last.ckpt', map_location=torch.device('cuda:0'), weights_only=True)
+    checkpoint = torch.load('D:\image-classification\wandb_logs\identify\d269lcrc\checkpoints\last.ckpt', map_location=torch.device('cuda:0'), weights_only=True)
 
-    # 创建模型实例
-    model = SwinV2Model(num_classes = 1117)
-    # model.load_state_dict(torch.load('./model_reptilia.pth', map_location=torch.device('cuda:0'), weights_only=True))
-
-    # 如果模型是在Lightning中训练的，你可能需要只提取模型状态字典
+    # 从 checkpoint 读取超参数来正确初始化模型（尤其是 ArcFace 参数）
+    hp = checkpoint['hyper_parameters']
+    model = SwinV2Model(
+        num_classes=hp.get('num_classes', 75),
+        use_arcface=hp.get('use_arcface', True),
+        arcface_s=hp.get('arcface_s', 30.0),
+        arcface_m=hp.get('arcface_m', 0.3),
+        arcface_sub_center=hp.get('arcface_sub_center', 3),
+        arcface_easy_margin=hp.get('arcface_easy_margin', False),
+        arcface_ls_eps=hp.get('arcface_ls_eps', 0.0),
+    )
 
     state_dict = checkpoint['state_dict']
 
@@ -62,7 +68,7 @@ def main():
 
 
     # 加载本地图片
-    img_path = r"D:\image-classification\data\predict\rep\1.jpg" # 替换为您的图片路径
+    img_path = r"E:\Downloads\default.jpg" # 替换为您的图片路径
     image = Image.open(img_path)
 
     # 预处理图片
