@@ -1,5 +1,5 @@
 {
-    "seed_everything": 1,
+    "seed_everything": 42,
     "model": {
         "class_path": "SwinV2Model",
         "init_args": {
@@ -9,7 +9,14 @@
             "t_max": 17,
             "mix_prob_early": 0.8,
             "mix_prob_late": 0.2,
-            "mix_alpha": 0.8
+            "mix_alpha": 0.8,
+            "use_arcface": true,
+            "arcface_s": 30.0,
+            "arcface_m": 0,
+            "arcface_sub_center": 3,
+            "arcface_easy_margin": false,
+            "arcface_ls_eps": 0.0,
+            "arcface_margin_warmup_epochs": 5
         }
     },
     "trainer": {
@@ -62,7 +69,9 @@
             "num_workers": 5,
             "input_size": 448,
             "rrc_scale_min": 0.3,
-            "random_erase_prob": 0.25
+            "random_erase_prob": 0.25,
+            "re_scale_min": 0.02,
+            "re_scale_max": 0.2
         }
     }
 }
