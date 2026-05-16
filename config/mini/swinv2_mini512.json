@@ -1,5 +1,5 @@
 {
-    "seed_everything": 42,
+    "seed_everything": 666,
     "model": {
         "class_path": "SwinV2Model",
         "init_args": {
@@ -66,7 +66,9 @@
             "rrc_scale_min": 0.5,
             "random_erase_prob": 0.25,
             "re_scale_min": 0.02,
-            "re_scale_max": 0.2
+            "re_scale_max": 0.2,
+            "rebalance_last_epochs": 3,
+            "rebalance_floor_count": 200
         }
     }
 }
