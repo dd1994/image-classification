@@ -1,11 +1,23 @@
 {
+    "seed_everything": 1,
     "model": {
         "class_path": "SwinV2Model",
         "init_args": {
             "num_classes": 168,
             "learning_rate": 1e-4,
             "input_size": 512,
-            "t_max": 17
+            "t_max": 17,
+            "mix_prob_early": 0.8,
+            "mix_prob_late": 0,
+            "mix_alpha": 0.8,
+            "use_arcface": true,
+            "arcface_s": 30.0,
+            "arcface_m": 0.3,
+            "arcface_sub_center": 3,
+            "arcface_easy_margin": false,
+            "arcface_ls_eps": 0.0,
+            "arcface_margin_warmup_epochs": 3,
+            "arcface_margin_warmup_start": 0.1
         }
     },
     "trainer": {
@@ -51,10 +63,12 @@
             "batch_size": 9,
             "num_workers": 5,
             "input_size": 512,
-            "rrc_scale_min": 0.3,
+            "rrc_scale_min": 0.5,
             "random_erase_prob": 0.25,
             "re_scale_min": 0.02,
-            "re_scale_max": 0.1
+            "re_scale_max": 0.2,
+            "rebalance_last_epochs": 3,
+            "rebalance_floor_count": 200
         }
     }
 }
