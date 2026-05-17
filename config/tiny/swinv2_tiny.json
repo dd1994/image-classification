@@ -71,7 +71,8 @@
             "rrc_scale_min": 0.3,
             "random_erase_prob": 0.25,
             "re_scale_min": 0.02,
-            "re_scale_max": 0.2
+            "re_scale_max": 0.2,
+            "trivial_augment_prob": 1.0
         }
     }
 }

@@ -68,7 +68,8 @@
             "re_scale_min": 0.02,
             "re_scale_max": 0.2,
             "rebalance_last_epochs": 0,
-            "rebalance_floor_count": 150
+            "rebalance_floor_count": 150,
+            "trivial_augment_prob": 0.6
         }
     }
 }
