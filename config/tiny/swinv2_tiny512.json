@@ -17,7 +17,8 @@
             "arcface_easy_margin": false,
             "arcface_ls_eps": 0.0,
             "arcface_margin_warmup_epochs": 3,
-            "arcface_margin_warmup_start": 0.1
+            "arcface_margin_warmup_start": 0.1,
+            "use_gradient_checkpointing": false
         }
     },
     "trainer": {
