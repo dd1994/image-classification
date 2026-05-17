@@ -86,6 +86,7 @@ class INatBaseDataModule(pl.LightningDataModule):
                 ToRGBTransform(),
                 v2.ToImage(), # Convert to tensor, only needed if you had a PIL image
                 v2.RandomResizedCrop(self.input_size, scale=(self.rrc_scale_min, 1.0)),
+                v2.RandomApply([v2.RandomRotation(degrees=45, fill="random")], p=0.2),
                 TrivialAugmentWide(),
                 v2.RandomHorizontalFlip(p=0.5),
                 v2.ToDtype(torch.float32, scale=True),
