@@ -17,7 +17,8 @@
             "arcface_easy_margin": false,
             "arcface_ls_eps": 0.0,
             "arcface_margin_warmup_epochs": 3,
-            "arcface_margin_warmup_start": 0.1
+            "arcface_margin_warmup_start": 0.1,
+            "use_gradient_checkpointing": false
         }
     },
     "trainer": {
@@ -56,7 +57,7 @@
     "data": {
         "class_path": "SpecialCateData",
         "init_args": {
-            "data_dir": "./data/fgvc-aves-tiny",
+            "data_dir": "./data/train-fgvc-aves-tiny",
             "valid_dir": "./data/valid-fgvc-aves-tiny",
             "id_map_file_path": "fgvc-aves-tiny_map.csv",
             "valid_id_map_file_path": "valid_fgvc-aves-tiny_map.csv",
@@ -66,7 +67,10 @@
             "rrc_scale_min": 0.5,
             "random_erase_prob": 0.25,
             "re_scale_min": 0.02,
-            "re_scale_max": 0.2
+            "re_scale_max": 0.2,
+            "rebalance_last_epochs": 0,
+            "rebalance_floor_count": 150,
+            "trivial_augment_prob": 0.6
         }
     }
 }
