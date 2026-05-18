@@ -1,5 +1,5 @@
 {
-    "seed_everything": 1,
+    "seed_everything": 42,
     "model": {
         "class_path": "SwinV2Model",
         "init_args": {
@@ -26,7 +26,7 @@
         "accelerator": "gpu",
         "devices": 1,
         "precision": "bf16-mixed",
-        "accumulate_grad_batches": 12,
+        "accumulate_grad_batches": 13,
         "callbacks": [
             {
                 "class_path": "pytorch_lightning.callbacks.EarlyStopping",
