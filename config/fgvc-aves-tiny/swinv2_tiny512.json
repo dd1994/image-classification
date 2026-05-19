@@ -26,7 +26,7 @@
         "accelerator": "gpu",
         "devices": 1,
         "precision": "bf16-mixed",
-        "accumulate_grad_batches": 10,
+        "accumulate_grad_batches": 13,
         "callbacks": [
             {
                 "class_path": "pytorch_lightning.callbacks.EarlyStopping",
@@ -68,9 +68,9 @@
             "random_erase_prob": 0.25,
             "re_scale_min": 0.02,
             "re_scale_max": 0.2,
-            "rebalance_last_epochs": 0,
+            "rebalance_last_epochs": 3,
             "rebalance_floor_count": 150,
-            "trivial_augment_prob": 0.6
+            "trivial_augment_prob": 1
         }
     }
 }
