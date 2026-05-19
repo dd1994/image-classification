@@ -68,7 +68,7 @@
             "random_erase_prob": 0.25,
             "re_scale_min": 0.02,
             "re_scale_max": 0.2,
-            "rebalance_last_epochs": 0,
+            "rebalance_last_epochs": 3,
             "rebalance_floor_count": 150,
             "trivial_augment_prob": 1
         }
