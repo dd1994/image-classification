@@ -180,7 +180,7 @@ class SwinV2Model(BaseModel):
         self.use_gradient_checkpointing = use_gradient_checkpointing
         self.model = timm.create_model('swinv2_base_window12to24_192to384.ms_in22k_ft_in1k', pretrained=True)
         if use_gradient_checkpointing:
-            self.model.gradient_checkpointing_enable()
+            self.model.set_grad_checkpointing(True)
         if ckpt != '' :
             checkpoint = torch.load(ckpt)
             state_dict = checkpoint['state_dict']
