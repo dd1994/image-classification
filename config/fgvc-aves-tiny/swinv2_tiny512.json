@@ -26,7 +26,7 @@
         "accelerator": "gpu",
         "devices": 1,
         "precision": "bf16-mixed",
-        "accumulate_grad_batches": 4,
+        "accumulate_grad_batches": 14,
         "callbacks": [
             {
                 "class_path": "pytorch_lightning.callbacks.EarlyStopping",
@@ -61,7 +61,7 @@
             "valid_dir": "./data/valid-fgvc-aves-tiny",
             "id_map_file_path": "fgvc-aves-tiny_map.csv",
             "valid_id_map_file_path": "valid_fgvc-aves-tiny_map.csv",
-            "batch_size": 32,
+            "batch_size": 9,
             "num_workers": 5,
             "input_size": 512,
             "rrc_scale_min": 0.5,
