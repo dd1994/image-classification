@@ -57,7 +57,7 @@
     "data": {
         "class_path": "SpecialCateData",
         "init_args": {
-            "data_dir": "./data/train-fgvc-aves-tiny",
+            "data_dir": "./data/fgvc-aves-tiny",
             "valid_dir": "./data/valid-fgvc-aves-tiny",
             "id_map_file_path": "fgvc-aves-tiny_map.csv",
             "valid_id_map_file_path": "valid_fgvc-aves-tiny_map.csv",
