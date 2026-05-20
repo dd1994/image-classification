@@ -127,7 +127,7 @@ class BaseModel(pl.LightningModule):
         return loss
 
     def configure_optimizers(self):
-        optimizer = torch.optim.AdamW(self.parameters(), lr=self.learning_rate, weight_decay=2e-5)
+        optimizer = torch.optim.AdamW(self.parameters(), lr=self.learning_rate, weight_decay=2e-5, fused=True)
 
         warmup_epochs = 3
         warmup_scheduler = torch.optim.lr_scheduler.LinearLR(
