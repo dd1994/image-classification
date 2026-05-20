@@ -17,7 +17,7 @@
             "arcface_easy_margin": false,
             "arcface_ls_eps": 0.0,
             "arcface_margin_warmup_epochs": 5,
-            "use_gradient_checkpointing": false
+            "use_gradient_checkpointing": true
         }
     },
     "trainer": {
@@ -25,7 +25,7 @@
         "accelerator": "gpu",
         "devices": 1,
         "precision": "bf16-mixed",
-        "accumulate_grad_batches": 8,
+        "accumulate_grad_batches": 2,
         "callbacks": [
             {
                 "class_path": "pytorch_lightning.callbacks.EarlyStopping",
@@ -66,7 +66,7 @@
             "valid_dir": "./data/valid-fgvc-aves-tiny",
             "id_map_file_path": "fgvc-aves-tiny_map.csv",
             "valid_id_map_file_path": "valid_fgvc-aves-tiny_map.csv",
-            "batch_size": 16,
+            "batch_size": 64,
             "num_workers": 5,
             "input_size": 448,
             "rrc_scale_min": 0.3,
