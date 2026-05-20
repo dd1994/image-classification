@@ -10,7 +10,7 @@
             "mix_prob_early": 0.8,
             "mix_prob_late": 0,
             "mix_alpha": 0.8,
-            "use_arcface": true,
+            "use_arcface": false,
             "arcface_s": 30.0,
             "arcface_m": 0.3,
             "arcface_sub_center": 3,
