@@ -157,6 +157,9 @@ python script/train.py fit --config ./config/<size>/<model>.json
 - 使用 ./script/train.sh 里的命令来运行实验，先尝试提升 fgvc-aves-tiny 的识别率，每个 epoch 运行可能要 20 分钟。你要监控它的 top1 和 top3 成功率来决定实验结果。
 - 每次进行实验时，要使用控制变量法。要列一个计划，写清楚理由。
 
+## 运行完成后如何查看识别率
+wandb_logs\identify 下有各个 run id 文件夹，文件里 checkpoint 的文件名就有识别率。比如：`wandb_logs\identify\3dmhbizq\checkpoints\swinv2-all-epoch=11-val\acc_top1=0.7127.ckpt`
+
 ## OpenClaw 运行训练脚本
 
 训练耗时较长（每个 epoch ~20 分钟，完整训练需数小时），在 OpenClaw 中运行时必须注意：
@@ -164,6 +167,7 @@ python script/train.py fit --config ./config/<size>/<model>.json
 1. **用 Git Bash 直接调用**，不要双层嵌套 bash -c。Git Bash 路径：`C:\Program Files\Git\bin\bash.exe`
 2. **必须设置 timeout: 0**（不限时），否则默认 30 分钟自动杀掉进程
 3. 工作目录设为项目根目录 `D:\image-classification`
+
 
 正确命令：
 ```
