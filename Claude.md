@@ -28,7 +28,7 @@ image-classification/
 ├── script/              # 核心脚本（train.py, model.py 等在此目录）
 ├── trash/               # 已废弃/实验性代码
 ├── util/                # 工具模块（数据增强、损失函数、ArcFace）
-├── train.sh             # 训练 shell 脚本
+├── script/train.sh      # 训练 shell 脚本（位于 script/ 目录下）
 └── wandb_logs/          # Wandb 日志和 checkpoint
 ```
 
@@ -129,7 +129,7 @@ python script/train.py fit --config ./config/<size>/<model>.json
 
 ## Wandb 同步（离线运行）
 
-运行 ./scripts/sync_wandb.sh 脚本进行同步最近一个 run id, 也可命令行参数制定 run id.
+运行 ./script/sync_wandb.sh 脚本进行同步最近一个 run id, 也可命令行参数制定 run id.
 
 ## 图像尺寸规范
 分两阶段进行训练，前 70% epoch:
@@ -154,8 +154,25 @@ python script/train.py fit --config ./config/<size>/<model>.json
 ## 消融实验
 - 模型使用 swinV2Model 即可。
 - 先使用 data 目录下的 fgvc-aves-tiny 数据集进行试验，训练配置参考 config\fgvc-aves-tiny。
-- 使用 ./scripts/train.sh 里的命令来运行实验，先尝试提升 fgvc-aves-tiny 的识别率，每个 epoch 运行可能要 20 分钟。你要监控它的 top1 和 top3 成功率来决定实验结果。
+- 使用 ./script/train.sh 里的命令来运行实验，先尝试提升 fgvc-aves-tiny 的识别率，每个 epoch 运行可能要 20 分钟。你要监控它的 top1 和 top3 成功率来决定实验结果。
 - 每次进行实验时，要使用控制变量法。要列一个计划，写清楚理由。
+
+## OpenClaw 运行训练脚本
+
+训练耗时较长（每个 epoch ~20 分钟，完整训练需数小时），在 OpenClaw 中运行时必须注意：
+
+1. **用 Git Bash 直接调用**，不要双层嵌套 bash -c。Git Bash 路径：`C:\Program Files\Git\bin\bash.exe`
+2. **必须设置 timeout: 0**（不限时），否则默认 30 分钟自动杀掉进程
+3. 工作目录设为项目根目录 `D:\image-classification`
+
+正确命令：
+```
+exec command: "C:\Program Files\Git\bin\bash.exe" "./script/train.sh"
+exec workdir: D:\image-classification
+exec timeout: 0
+```
+
+注意：不能用 PowerShell 运行 bash 脚本，也不能用 `bash -c "..."` 双层嵌套（会导致内存分配问题、子进程 crash）。直接 `bash.exe ./script/train.sh` 即可。
 
 ## 注意点
 - 该项目在 windows 上进行训练，注意兼容性

@@ -1,5 +1,5 @@
 {
-    "seed_everything": 1,
+    "seed_everything": 7,
     "model": {
         "class_path": "SwinV2Model",
         "init_args": {
@@ -10,7 +10,7 @@
             "mix_prob_early": 0.8,
             "mix_prob_late": 0,
             "mix_alpha": 0.8,
-            "use_arcface": false,
+            "use_arcface": true,
             "arcface_s": 30.0,
             "arcface_m": 0.3,
             "arcface_sub_center": 3,
@@ -62,7 +62,7 @@
             "id_map_file_path": "fgvc-aves-tiny_map.csv",
             "valid_id_map_file_path": "valid_fgvc-aves-tiny_map.csv",
             "batch_size": 8,
-            "num_workers": 5,
+            "num_workers": 1,
             "input_size": 512,
             "rrc_scale_min": 0.5,
             "random_erase_prob": 0.25,
