@@ -1,5 +1,5 @@
 {
-    "seed_everything": 7,
+    "seed_everything": 99,
     "model": {
         "class_path": "SwinV2Model",
         "init_args": {
@@ -65,12 +65,12 @@
             "num_workers": 1,
             "input_size": 512,
             "rrc_scale_min": 0.5,
-            "random_erase_prob": 0.25,
+            "random_erase_prob": 0.1,
             "re_scale_min": 0.02,
             "re_scale_max": 0.2,
             "rebalance_last_epochs": 0,
             "rebalance_floor_count": 100,
-            "trivial_augment_prob": 0.5
+            "trivial_augment_prob": 1
         }
     }
 }
