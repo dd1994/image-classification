@@ -62,7 +62,7 @@
             "id_map_file_path": "fgvc-aves-tiny_map.csv",
             "valid_id_map_file_path": "valid_fgvc-aves-tiny_map.csv",
             "batch_size": 8,
-            "num_workers": 1,
+            "num_workers": 8,
             "input_size": 512,
             "rrc_scale_min": 0.5,
             "random_erase_prob": 0.1,
@@ -72,7 +72,7 @@
             "rebalance_floor_count": 100,
             "trivial_augment_prob": 1,
             "random_rotation_degrees": 15,
-            "random_rotation_prob": 0.1
+            "random_rotation_prob": 0
         }
     }
 }
