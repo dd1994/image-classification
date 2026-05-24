@@ -12,12 +12,12 @@
             "mix_alpha": 0.8,
             "use_arcface": true,
             "arcface_s": 30.0,
-            "arcface_m": 0.3,
+            "arcface_m": 0.2,
             "arcface_sub_center": 3,
             "arcface_easy_margin": false,
             "arcface_ls_eps": 0.0,
             "arcface_margin_warmup_epochs": 3,
-            "arcface_margin_warmup_start": 0.1,
+            "arcface_margin_warmup_start": 0,
             "use_gradient_checkpointing": false
         }
     },
