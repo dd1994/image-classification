@@ -1,7 +1,7 @@
 #!/bin/bash
 
-CONFIG="./config/fgvc-aves-tiny/swinv2_tiny512.json"
-SEEDS=(1 7 99)
+CONFIG="./config/tiny/swinv2_tiny.json"
+SEEDS=(1)
 
 for seed in "${SEEDS[@]}"; do
     echo "=========================================="
@@ -11,8 +11,7 @@ for seed in "${SEEDS[@]}"; do
         ./script/train.py fit \
         --config "$CONFIG" \
         --seed_everything="$seed" \
-        --ckpt_path ./wandb_logs/identify/gdhte74a/checkpoints/last.ckpt \
-        || echo "WARNING: seed=$seed failed, continuing to next seed"
+        # --ckpt_path ./wandb_logs/identify/gdhte74a/checkpoints/last.ckpt
     echo "Finished seed=$seed"
     echo "Waiting 10s for GPU cleanup..."
     sleep 10
