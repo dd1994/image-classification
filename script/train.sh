@@ -1,6 +1,6 @@
 #!/bin/bash
 
-CONFIG="./config/fgvc-aves-tiny/swinv2_tiny.json"
+CONFIG="./config/tiny/swinv2_tiny.json"
 SEEDS=(1)
 
 for seed in "${SEEDS[@]}"; do
