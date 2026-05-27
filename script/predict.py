@@ -12,6 +12,10 @@ from model import SwinV2Model
 from util.transform import ToRGBTransform
 import csv
 
+CAM_THRESHOLD = 0.2
+MIN_AREA_RATIO = 0.05
+MAX_AREA_RATIO = 0.7
+
 
 def load_index_to_species_id_from_csv(csv_file_path):
     index_to_species_id = {}
@@ -22,6 +26,20 @@ def load_index_to_species_id_from_csv(csv_file_path):
             index, species_id, taxon_name, chinese_name = row
             index_to_species_id[int(index)] = taxon_name + ' ' + chinese_name
     return index_to_species_id
+
+
+def get_bbox_ratio(cam_heatmap, threshold=CAM_THRESHOLD):
+    """Return bbox area ratio [0, 1] from Grad-CAM heatmap. -1 if no activation."""
+    binary_mask = (cam_heatmap > threshold).astype(np.uint8)
+    rows = np.any(binary_mask, axis=1)
+    cols = np.any(binary_mask, axis=0)
+    if not rows.any() or not cols.any():
+        return -1.0
+    y_min, y_max = np.where(rows)[0][[0, -1]]
+    x_min, x_max = np.where(cols)[0][[0, -1]]
+    bbox_area = (y_max - y_min) * (x_max - x_min)
+    img_area = cam_heatmap.shape[0] * cam_heatmap.shape[1]
+    return bbox_area / img_area
 
 
 def compute_gradcam(model, img_tensor, target_class):
@@ -73,7 +91,7 @@ def compute_gradcam(model, img_tensor, target_class):
 
 
 def extract_crop(img_tensor_unnorm, cam_heatmap, normalize_fn, input_size,
-                  threshold=0.3, min_area_ratio=0.25, bbox_expand=0.15):
+                  threshold=CAM_THRESHOLD, min_area_ratio=MIN_AREA_RATIO, bbox_expand=0.15):
     binary_mask = (cam_heatmap > threshold).astype(np.uint8)
 
     rows = np.any(binary_mask, axis=1)
@@ -167,6 +185,16 @@ def main():
 
     # Grad-CAM + crop + ensemble
     cam = compute_gradcam(model, img_batch, baseline_pred)
+    bbox_ratio = get_bbox_ratio(cam)
+
+    if bbox_ratio < 0 or bbox_ratio > MAX_AREA_RATIO or bbox_ratio < MIN_AREA_RATIO:
+        print(f"[Skip crop] bbox ratio={bbox_ratio:.1%}, using baseline only")
+        print("=" * 60)
+        print("Baseline / Ensemble Top-3 (identical):")
+        print_topk(baseline_logits, baseline_probs, index_to_species_id)
+        print("=" * 60)
+        return
+
     crop_tensor_norm = extract_crop(img_tensor_unnorm, cam, normalize_fn, input_size)
     crop_batch = crop_tensor_norm.unsqueeze(0).to(device)
 

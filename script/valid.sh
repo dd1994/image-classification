@@ -1,7 +1,7 @@
 #!/bin/bash
 
-CONFIG="./config/fgvc-aves-tiny/swinv2_tiny512.json"
-CHECKPOINT="./wandb_logs/identify/eoz9k2h9/checkpoints/last.ckpt"
+CONFIG="./config/tiny/swinv2_tiny512.json"
+CHECKPOINT="./wandb_logs/identify/l03o21j9/checkpoints/last.ckpt"
 
 echo "=========================================="
 echo "Validating with Grad-CAM ensemble"

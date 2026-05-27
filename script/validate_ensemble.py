@@ -25,6 +25,9 @@ from dataSet.SpecialCateDataset import SpecialCateDataset
 
 MEAN = [0.485, 0.456, 0.406]
 STD = [0.229, 0.224, 0.225]
+CAM_THRESHOLD = 0.3
+MIN_AREA_RATIO = 0.3
+MAX_AREA_RATIO = 0.7
 
 
 def load_model(checkpoint_path, model_cfg, device):
@@ -119,8 +122,22 @@ def compute_gradcam(model, img_batch, target_class):
     return cam_norm.cpu().numpy()
 
 
+def get_bbox_ratio(cam_heatmap, threshold=CAM_THRESHOLD):
+    """Return bbox area ratio [0, 1] from Grad-CAM heatmap. -1 if no activation."""
+    binary_mask = (cam_heatmap > threshold).astype(np.uint8)
+    rows = np.any(binary_mask, axis=1)
+    cols = np.any(binary_mask, axis=0)
+    if not rows.any() or not cols.any():
+        return -1.0
+    y_min, y_max = np.where(rows)[0][[0, -1]]
+    x_min, x_max = np.where(cols)[0][[0, -1]]
+    bbox_area = (y_max - y_min) * (x_max - x_min)
+    img_area = cam_heatmap.shape[0] * cam_heatmap.shape[1]
+    return bbox_area / img_area
+
+
 def extract_crop(img_tensor_unnorm, cam_heatmap, input_size,
-                  threshold=0.3, min_area_ratio=0.25, bbox_expand=0.15):
+                  threshold=CAM_THRESHOLD, min_area_ratio=MIN_AREA_RATIO, bbox_expand=0.15):
     binary_mask = (cam_heatmap > threshold).astype(np.uint8)
     rows = np.any(binary_mask, axis=1)
     cols = np.any(binary_mask, axis=0)
@@ -157,6 +174,8 @@ def main():
                         help='Path to .ckpt checkpoint')
     parser.add_argument('--batch-size', type=int, default=80,
                         help='Override batch size (default: from config)')
+    parser.add_argument('--max-area-ratio', type=float, default=MAX_AREA_RATIO,
+                        help=f'Skip crop if bbox area exceeds this ratio (default: {MAX_AREA_RATIO})')
     args = parser.parse_args()
 
     with open(args.config, 'r') as f:
@@ -168,6 +187,7 @@ def main():
     data_dir = data_cfg['valid_dir']
     id_map = data_cfg['valid_id_map_file_path']
     batch_size = args.batch_size
+    max_area_ratio = args.max_area_ratio
     num_workers = data_cfg['num_workers']
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -199,6 +219,8 @@ def main():
     ensemble_avg_top3 = 0
     ensemble_max_top1 = 0
     ensemble_max_top3 = 0
+    skip_large_count = 0   # bbox > max_area_ratio
+    skip_small_count = 0   # bbox < min_area_ratio or no activation
 
     for img_unnorm, labels in tqdm(loader, desc="Validating"):
         bs = img_unnorm.size(0)
@@ -220,6 +242,17 @@ def main():
 
             pred = baseline_preds[i].item()
             cam = compute_gradcam(model, single_norm, pred)
+
+            # Skip crop if: no activation / fills most of frame / too small (would fallback)
+            bbox_ratio = get_bbox_ratio(cam)
+            if bbox_ratio < 0 or bbox_ratio < MIN_AREA_RATIO:
+                crop_logits_list.append(baseline_logits[i:i+1])
+                skip_small_count += 1
+                continue
+            if bbox_ratio > max_area_ratio:
+                crop_logits_list.append(baseline_logits[i:i+1])
+                skip_large_count += 1
+                continue
 
             crop_norm = extract_crop(single_unnorm, cam, input_size)
             crop_batch = crop_norm.unsqueeze(0).to(device)
@@ -263,6 +296,8 @@ def main():
 
     print(f"\n{'='*65}")
     print(f"Total validation images: {total}")
+    print(f"Crop skipped (bbox > {max_area_ratio:.0%}): {skip_large_count}")
+    print(f"Crop skipped (bbox < {MIN_AREA_RATIO:.0%} or no activation): {skip_small_count}")
     print(f"{'='*65}")
     print(f"{'Strategy':<20} {'Top-1':>10} {'Top-3':>10}")
     print(f"{'-'*45}")
