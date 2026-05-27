@@ -25,7 +25,7 @@
         "accelerator": "gpu",
         "devices": 1,
         "precision": "bf16-mixed",
-        "accumulate_grad_batches": 8,
+        "accumulate_grad_batches": 9,
         "callbacks": [
             {
                 "class_path": "pytorch_lightning.callbacks.EarlyStopping",
@@ -67,13 +67,15 @@
             "id_map_file_path": "mini_map.csv",
             "valid_id_map_file_path": "valid_mini_map.csv",
             "batch_size": 15,
-            "num_workers": 5,
+            "num_workers": 4,
             "input_size": 448,
             "rrc_scale_min": 0.3,
             "random_erase_prob": 0.25,
             "re_scale_min": 0.02,
             "re_scale_max": 0.2,
-            "trivial_augment_prob": 1.0
+            "trivial_augment_prob": 1,
+            "random_rotation_degrees": 15,
+            "random_rotation_prob": 0.1
         }
     }
 }

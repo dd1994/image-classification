@@ -1,5 +1,5 @@
 {
-    "seed_everything": 42,
+    "seed_everything": 99,
     "model": {
         "class_path": "SwinV2Model",
         "init_args": {
@@ -16,8 +16,8 @@
             "arcface_sub_center": 3,
             "arcface_easy_margin": false,
             "arcface_ls_eps": 0.0,
-            "arcface_margin_warmup_epochs": 3,
-            "arcface_margin_warmup_start": 0.1,
+            "arcface_margin_warmup_epochs": 4,
+            "arcface_margin_warmup_start": 0,
             "use_gradient_checkpointing": false
         }
     },
@@ -26,7 +26,7 @@
         "accelerator": "gpu",
         "devices": 1,
         "precision": "bf16-mixed",
-        "accumulate_grad_batches": 13,
+        "accumulate_grad_batches": 16,
         "callbacks": [
             {
                 "class_path": "pytorch_lightning.callbacks.EarlyStopping",
@@ -61,16 +61,18 @@
             "valid_dir": "./data/valid-mini",
             "id_map_file_path": "mini_map.csv",
             "valid_id_map_file_path": "valid_mini_map.csv",
-            "batch_size": 9,
-            "num_workers": 5,
+            "batch_size": 8,
+            "num_workers": 4,
             "input_size": 512,
             "rrc_scale_min": 0.5,
-            "random_erase_prob": 0.25,
+            "random_erase_prob": 0.1,
             "re_scale_min": 0.02,
             "re_scale_max": 0.2,
             "rebalance_last_epochs": 3,
             "rebalance_floor_count": 150,
-            "trivial_augment_prob": 1
+            "trivial_augment_prob": 1,
+            "random_rotation_degrees": 15,
+            "random_rotation_prob": 0
         }
     }
 }
