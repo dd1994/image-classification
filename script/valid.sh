@@ -12,5 +12,5 @@ PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True /c/ProgramData/anaconda3/envs/m
     ./script/validate_ensemble.py \
     --config "$CONFIG" \
     --checkpoint "$CHECKPOINT" \
-    --batch-size 80
+    --batch-size 96
 echo "Done."
