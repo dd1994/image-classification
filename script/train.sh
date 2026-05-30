@@ -11,7 +11,7 @@ for seed in "${SEEDS[@]}"; do
         ./script/train.py fit \
         --config "$CONFIG" \
         --seed_everything="$seed" \
-        # --ckpt_path ./wandb_logs/identify/2u9hmj14/checkpoints/last.ckpt
+        --ckpt_path ./wandb_logs/identify/843haksc/checkpoints/last.ckpt
     echo "Finished seed=$seed"
     echo "Waiting 10s for GPU cleanup..."
     sleep 10

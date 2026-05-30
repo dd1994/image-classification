@@ -26,7 +26,7 @@ from dataSet.SpecialCateDataset import SpecialCateDataset
 MEAN = [0.485, 0.456, 0.406]
 STD = [0.229, 0.224, 0.225]
 CAM_THRESHOLD = 0.3
-MIN_AREA_RATIO = 0.3
+MIN_AREA_RATIO = 0.2
 MAX_AREA_RATIO = 0.7
 
 
