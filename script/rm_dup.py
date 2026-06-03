@@ -29,7 +29,7 @@ import cv2  # 需要安装 opencv-python 包
 import random
 import shutil
 # 配置参数
-BASE_DIR = r"D:\image-classification\data\train"
+BASE_DIR = r"D:\image-classification\data\other-types"
 TRASH_DIR = r"D:\image-classification\data\trash"
 ACTIVE = ''
 
