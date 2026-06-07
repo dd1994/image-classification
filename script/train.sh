@@ -10,7 +10,7 @@ for seed in "${SEEDS[@]}"; do
     PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True /c/ProgramData/anaconda3/envs/myenv/python.exe \
         ./script/train.py fit \
         --config "$CONFIG" \
-        --seed_everything="$seed" \
+        --seed_everything="$seed"
     echo "Finished seed=$seed"
     echo "Waiting 10s for GPU cleanup..."
     sleep 10
