@@ -1,11 +1,32 @@
 const fs = require('fs').promises;
 const path = require('path');
 
-// 定义图片文件扩展名
+// 图片文件扩展名
 const imageExtensions = ['.jpg', '.jpeg', '.png', '.bmp', '.webp'];
 
 const trainDir = "D:/image-classification/data/train";
 const validDir = "D:/image-classification/data/valid";
+const trackingFile = "D:/image-classification/data/other_types_files.json";
+
+/**
+ * 加载 other_types 追踪文件，返回 Set<绝对路径>
+ * 这些文件来自 other-types 特殊形态，必须保留在训练集中
+ */
+async function loadProtectedFiles() {
+    try {
+        const data = await fs.readFile(trackingFile, 'utf-8');
+        const arr = JSON.parse(data);
+        console.log(`Loaded ${arr.length} protected files from ${trackingFile}`);
+        return new Set(arr);
+    } catch (err) {
+        if (err.code === 'ENOENT') {
+            console.log('No tracking file found — all files are movable.');
+        } else {
+            console.error(`Warning: could not read tracking file: ${err.message}`);
+        }
+        return new Set();
+    }
+}
 
 // 获取目录中的图片文件，忽略以点开头的文件
 async function getImageFiles(dir) {
@@ -66,6 +87,11 @@ async function deleteDir(dir) {
 
 // 主函数
 async function main() {
+    // 加载受保护文件集合（来自 other-types 的文件，不可移入验证集）
+    const protectedFiles = await loadProtectedFiles();
+
+    let totalProtectedCount = 0;  // 统计受保护文件总数
+
     // 获取所有大类文件夹，忽略以点开头的文件夹
     const classes = (await fs.readdir(trainDir)).filter(name => !name.startsWith('.'));
     for (const class_name of classes) {
@@ -99,17 +125,43 @@ async function main() {
             // 确保验证集目录中的物种ID文件夹存在
             await createDir(species_valid_path);
 
-            // 获取训练集中的图片文件，并按修改时间排序，忽略以点开头的文件
-            const train_imageFiles = await getImageFiles(species_train_path);
-            const sorted_train_files = await sortFilesByMtime(species_train_path, train_imageFiles);
-            const train_count = sorted_train_files.length;
+            // 获取训练集中的图片文件
+            const all_train_files = await getImageFiles(species_train_path);
+            const train_count = all_train_files.length;
 
-            // 计算验证集应有图片数量，取 5%，但是至少 5 张，至多 40 张
+            // 将文件分为"可移动"和"受保护"两类
+            const movable_files = [];
+            let protected_count = 0;
+            for (const file of all_train_files) {
+                const fullPath = path.join(species_train_path, file);
+                if (protectedFiles.has(fullPath)) {
+                    protected_count++;
+                } else {
+                    movable_files.push(file);
+                }
+            }
+            totalProtectedCount += protected_count;
+
+            // 按修改时间排序可移动文件
+            const sorted_movable = await sortFilesByMtime(species_train_path, movable_files);
+            const movable_count = sorted_movable.length;
+
+            // 计算验证集应有图片数量：
+            // 基于总图片数计算比例（保持比例一致），但不超过可移动文件数
             let desired_valid_count = Math.floor(train_count * 0.05);
             desired_valid_count = Math.max(desired_valid_count, 5);
             desired_valid_count = Math.min(desired_valid_count, 40);
 
-            // 获取验证集目录中已有的图片文件名，忽略以点开头的文件
+            // 不能超过可移动文件数（受保护文件不能移入验证集）
+            if (desired_valid_count > movable_count) {
+                console.warn(
+                    `  WARNING: ${class_name}/${species_id}: desired_valid=${desired_valid_count} ` +
+                    `> movable=${movable_count} (protected=${protected_count}), clamping to ${movable_count}`
+                );
+                desired_valid_count = movable_count;
+            }
+
+            // 获取验证集目录中已有的图片文件名
             const existing_valid_files = await getExistingValidFiles(species_valid_path);
             const current_valid_count = existing_valid_files.size;
 
@@ -120,8 +172,10 @@ async function main() {
             // 计算需要移动的图片数量
             const need_to_move = desired_valid_count - current_valid_count;
 
-            // 从训练集中选择未存在于验证集中的最新的图片，忽略以点开头的文件
-            const files_to_move = sorted_train_files.filter(file => !existing_valid_files.has(file)).slice(0, need_to_move);
+            // 从可移动文件中选取最新的、尚未在验证集中的文件
+            const files_to_move = sorted_movable
+                .filter(file => !existing_valid_files.has(file))
+                .slice(0, need_to_move);
 
             // 移动图片到验证集目录
             let moved_count = 0;
@@ -151,6 +205,8 @@ async function main() {
             }
         }
     }
+
+    console.log(`\nTotal protected files (from other-types, kept in train): ${totalProtectedCount}`);
 }
 
 // 运行主函数
