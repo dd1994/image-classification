@@ -1,7 +1,7 @@
 #!/bin/bash
 
-CONFIG="./config/mini/swinv2_mini.json"
-SEEDS=(1 7 99)
+CONFIG="./config/large/swinv2_all.json"
+SEEDS=(1)
 
 for seed in "${SEEDS[@]}"; do
     echo "=========================================="
@@ -11,7 +11,6 @@ for seed in "${SEEDS[@]}"; do
         ./script/train.py fit \
         --config "$CONFIG" \
         --seed_everything="$seed" \
-        --ckpt_path ./wandb_logs/identify/843haksc/checkpoints/last.ckpt
     echo "Finished seed=$seed"
     echo "Waiting 10s for GPU cleanup..."
     sleep 10
