@@ -1,22 +1,23 @@
 {
-    "seed_everything": 1,
+    "seed_everything": 99,
     "model": {
         "class_path": "SwinV2Model",
         "init_args": {
             "num_classes": 75,
             "learning_rate": 1e-4,
-            "input_size": 448,
+            "input_size": 512,
             "t_max": 17,
             "mix_prob_early": 0.8,
-            "mix_prob_late": 0.2,
+            "mix_prob_late": 0,
             "mix_alpha": 0.8,
             "use_arcface": true,
             "arcface_s": 64,
-            "arcface_m": 0,
+            "arcface_m": 0.3,
             "arcface_sub_center": 3,
             "arcface_easy_margin": false,
             "arcface_ls_eps": 0.0,
-            "arcface_margin_warmup_epochs": 5,
+            "arcface_margin_warmup_epochs": 4,
+            "arcface_margin_warmup_start": 0,
             "use_gradient_checkpointing": false
         }
     },
@@ -25,7 +26,7 @@
         "accelerator": "gpu",
         "devices": 1,
         "precision": "bf16-mixed",
-        "accumulate_grad_batches": 12,
+        "accumulate_grad_batches": 16,
         "callbacks": [
             {
                 "class_path": "pytorch_lightning.callbacks.EarlyStopping",
@@ -50,12 +51,6 @@
                 "init_args": {
                     "logging_interval": "step"
                 }
-            },
-            {
-                "class_path": "callbacks.epoch_stopping.EpochStoppingCallback",
-                "init_args": {
-                    "stop_at_epoch": 10
-                }
             }
         ]
     },
@@ -66,16 +61,18 @@
             "valid_dir": "./data/valid",
             "id_map_file_path": "train_map.csv",
             "valid_id_map_file_path": "valid_map.csv",
-            "batch_size": 12,
+            "batch_size": 8,
             "num_workers": 4,
-            "input_size": 448,
-            "rrc_scale_min": 0.3,
-            "random_erase_prob": 0.25,
+            "input_size": 512,
+            "rrc_scale_min": 0.5,
+            "random_erase_prob": 0.1,
             "re_scale_min": 0.02,
             "re_scale_max": 0.2,
+            "rebalance_last_epochs": 3,
+            "rebalance_floor_count": 150,
             "trivial_augment_prob": 1,
             "random_rotation_degrees": 15,
-            "random_rotation_prob": 0.1
+            "random_rotation_prob": 0
         }
     }
 }
