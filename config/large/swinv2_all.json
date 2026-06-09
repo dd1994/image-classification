@@ -48,8 +48,8 @@
             {
                 "class_path": "pytorch_lightning.callbacks.ModelCheckpoint",
                 "init_args": {
-                    "every_n_train_steps": 100000,
-                    "filename": "swinv2-all-step={step}-{val/acc_top1:.4f}",
+                    "every_n_train_steps": 15000,
+                    "filename": "swinv2-all-step={step}",
                     "save_top_k": -1,
                     "save_last": false
                 }
@@ -76,7 +76,7 @@
             "id_map_file_path": "train_map.csv",
             "valid_id_map_file_path": "valid_map.csv",
             "batch_size": 14,
-            "num_workers": 4,
+            "num_workers": 5,
             "input_size": 448,
             "rrc_scale_min": 0.3,
             "random_erase_prob": 0.25,

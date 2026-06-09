@@ -4,7 +4,7 @@ const path = require('path');
 // 图片文件扩展名
 const imageExtensions = ['.jpg', '.jpeg', '.png', '.bmp', '.webp'];
 
-const trainDir = "D:/image-classification/data/train";
+const trainDir = "D:/image-classification/data/temp";
 const validDir = "D:/image-classification/data/valid";
 const trackingFile = "D:/image-classification/data/other_types_files.json";
 
