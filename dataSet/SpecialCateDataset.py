@@ -51,8 +51,6 @@ class SpecialCateDataset(Dataset):
 
     def __getitem__(self, idx):
         dir_index, fname = self.index[idx]
-        image = Image.open(os.path.join(self.root_dir, fname))
-
-        if self.transform:
-            image = self.transform(image)
+        with Image.open(os.path.join(self.root_dir, fname)) as img:
+            image = self.transform(img) if self.transform else img
         return image, dir_index

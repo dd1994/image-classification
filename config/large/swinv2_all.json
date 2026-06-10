@@ -25,7 +25,7 @@
         "accelerator": "gpu",
         "devices": 1,
         "precision": "bf16-mixed",
-        "accumulate_grad_batches": 9,
+        "accumulate_grad_batches": 10,
         "callbacks": [
             {
                 "class_path": "pytorch_lightning.callbacks.EarlyStopping",
@@ -75,8 +75,8 @@
             "valid_dir": "./data/valid",
             "id_map_file_path": "train_map.csv",
             "valid_id_map_file_path": "valid_map.csv",
-            "batch_size": 14,
-            "num_workers": 5,
+            "batch_size": 13,
+            "num_workers": 4,
             "input_size": 448,
             "rrc_scale_min": 0.3,
             "random_erase_prob": 0.25,

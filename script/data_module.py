@@ -113,17 +113,17 @@ class INatBaseDataModule(pl.LightningDataModule):
             sampler._trainer = self.trainer
             return DataLoader(self.train_dataset, batch_size=self.batch_size,
                               sampler=sampler, num_workers=self.num_workers,
-                              persistent_workers=True, prefetch_factor=1)
+                              persistent_workers=False, prefetch_factor=1)
         return DataLoader(self.train_dataset, batch_size=self.batch_size,
-                          shuffle=True, num_workers=self.num_workers, persistent_workers=True, prefetch_factor=1)
+                          shuffle=True, num_workers=self.num_workers, persistent_workers=False, prefetch_factor=1)
 
     def val_dataloader(self):
         return DataLoader(self.val_dataset, batch_size=self.batch_size,
-                          shuffle=False, num_workers=self.num_workers, persistent_workers=True)
+                          shuffle=False, num_workers=self.num_workers, persistent_workers=False)
 
     def test_dataloader(self):
         return DataLoader(self.test_dataset, batch_size=self.batch_size,
-                          shuffle=False, num_workers=self.num_workers, persistent_workers=True)
+                          shuffle=False, num_workers=self.num_workers, persistent_workers=False)
     
 
 class SpecialCateData(INatBaseDataModule):

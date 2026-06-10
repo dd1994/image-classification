@@ -39,6 +39,10 @@ class BaseModel(pl.LightningModule):
         self._warmup_start_epoch = self.current_epoch
 
     def on_train_epoch_start(self):
+        # 清理 GPU 缓存碎片，防止长时间训练后因碎片化导致段错误
+        if torch.cuda.is_available():
+            torch.cuda.empty_cache()
+
         if not self.use_arcface:
             return
         warmup = self.hparams.arcface_margin_warmup_epochs
@@ -52,6 +56,11 @@ class BaseModel(pl.LightningModule):
         else:
             m = self.hparams.arcface_m
         self.arcface_loss.set_margin(m)
+
+    def on_validation_epoch_start(self):
+        # 清理 GPU 缓存碎片，梯度累积后验证前释放碎片化内存
+        if torch.cuda.is_available():
+            torch.cuda.empty_cache()
 
     def training_step(self, batch, batch_idx):
         images, labels = batch
