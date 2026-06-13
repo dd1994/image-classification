@@ -5,6 +5,7 @@ import os
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 import torch.cuda
+torch.set_float32_matmul_precision('high')  # 启用 TF32，利用 RTX 4090 Tensor Cores 加速
 from pytorch_lightning.cli import LightningCLI
 
 from data_module import INatBaseDataModule
