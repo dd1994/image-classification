@@ -7,7 +7,7 @@ for seed in "${SEEDS[@]}"; do
     echo "=========================================="
     echo "Training with seed=$seed"
     echo "=========================================="
-    PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True /c/ProgramData/anaconda3/envs/myenv/python.exe \
+    /c/ProgramData/anaconda3/envs/myenv/python.exe \
         ./script/train.py fit \
         --config "$CONFIG" \
         --seed_everything="$seed" \

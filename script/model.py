@@ -101,6 +101,11 @@ class BaseModel(pl.LightningModule):
         if batch_idx == 0:
             self.log('train/lr', self.trainer.optimizers[0].param_groups[0]['lr'])
 
+        # 每 1/10 epoch（~13万步）清理一次 CUDA 缓存碎片
+        # Windows 上 expandable_segments 不生效，epoch 内定期清理防止碎片累积导致段错误
+        if batch_idx > 0 and batch_idx % 130000 == 0 and torch.cuda.is_available():
+            torch.cuda.empty_cache()
+
         return loss
 
     def validation_step(self, batch, batch_idx):
