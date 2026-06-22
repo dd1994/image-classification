@@ -4,7 +4,7 @@
         "class_path": "SwinV2Model",
         "init_args": {
             "num_classes": 44269,
-            "learning_rate": 1e-4,
+            "learning_rate": 3e-4,
             "input_size": 512,
             "t_max": 17,
             "mix_prob_early": 0.8,
@@ -26,7 +26,7 @@
         "accelerator": "gpu",
         "devices": 1,
         "precision": "bf16-mixed",
-        "accumulate_grad_batches": 16,
+        "accumulate_grad_batches": 170,
         "callbacks": [
             {
                 "class_path": "pytorch_lightning.callbacks.EarlyStopping",
@@ -70,8 +70,8 @@
             "valid_dir": "./data/valid",
             "id_map_file_path": "train_map.csv",
             "valid_id_map_file_path": "valid_map.csv",
-            "batch_size": 8,
-            "num_workers": 4,
+            "batch_size": 6,
+            "num_workers": 2,
             "input_size": 512,
             "rrc_scale_min": 0.5,
             "random_erase_prob": 0.1,

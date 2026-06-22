@@ -144,24 +144,37 @@ class BaseModel(pl.LightningModule):
         optimizer = torch.optim.AdamW(self.parameters(), lr=self.learning_rate, weight_decay=2e-5, fused=True)
 
         warmup_epochs = 3
+
+        # Compute steps_per_epoch from trainer; fallback to 1 if unavailable
+        if self.trainer is not None and self.trainer.estimated_stepping_batches is not None:
+            total_est_steps = self.trainer.estimated_stepping_batches
+            max_epochs = self.trainer.max_epochs or 1
+            steps_per_epoch = max(1, total_est_steps // max_epochs)
+        else:
+            steps_per_epoch = 1
+
+        warmup_steps = warmup_epochs * steps_per_epoch
+        cosine_t_max = (self.t_max - warmup_epochs) * steps_per_epoch
+
         warmup_scheduler = torch.optim.lr_scheduler.LinearLR(
-            optimizer, start_factor=0.01, total_iters=warmup_epochs
+            optimizer, start_factor=0.01, total_iters=warmup_steps
         )
 
         scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(
-            optimizer, T_max=(self.t_max - warmup_epochs), eta_min=self.learning_rate * 0.0001
+            optimizer, T_max=cosine_t_max, eta_min=1e-6
         )
 
         combined_scheduler = torch.optim.lr_scheduler.SequentialLR(
             optimizer,
             schedulers=[warmup_scheduler, scheduler],
-            milestones=[warmup_epochs]  # 在 warmup_epochs 之后切换到 CosineAnnealingLR
+            milestones=[warmup_steps]  # step-based: switch after warmup_steps optimizer steps
         )
 
         return {
             "optimizer": optimizer,
             "lr_scheduler": {
                 "scheduler": combined_scheduler,
+                "interval": "step",
                 "monitor": "val/loss"
             }
         }
