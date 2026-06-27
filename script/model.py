@@ -157,7 +157,7 @@ class BaseModel(pl.LightningModule):
         cosine_t_max = (self.t_max - warmup_epochs) * steps_per_epoch
 
         warmup_scheduler = torch.optim.lr_scheduler.LinearLR(
-            optimizer, start_factor=0.01, total_iters=warmup_steps
+            optimizer, start_factor=0.001, total_iters=warmup_steps
         )
 
         scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(

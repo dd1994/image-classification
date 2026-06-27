@@ -178,5 +178,74 @@ exec timeout: 0
 
 注意：不能用 PowerShell 运行 bash 脚本，也不能用 `bash -c "..."` 双层嵌套（会导致内存分配问题、子进程 crash）。直接 `bash.exe ./script/train.sh` 即可。
 
+## 从 Wandb 日志查看学习率
+
+Wandb 离线日志（`.wandb` 二进制文件）里记录了两个 LR key：
+
+| Key | 来源 | 频率 | 用途 |
+|-----|------|------|------|
+| `train/lr` | `training_step` 中手动 `self.log('train/lr', ...)` | 每 epoch 一次（`batch_idx==0`） | 粗略，数据点少 |
+| `lr-AdamW` | `LearningRateMonitor` callback | 每个 optimizer step | **推荐**，完整 LR 曲线 |
+
+### 解析方法
+
+`.wandb` 文件是 protobuf 二进制格式，可用正则直接从文件中提取（无需 wandb SDK）。
+
+**推荐做法：只读文件尾部**。`lr-AdamW` 数据在文件持续追加写入，最新 LR 在尾部 32MB 内，无需全量读取：
+
+```python
+import re, os
+
+filepath = 'wandb_logs/wandb/<run_dir>/run-<id>.wandb'
+file_size = os.path.getsize(filepath)
+read_size = min(32 * 1024 * 1024, file_size)
+
+with open(filepath, 'rb') as f:
+    if file_size > read_size:
+        f.seek(file_size - read_size)
+    data = f.read()
+
+# 匹配 lr-AdamW<浮点数> ... global_step<整数>
+pattern = re.compile(
+    rb'lr-AdamW...([0-9]+(?:\.[0-9]+)?(?:[eE][+\-]?[0-9]+)?)'
+    rb'.{0,200}'
+    rb'global_step...([0-9]+)',
+    re.DOTALL
+)
+
+LR_MIN_SANE = 1e-10  # 过滤二进制噪声误匹配，真实 LR 不会低于此值
+
+seen = {}
+for m in pattern.finditer(data):
+    lr = float(m.group(1))
+    step = int(m.group(2))
+    if LR_MIN_SANE < lr < 1.0:
+        seen[step] = lr  # 覆盖写：尾部后出现的值更新，始终保留最新
+
+sorted_steps = sorted(seen.keys())
+# latest_step = sorted_steps[-1], latest_lr = seen[latest_step]
+```
+
+**关键点：** protobuf 里同一个 step 会有多条重复记录，**不能**用 `step not in seen` 跳过——必须无条件覆盖，因为尾部扫描到的后一条值才是最新的。
+
+**⚠️ 坑：二进制噪声误匹配。** `.wandb` 文件二进制数据中随机字节可能恰好匹配 LR 正则（如 `4.494429e-57`），必须加 `LR_MIN_SANE = 1e-10` 下限过滤。否则误值会走 `lr < 1.0` 进入 seen，导致趋势判断错误（如误判为 cosine 衰减）。
+
+### 全量读取（需要完整曲线时）
+
+对于大文件（数百 MB），用流式分块读取，每 16MB 一块，保留 1000 字节的跨块尾以保证不截断匹配。用 `re.finditer` 而非 `re.findall` 避免内存暴增。
+
+### 验证 Warmup 线性度
+
+对提取的 (step, lr) 做线性回归，检查：
+- 截距 ≈ `learning_rate × start_factor`（配置为 `3e-4 × 0.001 = 3e-7`）
+- R² ≈ 1.0（线性）
+- 每步增量 = `(3e-4 - 3e-7) / warmup_steps`
+
+### 注意事项
+
+- 不是所有 run 都开了 `LearningRateMonitor`（早期 run 可能只有 `train/lr`，每 epoch 才记一次）
+- 找最新 run：按 `.wandb` 文件的**修改时间**排序，不要看目录名里的日期（续跑的 run 目录名不变但文件持续更新）
+- 用 `re.finditer` 而非 `re.findall` 避免内存暴增
+
 ## 注意点
 - 该项目在 windows 上进行训练，注意兼容性
