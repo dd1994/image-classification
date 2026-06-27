@@ -118,8 +118,8 @@ class INatBaseDataModule(pl.LightningDataModule):
                           shuffle=True, num_workers=self.num_workers, persistent_workers=False, prefetch_factor=1)
 
     def val_dataloader(self):
-        return DataLoader(self.val_dataset, batch_size=self.batch_size,
-                          shuffle=False, num_workers=self.num_workers, persistent_workers=False)
+        return DataLoader(self.val_dataset, batch_size=self.batch_size*2,
+                          shuffle=False, num_workers=self.num_workers, persistent_workers=False, prefetch_factor=2)
 
     def test_dataloader(self):
         return DataLoader(self.test_dataset, batch_size=self.batch_size,
