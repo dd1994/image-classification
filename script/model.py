@@ -192,7 +192,8 @@ class SwinV2Model(BaseModel):
                  arcface_ls_eps: float = 0.0,
                  arcface_margin_warmup_epochs: int = 0,
                  arcface_margin_warmup_start: float = 0.0,
-                 use_gradient_checkpointing: bool = False):
+                 use_gradient_checkpointing: bool = False,
+                 use_torch_compile: bool = False):
         super().__init__(t_max=t_max, num_classes=num_classes, learning_rate=learning_rate,
                          mix_prob_early=mix_prob_early, mix_prob_late=mix_prob_late,
                          mix_alpha=mix_alpha,
@@ -205,9 +206,12 @@ class SwinV2Model(BaseModel):
                          arcface_margin_warmup_epochs=arcface_margin_warmup_epochs,
                          arcface_margin_warmup_start=arcface_margin_warmup_start)
         self.use_gradient_checkpointing = use_gradient_checkpointing
+        self.use_torch_compile = use_torch_compile
         self.model = timm.create_model('swinv2_base_window12to24_192to384.ms_in22k_ft_in1k', pretrained=True)
         if use_gradient_checkpointing:
             self.model.set_grad_checkpointing(True)
+        # if use_torch_compile:
+        #     self.model = torch.compile(self.model, mode="reduce-overhead")
         if ckpt != '' :
             checkpoint = torch.load(ckpt)
             state_dict = checkpoint['state_dict']

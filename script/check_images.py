@@ -10,6 +10,7 @@ from multiprocessing import Pool
 from pathlib import Path
 
 from PIL import Image, UnidentifiedImageError
+from tqdm import tqdm
 
 # 可通过命令行参数指定数据目录: python check_images.py data/valid
 DATA_DIR = Path(sys.argv[1] if len(sys.argv) > 1 else "./data/train")
@@ -69,25 +70,32 @@ def main():
     print(f"使用 {WORKERS} 进程, chunk={CHUNK_SIZE}")
     print()
 
+    print("正在统计文件总数...")
+    total = sum(
+        1 for dirpath, dirnames, filenames in os.walk(DATA_DIR)
+        for fname in filenames
+        if not fname.startswith('.')
+        and Path(fname).suffix.lower() in EXTS
+    )
+    print(f"共 {total:,} 张图片待检查\n")
+
     bad_list = []
-    checked = 0
     start = time.time()
 
     print("开始并行检查（边遍历边检查）...")
-    with Pool(processes=WORKERS) as pool:
+    with Pool(processes=WORKERS) as pool, \
+         tqdm(
+            total=total, desc="检查进度", unit="张",
+            bar_format="{desc}: {percentage:3.0f}%|{bar}| {n_fmt}/{total_fmt} "
+                       "[{elapsed}<{remaining}, {rate_fmt}] 坏文件:{postfix}"
+         ) as pbar:
         for path_str, is_bad, err in pool.imap_unordered(
             check_one, iter_tasks(), chunksize=CHUNK_SIZE
         ):
-            checked += 1
             if is_bad:
                 bad_list.append((path_str, err))
-
-            if checked % 50000 == 0:
-                elapsed = time.time() - start
-                rate = checked / elapsed
-                print(f"  已检查: {checked:,}  "
-                      f"速率: {rate:.0f} 张/秒  "
-                      f"坏文件: {len(bad_list)}")
+                pbar.set_postfix_str(str(len(bad_list)))
+            pbar.update(1)
 
     elapsed = time.time() - start
     print(f"\n检查完成! 耗时 {elapsed/60:.1f} 分钟")

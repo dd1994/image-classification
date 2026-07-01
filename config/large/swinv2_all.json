@@ -17,7 +17,8 @@
             "arcface_easy_margin": false,
             "arcface_ls_eps": 0.0,
             "arcface_margin_warmup_epochs": 5,
-            "use_gradient_checkpointing": false
+            "use_gradient_checkpointing": false,
+            "use_torch_compile": true
         }
     },
     "trainer": {
@@ -76,7 +77,7 @@
             "id_map_file_path": "train_map.csv",
             "valid_id_map_file_path": "valid_map.csv",
             "batch_size": 13,
-            "num_workers": 2,
+            "num_workers": 1,
             "input_size": 448,
             "rrc_scale_min": 0.3,
             "random_erase_prob": 0.25,
