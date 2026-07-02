@@ -1,0 +1,81 @@
+{
+    "seed_everything": 1,
+    "model": {
+        "class_path": "EVA02Model",
+        "init_args": {
+            "num_classes": 168,
+            "learning_rate": 1e-4,
+            "input_size": 448,
+            "t_max": 17,
+            "mix_prob_early": 0.8,
+            "mix_prob_late": 0.2,
+            "mix_alpha": 0.8,
+            "use_arcface": true,
+            "arcface_s": 30.0,
+            "arcface_m": 0,
+            "arcface_sub_center": 3,
+            "arcface_easy_margin": false,
+            "arcface_ls_eps": 0.0,
+            "arcface_margin_warmup_epochs": 5,
+            "use_gradient_checkpointing": false
+        }
+    },
+    "trainer": {
+        "max_epochs": 17,
+        "accelerator": "gpu",
+        "devices": 1,
+        "precision": "bf16-mixed",
+        "accumulate_grad_batches": 5,
+        "callbacks": [
+            {
+                "class_path": "pytorch_lightning.callbacks.EarlyStopping",
+                "init_args": {
+                    "monitor": "val/acc_top1",
+                    "patience": 7,
+                    "mode": "max"
+                }
+            },
+            {
+                "class_path": "pytorch_lightning.callbacks.ModelCheckpoint",
+                "init_args": {
+                    "monitor": "val/acc_top1",
+                    "filename": "swinv2-all-{epoch:02d}-{val/acc_top1:.4f}",
+                    "save_top_k": 5,
+                    "save_last": true,
+                    "mode": "max"
+                }
+            },
+            {
+                "class_path": "pytorch_lightning.callbacks.LearningRateMonitor",
+                "init_args": {
+                    "logging_interval": "step"
+                }
+            },
+            {
+                "class_path": "callbacks.epoch_stopping.EpochStoppingCallback",
+                "init_args": {
+                    "stop_at_epoch": 10
+                }
+            }
+        ]
+    },
+    "data": {
+        "class_path": "SpecialCateData",
+        "init_args": {
+            "data_dir": "./data/train-tiny",
+            "valid_dir": "./data/valid-tiny",
+            "id_map_file_path": "tiny_map.csv",
+            "valid_id_map_file_path": "valid_tiny_map.csv",
+            "batch_size": 28,
+            "num_workers": 4,
+            "input_size": 448,
+            "rrc_scale_min": 0.3,
+            "random_erase_prob": 0.25,
+            "re_scale_min": 0.02,
+            "re_scale_max": 0.2,
+            "trivial_augment_prob": 1,
+            "random_rotation_degrees": 15,
+            "random_rotation_prob": 0.1
+        }
+    }
+}

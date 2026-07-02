@@ -242,6 +242,66 @@ class SwinV2Model(BaseModel):
             return self.arcface_loss.get_logits(self.forward_features(x))
         return self.model(x)
 
+class EVA02Model(BaseModel):
+    def __init__(self, num_classes: int = 51, learning_rate: float = 1e-4, input_size = 448, t_max=20,
+                 mix_prob_early: float = 0.8, mix_prob_late: float = 0.2, mix_alpha: float = 0.2,
+                 ckpt: str = '',
+                 use_arcface: bool = False,
+                 arcface_s: float = 30.0,
+                 arcface_m: float = 0.5,
+                 arcface_sub_center: int = 1,
+                 arcface_easy_margin: bool = False,
+                 arcface_ls_eps: float = 0.0,
+                 arcface_margin_warmup_epochs: int = 0,
+                 arcface_margin_warmup_start: float = 0.0,
+                 use_gradient_checkpointing: bool = False,
+                 use_torch_compile: bool = False):
+        super().__init__(t_max=t_max, num_classes=num_classes, learning_rate=learning_rate,
+                         mix_prob_early=mix_prob_early, mix_prob_late=mix_prob_late,
+                         mix_alpha=mix_alpha,
+                         use_arcface=use_arcface,
+                         arcface_s=arcface_s,
+                         arcface_m=arcface_m,
+                         arcface_sub_center=arcface_sub_center,
+                         arcface_easy_margin=arcface_easy_margin,
+                         arcface_ls_eps=arcface_ls_eps,
+                         arcface_margin_warmup_epochs=arcface_margin_warmup_epochs,
+                         arcface_margin_warmup_start=arcface_margin_warmup_start)
+        self.use_gradient_checkpointing = use_gradient_checkpointing
+        self.use_torch_compile = use_torch_compile
+        self.model = timm.create_model('eva02_base_patch14_448.mim_in22k_ft_in22k',
+                                       pretrained=True, img_size=input_size)
+        if use_gradient_checkpointing:
+            self.model.set_grad_checkpointing(True)
+        if ckpt != '':
+            checkpoint = torch.load(ckpt)
+            state_dict = checkpoint['state_dict']
+            state_dict.pop('model.head.weight', None)
+            state_dict.pop('model.head.bias', None)
+            self.load_state_dict(state_dict, strict=False)
+
+        in_features = self.model.num_features
+        if use_arcface:
+            self.model.head = nn.Identity()
+            self.arcface_loss = ArcFaceLoss(
+                in_features, num_classes,
+                s=arcface_s, m=arcface_m,
+                number_sub_center=arcface_sub_center,
+                easy_margin=arcface_easy_margin,
+                ls_eps=arcface_ls_eps)
+        else:
+            self.model.head = nn.Linear(in_features, num_classes)
+
+    def forward_features(self, x):
+        x = self.model.forward_features(x)
+        return self.model.forward_head(x, pre_logits=True)
+
+    def forward(self, x):
+        if self.use_arcface:
+            return self.arcface_loss.get_logits(self.forward_features(x))
+        return self.model(x)
+
+
 class SwinV2FixResModel(BaseModel):
     def __init__(self, num_classes: int = 51, learning_rate: float = 1e-4, input_size = 448, t_max=20, ckpt: str = ''):
         super().__init__(t_max=t_max, num_classes=num_classes, learning_rate=learning_rate)

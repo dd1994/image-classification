@@ -1,7 +1,7 @@
 #!/bin/bash
 
-CONFIG="./config/large/swinv2_all.json"
-SEEDS=(42)
+CONFIG="./config/tiny/eva02_tiny.json"
+SEEDS=(1 42 99)
 
 for seed in "${SEEDS[@]}"; do
     echo "=========================================="
