@@ -55,6 +55,8 @@ class BaseModel(pl.LightningModule):
             m = start + (target - start) * (stage_epoch + 1) / warmup
         else:
             m = self.hparams.arcface_m
+        print('arcface margin:')    
+        print(m)    
         self.arcface_loss.set_margin(m)
 
     def on_validation_epoch_start(self):

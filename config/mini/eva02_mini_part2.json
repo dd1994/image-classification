@@ -3,7 +3,7 @@
     "model": {
         "class_path": "EVA02Model",
         "init_args": {
-            "num_classes": 168,
+            "num_classes": 352,
             "learning_rate": 1e-4,
             "input_size": 512,
             "t_max": 17,
@@ -26,7 +26,7 @@
         "accelerator": "gpu",
         "devices": 1,
         "precision": "bf16-mixed",
-        "accumulate_grad_batches": 4,
+        "accumulate_grad_batches": 16,
         "callbacks": [
             {
                 "class_path": "pytorch_lightning.callbacks.EarlyStopping",
@@ -40,7 +40,7 @@
                 "class_path": "pytorch_lightning.callbacks.ModelCheckpoint",
                 "init_args": {
                     "monitor": "val/acc_top1",
-                    "filename": "swinv2-all-{epoch:02d}-{val/acc_top1:.4f}",
+                    "filename": "eva02-all-{epoch:02d}-{val/acc_top1:.4f}",
                     "save_top_k": 5,
                     "save_last": true,
                     "mode": "max"
@@ -57,10 +57,10 @@
     "data": {
         "class_path": "SpecialCateData",
         "init_args": {
-            "data_dir": "./data/train-tiny",
-            "valid_dir": "./data/valid-tiny",
-            "id_map_file_path": "tiny_map.csv",
-            "valid_id_map_file_path": "valid_tiny_map.csv",
+            "data_dir": "./data/train-mini",
+            "valid_dir": "./data/valid-mini",
+            "id_map_file_path": "mini_map.csv",
+            "valid_id_map_file_path": "valid_mini_map.csv",
             "batch_size": 28,
             "num_workers": 4,
             "input_size": 512,
@@ -68,8 +68,8 @@
             "random_erase_prob": 0.1,
             "re_scale_min": 0.02,
             "re_scale_max": 0.2,
-            "rebalance_last_epochs": 3,
-            "rebalance_floor_count": 150,
+            "rebalance_last_epochs": 2,
+            "rebalance_floor_count": 90,
             "trivial_augment_prob": 1,
             "random_rotation_degrees": 15,
             "random_rotation_prob": 0
