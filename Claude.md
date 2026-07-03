@@ -1,12 +1,12 @@
 # image-classification 项目规则
 
 ## 项目概述
-这是一个使用 PyTorch Lightning 和 SwinV2 transformer(base 型号)的图像分类项目。
+这是一个使用 PyTorch Lightning 和 EVA02 base 模型（`eva02_base_patch14_448.mim_in22k_ft_in22k`，来自 timm）的图像分类项目。
 支持识别约 4.4 万 种国内动植物识别（细粒度分类），差不多 1600 万张训练图片，每个类最多 1000 张，最少 50 张训练图片。使用两阶段训练（前 70% epoch 使用 448px, 后 30% epoch 使用 512px）
 
 ## 关键依赖
 - torch && pytorch_lightning
-- timm（用于 SwinV2、Hiera、EfficientNetV2 模型）
+- timm（用于 EVA02、Hiera、EfficientNetV2 等模型）
 - torchvision
 
 ## Python 解释器
@@ -51,9 +51,9 @@ image-classification/
 
 ### 关键实现细节
 - ArcFaceLoss 内部持有类别中心权重（`self.weight`），替换了 fc 层（fc 设为 `nn.Identity()`）
-- `SwinV2Model.forward_features(x)` 通过 `model.forward_features(x) + model.forward_head(x, pre_logits=True)` 获取 fc 前 embedding
+- `EVA02Model.forward_features(x)` 通过 `model.forward_features(x) + model.forward_head(x, pre_logits=True)` 获取 fc 前 embedding
 - 当 MixUp/CutMix 激活时（labels 为 2D soft labels），ArcFaceLoss 自动跳过 margin，仅使用 s*cosine
-- ArcFaceLoss 权重由 SwinV2Model 管理，通过 `self.arcface_loss` 属性访问
+- ArcFaceLoss 权重由 EVA02Model 管理，通过 `self.arcface_loss` 属性访问
 
 ### ArcFace 参数含义
 | 参数 | 含义 | 推荐值 |
@@ -81,13 +81,13 @@ weight = self.weight.float()
 ### 2. `save_hyperparameters()` 不会设置实例属性
 `save_hyperparameters()` 将参数存入 `self.hparams`，但不会自动添加为 `self.xxx` 属性。如需在代码中直接访问 `self.use_arcface`，必须在 `__init__` 中显式设置 `self.use_arcface = use_arcface`。
 
-### 3. timm SwinV2 特征提取
+### 3. timm EVA02 特征提取
 获取 fc 层之前的 embedding 向量：
 ```python
 x = self.model.forward_features(x)          # 返回 feature maps
 embedding = self.model.forward_head(x, pre_logits=True)  # 返回 fc 前向量 [B, in_features]
 ```
-`model.head.fc.in_features` 可获取 embedding 维度（SwinV2 base 为 1024）。
+`model.num_features` 可获取 embedding 维度（EVA02 base 为 768）。
 
 ## 配置文件格式
 JSON 配置文件遵循 LightningCLI 格式，包含三个主要部分：
@@ -96,13 +96,15 @@ JSON 配置文件遵循 LightningCLI 格式，包含三个主要部分：
 - **data**：DataModule 类及数据路径
 
 配置示例
-* `./config/mini/swinv2_mini.json`
-* `./config/mini/swinv2_mini512.json`
+* `./config/mini/eva02_mini.json`
+* `./config/mini/eva02_mini_part2.json`
+* `./config/fgvc-aves-tiny/eva02_tiny.json`
 
 ## 可用的模型类（model.py 中）
 - **BaseModel**：基类，包含训练/验证/测试步骤，使用 CrossEntropyLoss
-- **SwinV2Model**：使用 timm 预训练主干的 SwinV2（input_size: 448）
-除了 SwinV2Model,还有些其他 model 都是测试用的，无需关注。
+- **EVA02Model**：当前使用的模型，使用 timm `eva02_base_patch14_448.mim_in22k_ft_in22k` 预训练主干（input_size: 448）
+- **SwinV2Model**：旧模型（基于 SwinV2 base），保留用于对比实验
+- 其他模型类（HieraModel, ConvNextV2Model, DinoV2Model, AIMv2Model, EfficientNetV2Model）均为测试用，无需关注。
 
 ## 可用的 DataModule 类（data_module.py 中）
 - **INatBaseDataModule**：基类，包含标准数据增强（TrivialAugmentWide、RandomErasing、Normalize）
@@ -152,13 +154,13 @@ python script/train.py fit --config ./config/<size>/<model>.json
 - 预测加载模型前使用 torch.cuda.empty_cache()
 
 ## 消融实验
-- 模型使用 swinV2Model 即可。
+- 模型使用 EVA02Model 即可。
 - 先使用 data 目录下的 fgvc-aves-tiny 数据集进行试验，训练配置参考 config\fgvc-aves-tiny。
 - 使用 ./script/train.sh 里的命令来运行实验，先尝试提升 fgvc-aves-tiny 的识别率，每个 epoch 运行可能要 20 分钟。你要监控它的 top1 和 top3 成功率来决定实验结果。
 - 每次进行实验时，要使用控制变量法。要列一个计划，写清楚理由。
 
 ## 运行完成后如何查看识别率
-wandb_logs\identify 下有各个 run id 文件夹，文件里 checkpoint 的文件名就有识别率。比如：`wandb_logs\identify\3dmhbizq\checkpoints\swinv2-all-epoch=11-val\acc_top1=0.7127.ckpt`
+wandb_logs\identify 下有各个 run id 文件夹，文件里 checkpoint 的文件名就有识别率。比如：`wandb_logs\identify\3dmhbizq\checkpoints\eva02-all-epoch=11-val\acc_top1=0.7127.ckpt`
 
 ## OpenClaw 运行训练脚本
 
