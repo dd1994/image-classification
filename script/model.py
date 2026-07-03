@@ -55,8 +55,6 @@ class BaseModel(pl.LightningModule):
             m = start + (target - start) * (stage_epoch + 1) / warmup
         else:
             m = self.hparams.arcface_m
-        print('arcface margin:')    
-        print(m)    
         self.arcface_loss.set_margin(m)
 
     def on_validation_epoch_start(self):
@@ -101,7 +99,7 @@ class BaseModel(pl.LightningModule):
         self.log('train/acc', acc, prog_bar=True)
         # 记录学习率
         if batch_idx == 0:
-            self.log('train/lr', self.trainer.optimizers[0].param_groups[0]['lr'])
+            self.log('train/lr', self.trainer.optimizers[0].param_groups[-1]['lr'])
 
         # 每 1/10 epoch（~13万步）清理一次 CUDA 缓存碎片
         # Windows 上 expandable_segments 不生效，epoch 内定期清理防止碎片累积导致段错误
@@ -257,7 +255,9 @@ class EVA02Model(BaseModel):
                  arcface_margin_warmup_epochs: int = 0,
                  arcface_margin_warmup_start: float = 0.0,
                  use_gradient_checkpointing: bool = False,
-                 use_torch_compile: bool = False):
+                 use_torch_compile: bool = False,
+                 layer_decay_rate: float = 0.0,
+                 head_lr_mult: float = 1.0):
         super().__init__(t_max=t_max, num_classes=num_classes, learning_rate=learning_rate,
                          mix_prob_early=mix_prob_early, mix_prob_late=mix_prob_late,
                          mix_alpha=mix_alpha,
@@ -271,6 +271,11 @@ class EVA02Model(BaseModel):
                          arcface_margin_warmup_start=arcface_margin_warmup_start)
         self.use_gradient_checkpointing = use_gradient_checkpointing
         self.use_torch_compile = use_torch_compile
+        self.layer_decay_rate = layer_decay_rate
+        self.head_lr_mult = head_lr_mult
+        # Save to hparams so checkpoint resume preserves layer-wise LR config
+        self.hparams['layer_decay_rate'] = layer_decay_rate
+        self.hparams['head_lr_mult'] = head_lr_mult
         self.model = timm.create_model('eva02_base_patch14_448.mim_in22k_ft_in22k',
                                        pretrained=True, img_size=input_size)
         if use_gradient_checkpointing:
@@ -302,6 +307,131 @@ class EVA02Model(BaseModel):
         if self.use_arcface:
             return self.arcface_loss.get_logits(self.forward_features(x))
         return self.model(x)
+
+    # ── Layer-wise LR helpers ──────────────────────────────────────────
+
+    @staticmethod
+    def _get_param_depth(name: str) -> int:
+        """Return 0-12 depth index for a named parameter of self.model.
+
+        Depth 0: patch_embed, cls_token, pos_embed (most generic features)
+        Depth i: blocks.i.*  for i in 0..11
+        Depth 11: fc_norm (post-pool norm, close to head)
+        Depth 12: head.* (classification head, highest LR)
+        """
+        import re
+        if name.startswith("patch_embed"):
+            return 0
+        if name in ("cls_token", "pos_embed"):
+            return 0
+        if name.startswith("fc_norm"):
+            return 11
+        m = re.match(r"blocks\.(\d+)\.", name)
+        if m:
+            return int(m.group(1))  # 0..11
+        if name.startswith("head."):
+            return 12
+        return 0  # conservative fallback
+
+    @staticmethod
+    def _has_weight_decay(name: str, param) -> bool:
+        """Return False for LayerNorm and bias parameters (should use wd=0)."""
+        if param.ndim == 1:
+            return False
+        if "norm" in name.lower():
+            return False
+        if name.endswith(".bias") or name == "bias":
+            return False
+        return True
+
+    def configure_optimizers(self):
+        # Gate: fall back to flat LR if layer_decay_rate is disabled
+        if not (0.0 < self.layer_decay_rate < 1.0):
+            print(f"[EVA02Model] layer_decay_rate={self.layer_decay_rate} — using flat LR (BaseModel default)")
+            return super().configure_optimizers()
+
+        print(f"[EVA02Model] Layer-wise LR enabled: "
+              f"layer_decay_rate={self.layer_decay_rate}, head_lr_mult={self.head_lr_mult}, "
+              f"base_lr={self.learning_rate}")
+
+        # Collect backbone parameters grouped by (lr_scale, weight_decay)
+        groups: dict = {}
+
+        for name, param in self.model.named_parameters():
+            if not param.requires_grad:
+                continue
+            depth = self._get_param_depth(name)
+            if depth <= 11:
+                lr_scale = self.layer_decay_rate ** (11 - depth)
+            else:
+                lr_scale = 1.0 * self.head_lr_mult
+            wd = 2e-5 if self._has_weight_decay(name, param) else 0.0
+            key = (lr_scale, wd)
+            if key not in groups:
+                groups[key] = []
+            groups[key].append(param)
+
+        # Head parameters outside self.model (ArcFace path)
+        head_lr_scale = 1.0 * self.head_lr_mult
+        if self.use_arcface:
+            for name, param in self.arcface_loss.named_parameters():
+                if not param.requires_grad:
+                    continue
+                wd = 2e-5 if self._has_weight_decay(name, param) else 0.0
+                key = (head_lr_scale, wd)
+                if key not in groups:
+                    groups[key] = []
+                groups[key].append(param)
+
+        # Build sorted param_groups (ascending lr_scale for deterministic ordering)
+        param_groups = []
+        for (lr_scale, wd), params in sorted(groups.items(), key=lambda x: x[0][0]):
+            param_groups.append({
+                "params": params,
+                "lr": self.learning_rate * lr_scale,
+                "weight_decay": wd,
+            })
+
+        # Log LR range for diagnostics
+        lr_min = param_groups[0]["lr"]
+        lr_max = param_groups[-1]["lr"]
+        param_count = sum(len(g["params"]) for g in param_groups)
+        print(f"[EVA02Model] {len(param_groups)} param groups, {param_count} tensors, "
+              f"LR range: [{lr_min:.2e}, {lr_max:.2e}]")
+
+        optimizer = torch.optim.AdamW(param_groups, weight_decay=2e-5, fused=True)
+
+        # Scheduler (same as BaseModel: 3-epoch warmup → cosine)
+        warmup_epochs = 3
+        if self.trainer is not None and self.trainer.estimated_stepping_batches is not None:
+            total_est_steps = self.trainer.estimated_stepping_batches
+            max_epochs = self.trainer.max_epochs or 1
+            steps_per_epoch = max(1, total_est_steps // max_epochs)
+        else:
+            steps_per_epoch = 1
+
+        warmup_steps = warmup_epochs * steps_per_epoch
+        cosine_t_max = (self.t_max - warmup_epochs) * steps_per_epoch
+
+        warmup_scheduler = torch.optim.lr_scheduler.LinearLR(
+            optimizer, start_factor=0.001, total_iters=warmup_steps
+        )
+        scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(
+            optimizer, T_max=cosine_t_max, eta_min=1e-6
+        )
+        combined_scheduler = torch.optim.lr_scheduler.SequentialLR(
+            optimizer,
+            schedulers=[warmup_scheduler, scheduler],
+            milestones=[warmup_steps]
+        )
+        return {
+            "optimizer": optimizer,
+            "lr_scheduler": {
+                "scheduler": combined_scheduler,
+                "interval": "step",
+                "monitor": "val/loss"
+            }
+        }
 
 
 class SwinV2FixResModel(BaseModel):

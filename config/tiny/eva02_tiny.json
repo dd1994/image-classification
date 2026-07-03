@@ -17,7 +17,9 @@
             "arcface_easy_margin": false,
             "arcface_ls_eps": 0.0,
             "arcface_margin_warmup_epochs": 5,
-            "use_gradient_checkpointing": false
+            "use_gradient_checkpointing": false,
+            "layer_decay_rate": 0.85,
+            "head_lr_mult": 1.0
         }
     },
     "trainer": {

@@ -1,7 +1,7 @@
 {
     "seed_everything": 1,
     "model": {
-        "class_path": "SwinV2Model",
+        "class_path": "EVA02Model",
         "init_args": {
             "num_classes": 44269,
             "learning_rate": 3e-4,
@@ -16,9 +16,10 @@
             "arcface_sub_center": 3,
             "arcface_easy_margin": false,
             "arcface_ls_eps": 0.0,
-            "arcface_margin_warmup_epochs": 5,
+            "arcface_margin_warmup_epochs": 4,
             "use_gradient_checkpointing": false,
-            "use_torch_compile": true
+            "layer_decay_rate": 0.8,
+            "head_lr_mult": 1.0
         }
     },
     "trainer": {
@@ -26,7 +27,7 @@
         "accelerator": "gpu",
         "devices": 1,
         "precision": "bf16-mixed",
-        "accumulate_grad_batches": 80,
+        "accumulate_grad_batches": 72,
         "callbacks": [
             {
                 "class_path": "pytorch_lightning.callbacks.EarlyStopping",
@@ -76,7 +77,7 @@
             "valid_dir": "./data/valid",
             "id_map_file_path": "train_map.csv",
             "valid_id_map_file_path": "valid_map.csv",
-            "batch_size": 13,
+            "batch_size": 28,
             "num_workers": 1,
             "input_size": 448,
             "rrc_scale_min": 0.3,
