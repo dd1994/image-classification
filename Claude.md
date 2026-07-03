@@ -171,14 +171,19 @@ wandb_logs\identify 下有各个 run id 文件夹，文件里 checkpoint 的文�
 3. 工作目录设为项目根目录 `D:\image-classification`
 
 
-正确命令：
+正确命令（注意必须加 `&` 调用运算符，否则 PowerShell 会把两个连续引号字符串当成语法错误）：
 ```
-exec command: "C:\Program Files\Git\bin\bash.exe" "./script/train.sh"
+exec command: & "C:\Program Files\Git\bin\bash.exe" "./script/train.sh"
 exec workdir: D:\image-classification
 exec timeout: 0
+exec background: true
 ```
 
-注意：不能用 PowerShell 运行 bash 脚本，也不能用 `bash -c "..."` 双层嵌套（会导致内存分配问题、子进程 crash）。直接 `bash.exe ./script/train.sh` 即可。
+⚠️ 踩过的坑：
+- 不能用 PowerShell 运行 bash 脚本，也不能用 `bash -c "..."` 双层嵌套（会导致内存分配问题、子进程 crash）
+- **必须用 `&` 前缀**，因为 PowerShell 不认识 `"path1" "arg1"` 两个连续引用字符串的语法
+- 第一次没加 `&` 报错 `表达式或语句中包含意外的标记`
+- 直接用 `bash.exe ./script/train.sh` 即可
 
 ## 从 Wandb 日志查看学习率
 
