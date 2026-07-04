@@ -81,7 +81,7 @@
             "num_workers": 3,
             "input_size": 448,
             "rrc_scale_min": 0.3,
-            "random_erase_prob": 0.25,
+            "random_erase_prob": 0.2,
             "re_scale_min": 0.02,
             "re_scale_max": 0.2,
             "trivial_augment_prob": 1,
