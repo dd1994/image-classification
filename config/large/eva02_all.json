@@ -7,7 +7,7 @@
             "learning_rate": 3e-4,
             "input_size": 448,
             "t_max": 17,
-            "mix_prob_early": 0.4,
+            "mix_prob_early": 0.5,
             "mix_prob_late": 0.2,
             "mix_alpha": 0.8,
             "use_arcface": true,
