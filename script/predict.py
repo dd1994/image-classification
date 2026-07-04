@@ -8,7 +8,7 @@ import torch.nn.functional as F
 import torchvision.transforms as transforms
 from PIL import Image
 
-from model import SwinV2Model
+from model import EVA02Model
 from util.transform import ToRGBTransform
 import csv
 
@@ -43,6 +43,13 @@ def get_bbox_ratio(cam_heatmap, threshold=CAM_THRESHOLD):
 
 
 def compute_gradcam(model, img_tensor, target_class):
+    """Grad-CAM for EVA02 (ViT architecture).
+
+    Hooks into the last transformer block output, strips the CLS token,
+    and reshapes the patch sequence into a 2D spatial grid for CAM.
+    """
+    import math
+
     feature_maps = None
     gradients = None
 
@@ -54,7 +61,9 @@ def compute_gradcam(model, img_tensor, target_class):
         nonlocal gradients
         gradients = grad_output[0]
 
-    target_layer = model.model.norm
+    # EVA02: fc_norm is post-pool (2D), use last transformer block instead.
+    # Its output is (B, num_patches+1, C) — patch tokens with CLS token at pos 0.
+    target_layer = model.model.blocks[-1]
     fwd_handle = target_layer.register_forward_hook(forward_hook)
     bwd_handle = target_layer.register_full_backward_hook(backward_hook)
 
@@ -67,15 +76,26 @@ def compute_gradcam(model, img_tensor, target_class):
     fwd_handle.remove()
     bwd_handle.remove()
 
-    fm = feature_maps.detach()
-    grad = gradients.detach()
+    fm = feature_maps.detach()   # (B, N+1, C)
+    grad = gradients.detach()    # (B, N+1, C)
 
-    alpha = grad.mean(dim=(1, 2), keepdim=True)
-    cam = (alpha * fm).sum(dim=3)
+    # Discard CLS token (position 0) → (B, N, C)
+    fm = fm[:, 1:, :]
+    grad = grad[:, 1:, :]
+
+    # Reshape patch sequence to 2D spatial grid: (B, N, C) → (B, H, W, C)
+    num_patches = fm.shape[1]
+    h = w = int(math.sqrt(num_patches))
+    fm = fm.reshape(fm.shape[0], h, w, fm.shape[2])
+    grad = grad.reshape(grad.shape[0], h, w, grad.shape[2])
+
+    # Grad-CAM: channel weights from mean gradient, weighted sum of feature maps
+    alpha = grad.mean(dim=(1, 2), keepdim=True)  # (B, 1, 1, C)
+    cam = (alpha * fm).sum(dim=3)                 # (B, H, W)
     cam = torch.relu(cam)
 
     input_size = img_tensor.shape[2]
-    cam_4d = cam.unsqueeze(1)
+    cam_4d = cam.unsqueeze(1)  # (B, 1, H, W)
     cam_upsampled = F.interpolate(cam_4d, size=(input_size, input_size),
                                    mode='bilinear', align_corners=False)
     cam_upsampled = cam_upsampled.squeeze()
@@ -136,13 +156,13 @@ def main():
     csv_file_path = 'D:\image-classification\script\spider_index_to_species_id.csv'
     index_to_species_id = load_index_to_species_id_from_csv(csv_file_path)
 
-    checkpoint = torch.load('D:\image-classification\wandb_logs\identify\eoz9k2h9\checkpoints\last.ckpt',
+    checkpoint = torch.load(r'D:\image-classification\wandb_logs\identify\fkf6fj9j\checkpoints\last.ckpt',
                             map_location=torch.device('cuda:0'), weights_only=True)
 
     hp = checkpoint['hyper_parameters']
     input_size = hp.get('input_size', 512)
 
-    model = SwinV2Model(
+    model = EVA02Model(
         num_classes=hp.get('num_classes', 75),
         input_size=input_size,
         use_arcface=hp.get('use_arcface', True),
@@ -151,18 +171,20 @@ def main():
         arcface_sub_center=hp.get('arcface_sub_center', 3),
         arcface_easy_margin=hp.get('arcface_easy_margin', False),
         arcface_ls_eps=hp.get('arcface_ls_eps', 0.0),
+        layer_decay_rate=hp.get('layer_decay_rate', 0.85),
+        head_lr_mult=hp.get('head_lr_mult', 1.0),
     )
 
     state_dict = checkpoint['state_dict']
-    state_dict.pop('model.head.fc.weight', None)
-    state_dict.pop('model.head.fc.bias', None)
+    state_dict.pop('model.head.weight', None)
+    state_dict.pop('model.head.bias', None)
     model.load_state_dict(state_dict, strict=False)
     model.eval()
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     model.to(device)
 
-    img_path = r"E:\Downloads\default.jpg"
+    img_path = r"E:\Downloads\4.jpg"
     image = Image.open(img_path)
 
     transform_to_tensor = transforms.Compose([

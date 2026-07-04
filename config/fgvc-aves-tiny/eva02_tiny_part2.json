@@ -19,7 +19,7 @@
             "arcface_margin_warmup_epochs": 4,
             "arcface_margin_warmup_start": 0,
             "use_gradient_checkpointing": false,
-            "layer_decay_rate": 0.8,
+            "layer_decay_rate": 0.85,
             "head_lr_mult": 1.0
         }
     },
@@ -42,7 +42,7 @@
                 "class_path": "pytorch_lightning.callbacks.ModelCheckpoint",
                 "init_args": {
                     "monitor": "val/acc_top1",
-                    "filename": "swinv2-all-{epoch:02d}-{val/acc_top1:.4f}",
+                    "filename": "eva02-all-{epoch:02d}-{val/acc_top1:.4f}",
                     "save_top_k": 5,
                     "save_last": true,
                     "mode": "max"
