@@ -1,6 +1,6 @@
 #!/bin/bash
 
-CONFIG="./config/tiny/eva02_tiny.json"
+CONFIG="./config\large\eva02_all.json"
 SEEDS=(1)
 
 for seed in "${SEEDS[@]}"; do
@@ -11,7 +11,7 @@ for seed in "${SEEDS[@]}"; do
         ./script/train.py fit \
         --config "$CONFIG" \
         --seed_everything="$seed"
-        # --ckpt_path "./wandb_logs/identify/dzjyvnkn/checkpoints/last.ckpt"
+        # --ckpt_path "./wandb_logs/identify/0c0jokl0/checkpoints/last.ckpt"
     echo "Finished seed=$seed"
     echo "Waiting 10s for GPU cleanup..."
     sleep 10
