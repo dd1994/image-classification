@@ -50,8 +50,8 @@
             {
                 "class_path": "pytorch_lightning.callbacks.ModelCheckpoint",
                 "init_args": {
-                    "train_time_interval": "12:00:00",
-                    "filename": "swinv2-all-{epoch:02d}-{step}",
+                    "train_time_interval": "8:00:00",
+                    "filename": "eva02-all-{epoch:02d}-{step}",
                     "save_top_k": -1,
                     "save_last": false
                 }
@@ -78,7 +78,7 @@
             "id_map_file_path": "train_map.csv",
             "valid_id_map_file_path": "valid_map.csv",
             "batch_size": 28,
-            "num_workers": 3,
+            "num_workers": 2,
             "input_size": 448,
             "rrc_scale_min": 0.3,
             "random_erase_prob": 0.2,

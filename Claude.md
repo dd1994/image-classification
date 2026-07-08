@@ -187,72 +187,35 @@ exec background: true
 
 ## 从 Wandb 日志查看学习率
 
-Wandb 离线日志（`.wandb` 二进制文件）里记录了两个 LR key：
+使用 `script/check_lr.py` 查看当前 run 的学习率。
 
-| Key | 来源 | 频率 | 用途 |
-|-----|------|------|------|
-| `train/lr` | `training_step` 中手动 `self.log('train/lr', ...)` | 每 epoch 一次（`batch_idx==0`） | 粗略，数据点少 |
-| `lr-AdamW` | `LearningRateMonitor` callback | 每个 optimizer step | **推荐**，完整 LR 曲线 |
+### 两种 LR 指标的区别
 
-### 解析方法
+| Key | 来源 | 频率 | 可靠性 |
+|-----|------|------|--------|
+| `train/lr` | `training_step` 中 `batch_idx==0` 时 `self.log` | 每 epoch 一次 | ❌ 不可用 — epoch 内 LR 一直在变，但这条只记录 epoch 开头的值 |
+| `lr-AdamW/pg{N}` | `LearningRateMonitor` callback | 每 50 optimizer step | ✅ **推荐** — 24 个 param group 各有独立 LR |
 
-`.wandb` 文件是 protobuf 二进制格式，可用正则直接从文件中提取（无需 wandb SDK）。
+### `check_lr.py` 工作原理
 
-**推荐做法：只读文件尾部**。`lr-AdamW` 数据在文件持续追加写入，最新 LR 在尾部 32MB 内，无需全量读取：
+`.wandb` 文件是 protobuf 二进制格式，可直接用正则提取（无需 wandb SDK）：
 
-```python
-import re, os
+1. 找到文件末尾最新的 `trainer/global_step` 位置
+2. 在该位置前后 20KB 窗口内收集所有 `lr-AdamW/pg{N}:<float>` 条目
+3. 输出最低层（block.0, lr_scale=0.167）和最高层（head, lr_scale=1.0）的 LR
 
-filepath = 'wandb_logs/wandb/<run_dir>/run-<id>.wandb'
-file_size = os.path.getsize(filepath)
-read_size = min(32 * 1024 * 1024, file_size)
+### Warmup 进度判断
 
-with open(filepath, 'rb') as f:
-    if file_size > read_size:
-        f.seek(file_size - read_size)
-    data = f.read()
+当前配置：`LinearLR(start_factor=0.001)`, 3 epoch warmup, base_lr=3e-4
+- 起始 LR: 3e-7, 目标 LR: 3e-4
+- head 组的 LR ÷ head_lr_mult = base LR，由此计算 warmup 进度百分比
+- 如果 base LR 长时间停在 3e-7 附近且 step 不变 → 训练可能冻结
 
-# 匹配 lr-AdamW<浮点数> ... global_step<整数>
-pattern = re.compile(
-    rb'lr-AdamW...([0-9]+(?:\.[0-9]+)?(?:[eE][+\-]?[0-9]+)?)'
-    rb'.{0,200}'
-    rb'global_step...([0-9]+)',
-    re.DOTALL
-)
+### ⚠️ 踩过的坑
 
-LR_MIN_SANE = 1e-10  # 过滤二进制噪声误匹配，真实 LR 不会低于此值
-
-seen = {}
-for m in pattern.finditer(data):
-    lr = float(m.group(1))
-    step = int(m.group(2))
-    if LR_MIN_SANE < lr < 1.0:
-        seen[step] = lr  # 覆盖写：尾部后出现的值更新，始终保留最新
-
-sorted_steps = sorted(seen.keys())
-# latest_step = sorted_steps[-1], latest_lr = seen[latest_step]
-```
-
-**关键点：** protobuf 里同一个 step 会有多条重复记录，**不能**用 `step not in seen` 跳过——必须无条件覆盖，因为尾部扫描到的后一条值才是最新的。
-
-**⚠️ 坑：二进制噪声误匹配。** `.wandb` 文件二进制数据中随机字节可能恰好匹配 LR 正则（如 `4.494429e-57`），必须加 `LR_MIN_SANE = 1e-10` 下限过滤。否则误值会走 `lr < 1.0` 进入 seen，导致趋势判断错误（如误判为 cosine 衰减）。
-
-### 全量读取（需要完整曲线时）
-
-对于大文件（数百 MB），用流式分块读取，每 16MB 一块，保留 1000 字节的跨块尾以保证不截断匹配。用 `re.finditer` 而非 `re.findall` 避免内存暴增。
-
-### 验证 Warmup 线性度
-
-对提取的 (step, lr) 做线性回归，检查：
-- 截距 ≈ `learning_rate × start_factor`（配置为 `3e-4 × 0.001 = 3e-7`）
-- R² ≈ 1.0（线性）
-- 每步增量 = `(3e-4 - 3e-7) / warmup_steps`
-
-### 注意事项
-
-- 不是所有 run 都开了 `LearningRateMonitor`（早期 run 可能只有 `train/lr`，每 epoch 才记一次）
-- 找最新 run：按 `.wandb` 文件的**修改时间**排序，不要看目录名里的日期（续跑的 run 目录名不变但文件持续更新）
-- 用 `re.finditer` 而非 `re.findall` 避免内存暴增
+- **`train/lr` 不可靠**：它只在 `batch_idx==0` 时记录一次，epoch 0 全程显示 3e-7，完全看不出 warmup 在推进
+- **全量读取末尾无效**：`lr-AdamW` 数据在 wandb protobuf 中分布在全局，尾部 32MB 可能只包含某个很早 step 的数据。正确做法是从最后一个 `global_step` 位置反向搜索
+- **二进制噪声误匹配**：`.wandb` 随机字节可能恰好匹配 LR 正则可读格式（如 `4.494e-57`），必须加 `LR_MIN_SANE = 1e-10` 下限过滤
 
 ## 注意点
 - 该项目在 windows 上进行训练，注意兼容性

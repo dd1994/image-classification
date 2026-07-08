@@ -51,7 +51,7 @@
             {
                 "class_path": "pytorch_lightning.callbacks.ModelCheckpoint",
                 "init_args": {
-                    "train_time_interval": "12:00:00",
+                    "train_time_interval": "8:00:00",
                     "filename": "eva02-all-{epoch:02d}-{step}",
                     "save_top_k": -1,
                     "save_last": false
