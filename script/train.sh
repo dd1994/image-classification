@@ -3,6 +3,8 @@
 CONFIG="./config\large\eva02_all.json"
 SEEDS=(1)
 
+mkdir -p ./logs
+
 for seed in "${SEEDS[@]}"; do
     echo "=========================================="
     echo "Training with seed=$seed"
@@ -11,7 +13,8 @@ for seed in "${SEEDS[@]}"; do
         ./script/train.py fit \
         --config "$CONFIG" \
         --seed_everything="$seed" \
-        --ckpt_path "./wandb_logs/identify/cg7iau5l/checkpoints/swinv2-all-epoch=00-step=7212.ckpt"
+        --ckpt_path "./wandb_logs/identify/7mb2jn71/checkpoints/last.ckpt" \
+        > "./logs/train_seed_${seed}.log" 2>&1
     echo "Finished seed=$seed"
     echo "Waiting 10s for GPU cleanup..."
     sleep 10

@@ -24,6 +24,7 @@
     },
     "trainer": {
         "max_epochs": 17,
+        "enable_progress_bar": false,
         "accelerator": "gpu",
         "devices": 1,
         "precision": "bf16-mixed",

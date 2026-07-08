@@ -125,9 +125,29 @@ python script/train.py fit --config ./config/<size>/<model>.json
 ```
 
 ## 日志记录
+
+### Wandb 日志
 - 日志器：WandbLogger（离线模式）
 - 项目名称："identify"
 - 日志保存路径：wandb_logs/identify/<run_id>/checkpoints/
+
+### 训练终端日志（train.sh 输出文件）
+
+train.sh 会将训练脚本的 stdout 和 stderr 重定向到 `./logs/train_seed_${seed}.log`。
+
+**实时查看日志**（训练进行中）：
+```bash
+tail -f ./logs/train_seed_1.log
+```
+
+**注意事项**：
+- 配置中已设置 `"enable_progress_bar": false`，避免 tqdm 进度条撑爆日志文件
+- Python 输出默认有缓冲，可在 train.sh 中加 `PYTHONUNBUFFERED=1` 实现行缓冲实时写入：
+  ```bash
+  PYTHONUNBUFFERED=1 /c/ProgramData/anaconda3/envs/myenv/python.exe -X faulthandler \
+      ./script/train.py fit --config "$CONFIG" ... \
+      > "./logs/train_seed_${seed}.log" 2>&1
+  ```
 
 ## Wandb 同步（离线运行）
 
