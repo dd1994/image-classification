@@ -9,11 +9,11 @@ for seed in "${SEEDS[@]}"; do
     echo "=========================================="
     echo "Training with seed=$seed"
     echo "=========================================="
-    /c/ProgramData/anaconda3/envs/myenv/python.exe -X faulthandler \
+    PYTHONUNBUFFERED=1 /c/ProgramData/anaconda3/envs/myenv/python.exe -X faulthandler \
         ./script/train.py fit \
         --config "$CONFIG" \
         --seed_everything="$seed" \
-        --ckpt_path "./wandb_logs/identify/7mb2jn71/checkpoints/last.ckpt" \
+        --ckpt_path "./wandb_logs/identify/aejlz8ku/checkpoints/eva02-all-epoch=01-step=9251.ckpt" \
         > "./logs/train_seed_${seed}.log" 2>&1
     echo "Finished seed=$seed"
     echo "Waiting 10s for GPU cleanup..."
