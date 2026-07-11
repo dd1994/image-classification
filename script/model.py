@@ -35,8 +35,20 @@ class BaseModel(pl.LightningModule):
         else:
             self.class_counts = class_counts
 
+    def on_fit_start(self):
+        """训练循环启动前清理 GPU 内存碎片，防止 checkpoint 加载后首次分配失败。"""
+        import gc
+        gc.collect()
+        if torch.cuda.is_available():
+            torch.cuda.empty_cache()
+
     def on_train_start(self):
         self._warmup_start_epoch = self.current_epoch
+        # checkpoint 恢复后清理 GPU 缓存碎片，防止 Windows 上 teardown 访问冲突
+        import gc
+        gc.collect()
+        if torch.cuda.is_available():
+            torch.cuda.empty_cache()
 
     def on_train_epoch_start(self):
         # 清理 GPU 缓存碎片，防止长时间训练后因碎片化导致段错误

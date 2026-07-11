@@ -13,7 +13,7 @@ for seed in "${SEEDS[@]}"; do
         ./script/train.py fit \
         --config "$CONFIG" \
         --seed_everything="$seed" \
-        --ckpt_path "./wandb_logs/identify/aejlz8ku/checkpoints/eva02-all-epoch=01-step=9251.ckpt" \
+        --ckpt_path "./wandb_logs/identify/duyi167v/checkpoints/last.ckpt" \
         > "./logs/train_seed_${seed}.log" 2>&1
     echo "Finished seed=$seed"
     echo "Waiting 10s for GPU cleanup..."
