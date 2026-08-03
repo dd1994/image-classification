@@ -180,7 +180,39 @@ tail -f ./logs/train_seed_1.log
 - 每次进行实验时，要使用控制变量法。要列一个计划，写清楚理由。
 
 ## 运行完成后如何查看识别率
-wandb_logs\identify 下有各个 run id 文件夹，文件里 checkpoint 的文件名就有识别率。比如：`wandb_logs\identify\3dmhbizq\checkpoints\eva02-all-epoch=11-val\acc_top1=0.7127.ckpt`
+
+### 找到最近的 run id
+```powershell
+Get-ChildItem -Path "D:\image-classification\wandb_logs\identify" -Directory |
+    Sort-Object LastWriteTime -Descending |
+    Select-Object -First 5 Name, LastWriteTime
+```
+按 LastWriteTime 排序，最上面的就是最近活跃的 run。
+
+### 查看 checkpoint 和 val acc
+```powershell
+# 列出所有 checkpoint（替换 <run_id> 为实际 run id）
+Get-ChildItem -Path "D:\image-classification\wandb_logs\identify\<run_id>\checkpoints" |
+    Sort-Object LastWriteTime |
+    Select-Object Name, @{N='Size (MB)';E={[math]::Round($_.Length/1MB,2)}}, LastWriteTime
+```
+
+### 文件命名规则
+
+**训练 checkpoint**（每 ~8 小时自动存）：
+- 格式：`eva02-all-epoch=XX-step=NNNNN.ckpt`
+- 示例：`eva02-all-epoch=03-step=32508.ckpt`
+
+**Validation checkpoint**（每个 epoch 结束验证完后存）：
+- ⚠️ val checkpoint 是**文件夹**，不是文件。文件夹名以 `-val` 结尾
+- 文件夹内只有一个 `.ckpt` 文件，文件名包含 top-1 准确率
+- 格式：`eva02-all-epoch=XX-val/` (目录) → 内含 `acc_top1=0.XXXX.ckpt`
+- 示例：`eva02-all-epoch=03-val/acc_top1=0.7439.ckpt`
+
+**last.ckpt**：最新的 checkpoint，训练崩溃后可从它恢复。
+
+### 踩过的坑
+- `swinv2-all-epoch=XX-val` 文件夹在 PowerShell `Get-ChildItem` 不递归时显示为 0 字节，容易误以为文件损坏。实际上是目录，需要 `Get-ChildItem -Recurse` 或进入目录才能看到 `acc_top1=X.XXX.ckpt`。
 
 ## OpenClaw 运行训练脚本
 

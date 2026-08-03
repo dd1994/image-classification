@@ -113,9 +113,9 @@ class INatBaseDataModule(pl.LightningDataModule):
             sampler._trainer = self.trainer
             return DataLoader(self.train_dataset, batch_size=self.batch_size,
                               sampler=sampler, num_workers=self.num_workers,
-                              persistent_workers=False, prefetch_factor=1)
+                              persistent_workers=False, prefetch_factor=4)
         return DataLoader(self.train_dataset, batch_size=self.batch_size,
-                          shuffle=True, num_workers=self.num_workers, persistent_workers=False, prefetch_factor=2)
+                          shuffle=True, num_workers=self.num_workers, persistent_workers=False, prefetch_factor=4)
 
     def val_dataloader(self):
         return DataLoader(self.val_dataset, batch_size=self.batch_size*3,
