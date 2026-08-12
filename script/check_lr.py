@@ -167,7 +167,7 @@ else:
 # ── Train loss & acc section ────────────────────────────────────────
 print()
 if paired_entries:
-    N_AVG = 30
+    N_AVG = 5
     recent = paired_entries[-N_AVG:]
     avg_loss = sum(e['loss'] for e in recent) / len(recent)
     avg_acc = sum(e['acc'] for e in recent) / len(recent)

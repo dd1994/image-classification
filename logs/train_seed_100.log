@@ -1,0 +1,33 @@
+Seed set to 100
+Using bfloat16 Automatic Mixed Precision (AMP)
+GPU available: True (cuda), used: True
+TPU available: False, using: 0 TPU cores
+HPU available: False, using: 0 HPUs
+wandb: Using wandb-core as the SDK backend.  Please refer to https://wandb.me/wandb-core for more information.
+wandb: Tracking run with wandb version 0.18.6
+wandb: W&B syncing is set to `offline` in this directory.  
+wandb: Run `wandb online` or set WANDB_MODE=online to enable cloud syncing.
+数据集初始化成功，已写入到 csv 文件
+数据集初始化成功，已写入到 csv 文件
+Restoring states from the checkpoint path at ./wandb_logs/identify/9w26s7hq/checkpoints/last.ckpt
+C:\ProgramData\anaconda3\envs\myenv\lib\site-packages\pytorch_lightning\callbacks\model_checkpoint.py:362: The dirpath has changed from 'wandb_logs\\identify\\9w26s7hq\\checkpoints' to 'wandb_logs\\identify\\9cuhllfp\\checkpoints', therefore `best_model_score`, `kth_best_model_path`, `kth_value`, `last_model_path` and `best_k_models` won't be reloaded. Only `best_model_path` will be reloaded.
+LOCAL_RANK: 0 - CUDA_VISIBLE_DEVICES: [0]
+[EVA02Model] Layer-wise LR enabled: layer_decay_rate=0.85, head_lr_mult=1.0, base_lr=0.0003
+[EVA02Model] 24 param groups, 235 tensors, LR range: [5.02e-05, 3.00e-04]
+Loading `train_dataloader` to estimate number of stepping batches.
+C:\ProgramData\anaconda3\envs\myenv\lib\site-packages\pytorch_lightning\trainer\connectors\data_connector.py:419: Consider setting `persistent_workers=True` in 'train_dataloader' to speed up the dataloader worker initialization.
+
+  | Name         | Type             | Params | Mode 
+----------------------------------------------------------
+0 | criterion    | CrossEntropyLoss | 0      | train
+1 | model        | Eva              | 86.3 M | train
+2 | arcface_loss | ArcFaceLoss      | 101 M  | train
+----------------------------------------------------------
+188 M     Trainable params
+0         Non-trainable params
+188 M     Total params
+753.377   Total estimated model params size (MB)
+266       Modules in train mode
+0         Modules in eval mode
+Restored all states from the checkpoint at ./wandb_logs/identify/9w26s7hq/checkpoints/last.ckpt
+C:\ProgramData\anaconda3\envs\myenv\lib\site-packages\pytorch_lightning\trainer\connectors\data_connector.py:419: Consider setting `persistent_workers=True` in 'val_dataloader' to speed up the dataloader worker initialization.
