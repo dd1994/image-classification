@@ -2,10 +2,12 @@
 
 只依赖 onnxruntime + numpy + Pillow（不需要 torch），适合 4GB 双核 CPU 机器。
 
-三档精度（--precision）：
-  fp32   整模型 fp32（~750MB）
-  int8   整模型动态 INT8（~200MB）
-  hybrid 主干(int8/fp32 均可用) + ArcFace 头权重 fp16 分块余弦（~290MB，推荐）
+两档精度（--precision）：
+  fp32   整模型 fp32（~766MB，无损）
+  hybrid 主干 fp32 + 头 fp16 余弦（~560MB，无损，4GB 机器推荐）
+
+（曾尝试主干动态 int8，但 onnxruntime 1.19.2 的动态量化会让 EVA02 主干产出近乎正交的
+ embedding，严重破坏细粒度精度，故不提供 int8。）
 
 用法：
   python script/infer_onnx.py --image <图片路径> --precision hybrid --map train_map_enriched.csv
@@ -112,7 +114,7 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument('--image', required=True)
     ap.add_argument('--onnx-dir', default='onnx')
-    ap.add_argument('--precision', choices=['fp32', 'int8', 'hybrid'], default='hybrid')
+    ap.add_argument('--precision', choices=['fp32', 'hybrid'], default='hybrid')
     ap.add_argument('--map', default='train_map_enriched.csv', help='物种映射 CSV（可缺省）')
     ap.add_argument('--threads', type=int, default=2)
     ap.add_argument('--input-size', type=int, default=448)
@@ -125,12 +127,11 @@ def main():
     x = preprocess(args.image, args.input_size)
 
     t0 = time.time()
-    if args.precision in ('fp32', 'int8'):
-        model_path = os.path.join(args.onnx_dir, f'eva02_all_{args.precision}.onnx')
-        session = make_session(model_path, args.threads)
+    if args.precision == 'fp32':
+        session = make_session(os.path.join(args.onnx_dir, 'eva02_all_fp32.onnx'), args.threads)
         logits = session.run(None, {session.get_inputs()[0].name: x})[0][0]
         results = topk_from_logits(logits, args.topk)
-    else:  # hybrid
+    else:  # hybrid：主干 fp32 + 头 fp16 余弦
         bb = make_session(os.path.join(args.onnx_dir, 'eva02_all_backbone.onnx'), args.threads)
         emb = bb.run(None, {bb.get_inputs()[0].name: x})[0][0]  # [768] 已归一
         W = np.load(os.path.join(args.onnx_dir, 'arcface_weight_fp16.npy'))

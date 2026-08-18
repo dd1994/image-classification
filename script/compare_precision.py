@@ -1,11 +1,15 @@
-"""在验证集上对比 fp32 / int8 / hybrid 三档 ONNX 的 top-1 / top-3 识别率。
+"""在验证集上对比 fp32 / hybrid 两档的 top-1 / top-3 识别率。
 
-在训练机运行（需 torch/torchvision + onnxruntime；验证集 data/valid 与 train_map_enriched.csv
-都在训练机上）。预处理复用与训练一致的 torchvision v2 变换，保证对比公平。
+两档：
+  fp32   整模型 fp32（eva02_all_fp32.onnx）
+  hybrid 主干 fp32 + 头 fp16 余弦（eva02_all_backbone.onnx + arcface_weight_fp16.npy）
+
+在训练机运行（需 torch/torchvision + onnxruntime；验证集 data/valid 与 train_map_enriched.csv 都在训练机）。
+预处理复用与训练一致的 torchvision v2 变换，保证对比公平。
 
 用法：
   python script/compare_precision.py --data-dir ./data/valid --map train_map_enriched.csv
-  快速子集：加 --limit 5000
+  快速子集：--limit 5000
 """
 import argparse
 import csv
@@ -96,16 +100,14 @@ def main():
     print(f'[data] 验证集 {len(ds)} 张图片')
 
     fp32 = make_session(os.path.join(args.onnx_dir, 'eva02_all_fp32.onnx'), args.threads)
-    int8 = make_session(os.path.join(args.onnx_dir, 'eva02_all_int8.onnx'), args.threads)
     backbone = make_session(os.path.join(args.onnx_dir, 'eva02_all_backbone.onnx'), args.threads)
     W = np.load(os.path.join(args.onnx_dir, 'arcface_weight_fp16.npy'))
 
     fp32_in = fp32.get_inputs()[0].name
-    int8_in = int8.get_inputs()[0].name
     bb_in = backbone.get_inputs()[0].name
 
     stats = {m: {'top1': 0, 'top3': 0, 'agree': 0, 'time': 0.0}
-             for m in ('fp32', 'int8', 'hybrid')}
+             for m in ('fp32', 'hybrid')}
     total = 0
     skipped = 0
     examples = []
@@ -127,9 +129,6 @@ def main():
         fp32_logits = fp32.run(None, {fp32_in: x})[0]
         stats['fp32']['time'] += time.time() - t0
         t0 = time.time()
-        int8_logits = int8.run(None, {int8_in: x})[0]
-        stats['int8']['time'] += time.time() - t0
-        t0 = time.time()
         emb = backbone.run(None, {bb_in: x})[0]
         stats['hybrid']['time'] += time.time() - t0
 
@@ -142,37 +141,32 @@ def main():
 
             fp32_top1 = int(np.argmax(fp32_logits[b]))
             fp32_top3 = set(np.argsort(fp32_logits[b])[::-1][:3].tolist())
-            int8_top1 = int(np.argmax(int8_logits[b]))
-            int8_top3 = set(np.argsort(int8_logits[b])[::-1][:3].tolist())
+
             h_logits = cosine_logits(emb[b], W, args.num_classes, args.sub_center, args.arcface_s)
             h_top1 = int(np.argmax(h_logits))
             h_top3 = set(np.argsort(h_logits)[::-1][:3].tolist())
 
             stats['fp32']['top1'] += int(fp32_top1 == label)
             stats['fp32']['top3'] += int(label in fp32_top3)
-            stats['fp32']['agree'] += 1  # 自身恒为 1
-
-            stats['int8']['top1'] += int(int8_top1 == label)
-            stats['int8']['top3'] += int(label in int8_top3)
-            stats['int8']['agree'] += int(int8_top1 == fp32_top1)
+            stats['fp32']['agree'] += 1
 
             stats['hybrid']['top1'] += int(h_top1 == label)
             stats['hybrid']['top3'] += int(label in h_top3)
             stats['hybrid']['agree'] += int(h_top1 == fp32_top1)
 
-            if len(examples) < 10 and (int8_top1 != fp32_top1 or h_top1 != fp32_top1):
-                examples.append((label, fp32_top1, int8_top1, h_top1))
+            if len(examples) < 10 and h_top1 != fp32_top1:
+                examples.append((label, fp32_top1, h_top1))
 
     n = max(total, 1)
     print(f'\n===== 结果 total={total} skipped={skipped} threads={args.threads} =====')
     print(f'{"method":<8}{"top1":>10}{"top3":>10}{"top1==fp32":>12}{"ms/img":>10}')
-    for m in ('fp32', 'int8', 'hybrid'):
+    for m in ('fp32', 'hybrid'):
         s = stats[m]
         print(f'{m:<8}{s["top1"] / n:>10.4f}{s["top3"] / n:>10.4f}'
               f'{s["agree"] / n:>12.4f}{s["time"] / n * 1000:>10.1f}')
 
     if examples:
-        print('\n前若干 top-1 不一致样本 (label, fp32, int8, hybrid):')
+        print('\n前若干 top-1 不一致样本 (label, fp32, hybrid):')
         for e in examples:
             print('  ', e)
 
