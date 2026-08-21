@@ -17,3 +17,4 @@ index_to_species_reptilia.csv
 *.csv
 node_modules
 predict-img
+*.swp

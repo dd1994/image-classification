@@ -298,7 +298,7 @@ Intel Mac（i7-9750H，CPU-only，无 AVX512-FP16/AMX）实测 openvino 2025.3.0
 - fp16 无内核：`INFERENCE_PRECISION_HINT: f16/bf16` 自动回退 float32（缺 AVX512-FP16 / AVX512-BF16）；
   `compress_to_fp16=True` 只省一半内存，速度不变。
 
-### ⚠️ 本机有两个 Python（别用错）
+### ⚠️ mac环境下运行时有两个 Python（别用错）
 - **用 `/usr/bin/python3`**（Apple CommandLineTools Python 3.9.6）：装了 torch 2.2.2 / timm 1.0.9 /
   onnxruntime 1.19.2 / openvino 2025.3.0 / numpy。
 - ❌ 默认 `python3` 是 Homebrew **3.13.1**（`/usr/local/bin/python3`），一个相关包都没有，跑脚本直接 `ModuleNotFoundError`。
