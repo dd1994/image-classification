@@ -1,4 +1,4 @@
-"""从 last.ckpt 直接重建 EVA02 主干 + ArcFace 头，导出整模型 ONNX（fp32）。
+"""从 last.ckpt 直接重建 EVA02 主干 + ArcFace 头，导出纯 fp32 ONNX（无 transformer 优化）。
 
 不依赖 script/model.py（其顶部 `from aim.v2.utils import ...` / `from transformers import ...`
 会拖入训练机的额外依赖），改用 timm 直接重建主干。前向路径与 EVA02Model 完全一致：
@@ -8,19 +8,17 @@
     logits = F.normalize(emb) @ F.normalize(weight).T        # ArcFace cosine（weight=[C*sub, 768]）
               -> view(C, sub) -> max -> *s
 
-并内置 transformer 专用优化（onnxruntime.transformers.optimizer，model_type='vit'），
-优化后与 torch 参考前向做数值校验，失败自动回退原始导出。
+只导纯 `ai.onnx`（opset 17），不含 com.microsoft 算子。曾用 onnxruntime.transformers 做融合优化，
+会引入 SkipLayerNormalization 等 com.microsoft 算子导致 OpenVINO 等工具无法加载，已弃用（见 CLAUDE.md）。
 
-产物：onnx/eva02_all_fp32.onnx（整模型 → logits [B, num_classes]）
+产物：onnx/eva02_all_fp32.onnx（整模型 → logits [B, num_classes]，纯 fp32）
 
-运行（需 torch + timm + onnxruntime）：
-    python script/export_onnx.py --ckpt last.ckpt --out-dir onnx
+运行（需 torch + timm，用 /usr/bin/python3）：
+    /usr/bin/python3 script/export_onnx.py --ckpt last.ckpt --out-dir onnx
 """
 import argparse
 import os
-import tempfile
 
-import numpy as np
 import timm
 import torch
 import torch.nn as nn
@@ -64,87 +62,35 @@ def build_from_checkpoint(ckpt_path):
     backbone.eval()
 
     weight_norm = F.normalize(sd['arcface_loss.weight'].float(), dim=1).detach()
-    num_heads = backbone.blocks[0].attn.num_heads
-    hidden_size = backbone.num_features
     del ck, sd
     return {
         'backbone': backbone, 'weight_norm': weight_norm, 'num_classes': num_classes,
         'input_size': input_size, 'sub_center': sub_center, 'arcface_s': arcface_s,
-        'num_heads': num_heads, 'hidden_size': hidden_size,
     }
-
-
-def export_raw(wrapper, input_size, out_path, input_names, output_names):
-    dummy = torch.randn(1, 3, input_size, input_size)
-    dynamic_axes = {n: {0: 'batch'} for n in input_names + output_names}
-    with torch.no_grad():
-        torch.onnx.export(wrapper, dummy, out_path,
-                          input_names=input_names, output_names=output_names,
-                          dynamic_axes=dynamic_axes, opset_version=17,
-                          do_constant_folding=True)
-    return dummy
-
-
-def transformer_optimize(src_path, dst_path, num_heads, hidden_size):
-    """onnxruntime.transformers 的 transformer 专用图融合。"""
-    from onnxruntime.transformers.optimizer import optimize_model
-    opt = optimize_model(src_path, model_type='vit', num_heads=num_heads,
-                         hidden_size=hidden_size, opt_level=1, use_gpu=False)
-    opt.save_model_to_file(dst_path)
-
-
-def run_logits(onnx_path, dummy, input_name='image'):
-    import onnxruntime as ort
-    sess = ort.InferenceSession(onnx_path, providers=['CPUExecutionProvider'])
-    return sess.run(None, {sess.get_inputs()[0].name: dummy.numpy()})[0]
-
-
-def max_abs_err(a, b):
-    return float(np.abs(a - b).max())
 
 
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument('--ckpt', default='last.ckpt')
     ap.add_argument('--out-dir', default='onnx')
-    ap.add_argument('--no-tf-opt', action='store_true',
-                    help='跳过 onnxruntime.transformers 专用优化')
     args = ap.parse_args()
     os.makedirs(args.out_dir, exist_ok=True)
 
     m = build_from_checkpoint(args.ckpt)
     input_size = m['input_size']
     print(f"num_classes={m['num_classes']} input_size={input_size} arcface_s={m['arcface_s']} "
-          f"sub_center={m['sub_center']} num_heads={m['num_heads']} hidden={m['hidden_size']}")
+          f"sub_center={m['sub_center']}")
 
     full = ArcFaceExportWrapper(m['backbone'], m['weight_norm'], m['num_classes'],
                                 m['sub_center'], m['arcface_s'])
     dummy = torch.randn(1, 3, input_size, input_size)
+    out_path = os.path.join(args.out_dir, 'eva02_all_fp32.onnx')
     with torch.no_grad():
-        torch_logits = full(dummy).numpy()
-
-    fp32_path = os.path.join(args.out_dir, 'eva02_all_fp32.onnx')
-
-    with tempfile.TemporaryDirectory() as tmp:
-        raw_fp32 = os.path.join(tmp, 'fp32_raw.onnx')
-        export_raw(full, input_size, raw_fp32, ['image'], ['logits'])
-        if args.no_tf_opt:
-            os.replace(raw_fp32, fp32_path)
-            print(f'[exported] {fp32_path} (raw, 未做 transformer 优化)')
-        else:
-            try:
-                transformer_optimize(raw_fp32, fp32_path, m['num_heads'], m['hidden_size'])
-                err = max_abs_err(run_logits(fp32_path, dummy), torch_logits)
-                print(f'[verify] tf-optimized vs torch max|Δlogits| = {err:.6f}')
-                if err < 1e-2:
-                    print(f'[exported] {fp32_path} (transformer 优化)')
-                else:
-                    print(f'[warn] transformer 优化后误差 {err:.4f} 超阈，回退原始导出')
-                    os.replace(raw_fp32, fp32_path)
-            except Exception as e:
-                print(f'[warn] transformer 优化失败({e})，回退原始导出')
-                os.replace(raw_fp32, fp32_path)
-
+        torch.onnx.export(full, dummy, out_path,
+                          input_names=['image'], output_names=['logits'],
+                          dynamic_axes={'image': {0: 'batch'}, 'logits': {0: 'batch'}},
+                          opset_version=17, do_constant_folding=True)
+    print(f'[exported] {out_path} (纯 fp32, 无 transformer 优化)')
     print('done.')
 
 

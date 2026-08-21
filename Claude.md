@@ -282,9 +282,26 @@ exec background: true
 - `script/infer_onnx.py`：单图推理（torch-free），加载 `eva02_all_fp32.onnx` 输出 top-K。
 - `script/compare_precision.py`：验证集评估 fp32 ONNX 的 top1/top3（需训练机的 `data/valid` + `train_map_enriched.csv`）。
 
-### transformer 专用优化
-- 用 `onnxruntime.transformers.optimizer.optimize_model(model_type='vit', num_heads=12, hidden_size=768, opt_level=1, use_gpu=False)` 做 Attention/LayerNorm/GELU 融合，opset 17 导原生 LayerNormalization 算子；优化后与 torch 前向校验误差 ~1e-5。
-- 注意：该优化会引入 com.microsoft 域融合算子，**不能再对其结果做动态量化**（shape 推断失败）。
+### 只用纯 fp32（不做 transformer 优化）
+- 导出只用纯 `ai.onnx`（opset 17）。**不再做 `onnxruntime.transformers` 优化**：它会引入 `com.microsoft` 域
+  `SkipLayerNormalization`（4 输出）等融合算子，导致 OpenVINO 等第三方工具无法加载（报错
+  `Expected output number of SkipLayerNormalization node is 4 while the implementation provides 1 outputs`），
+  且对其结果做动态量化会 shape 推断失败。纯 fp32 更通用、任何 ONNX 工具都能读。
+
+### OpenVINO 实测结论（已放弃，本机无用）
+Intel Mac（i7-9750H，CPU-only，无 AVX512-FP16/AMX）实测 openvino 2025.3.0：
+
+- 只能加载纯 `ai.onnx` 模型；transformer 优化后的 `com.microsoft` 算子（`SkipLayerNormalization`）OpenVINO 前端不支持。
+- 性能对比（纯 fp32，batch=1）：2 线程 onnxruntime 1241ms vs OpenVINO 1406ms（**onnxruntime 快 ~11%**）；
+  6 线程 OpenVINO 703ms vs onnxruntime 764ms（OpenVINO 快 ~8%）。→ OpenVINO 只在满核才略有优势，
+  本项目默认 2 线程用不上，**不用 OpenVINO，继续 onnxruntime**。
+- fp16 无内核：`INFERENCE_PRECISION_HINT: f16/bf16` 自动回退 float32（缺 AVX512-FP16 / AVX512-BF16）；
+  `compress_to_fp16=True` 只省一半内存，速度不变。
+
+### ⚠️ 本机有两个 Python（别用错）
+- **用 `/usr/bin/python3`**（Apple CommandLineTools Python 3.9.6）：装了 torch 2.2.2 / timm 1.0.9 /
+  onnxruntime 1.19.2 / openvino 2025.3.0 / numpy。
+- ❌ 默认 `python3` 是 Homebrew **3.13.1**（`/usr/local/bin/python3`），一个相关包都没有，跑脚本直接 `ModuleNotFoundError`。
 
 ### 精度结论（已实测）
 - 统一用 fp32 整模型（`eva02_all_fp32.onnx`），不做 hybrid / 量化拆分。
