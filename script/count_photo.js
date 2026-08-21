@@ -22,9 +22,9 @@ try {
   const classDirs = fs.readdirSync(trainDir);
 
   for (const className of classDirs) {
-   if(!ACTIVE.includes(className)) {
-       continue
-   }
+   // if(!ACTIVE.includes(className)) {
+     //  continue
+   //}
     const classPath = path.join(trainDir, className);
     const classStats = fs.statSync(classPath);
 
