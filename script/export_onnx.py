@@ -1,13 +1,4 @@
-"""从 last.ckpt 直接重建 EVA02 主干 + ArcFace 头，导出 ONNX。
-
-产物（onnx/）：
-  - eva02_all_fp32.onnx           整模型，[B,3,448,448] -> logits [B,44269]（transformer 优化）
-  - eva02_all_backbone.onnx       主干 fp32 -> 归一化 embedding [B,768]（transformer 优化）
-  - arcface_weight_fp16.npy       归一化 ArcFace 头权重 [44269*3, 768] fp16
-两档精度：fp32=整模型 fp32；hybrid=主干 fp32 + 头 fp16。
-
-（注：曾尝试主干动态 int8，但 onnxruntime 1.19.2 的动态量化会让 EVA02 主干产出近乎正交的
- embedding（逐通道 cosine≈0.09 / 逐张量 0.887），严重破坏细粒度精度，故不提供 int8。）
+"""从 last.ckpt 直接重建 EVA02 主干 + ArcFace 头，导出整模型 ONNX（fp32）。
 
 不依赖 script/model.py（其顶部 `from aim.v2.utils import ...` / `from transformers import ...`
 会拖入训练机的额外依赖），改用 timm 直接重建主干。前向路径与 EVA02Model 完全一致：
@@ -17,8 +8,10 @@
     logits = F.normalize(emb) @ F.normalize(weight).T        # ArcFace cosine（weight=[C*sub, 768]）
               -> view(C, sub) -> max -> *s
 
-并内置 transformer 专用优化（onnxruntime.transformers.optimizer，model_type='vit'，Attention/LayerNorm/
-GELU/SkipLayerNorm 融合），每次优化后与 torch 参考前向做数值校验，失败自动回退原始导出。
+并内置 transformer 专用优化（onnxruntime.transformers.optimizer，model_type='vit'），
+优化后与 torch 参考前向做数值校验，失败自动回退原始导出。
+
+产物：onnx/eva02_all_fp32.onnx（整模型 → logits [B, num_classes]）
 
 运行（需 torch + timm + onnxruntime）：
     python script/export_onnx.py --ckpt last.ckpt --out-dir onnx
@@ -52,17 +45,6 @@ class ArcFaceExportWrapper(nn.Module):
         cos = F.linear(emb, self.weight_norm)
         cos = cos.view(-1, self.num_classes, self.sub_center)
         return cos.max(dim=2).values * self.arcface_s
-
-
-class BackboneExportWrapper(nn.Module):
-    """仅主干 -> 归一化 embedding [B, 768]。"""
-    def __init__(self, backbone):
-        super().__init__()
-        self.backbone = backbone
-
-    def forward(self, x):
-        f = self.backbone.forward_features(x)
-        return F.normalize(self.backbone.forward_head(f, pre_logits=True), dim=1)
 
 
 def build_from_checkpoint(ckpt_path):
@@ -121,23 +103,6 @@ def max_abs_err(a, b):
     return float(np.abs(a - b).max())
 
 
-def finalize(raw_path, dst_path, dummy, torch_logits, m):
-    """对 raw onnx 做 transformer 优化并校验，失败则回退原始导出。"""
-    try:
-        transformer_optimize(raw_path, dst_path, m['num_heads'], m['hidden_size'])
-        err = max_abs_err(run_logits(dst_path, dummy), torch_logits)
-        print(f'[verify] tf-optimized vs torch max|Δlogits| = {err:.6f}')
-        if err < 1e-2:
-            print(f'[exported] {dst_path} (transformer 优化)')
-            return
-        print(f'[warn] transformer 优化后误差 {err:.4f} 超阈，回退原始导出')
-    except Exception as e:
-        print(f'[warn] transformer 优化失败({e})，回退原始导出')
-    os.replace(raw_path, dst_path)
-    print(f'[exported] {dst_path} (raw)')
-    print(f'[verify] raw vs torch max|Δlogits| = {max_abs_err(run_logits(dst_path, dummy), torch_logits):.6f}')
-
-
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument('--ckpt', default='last.ckpt')
@@ -159,7 +124,6 @@ def main():
         torch_logits = full(dummy).numpy()
 
     fp32_path = os.path.join(args.out_dir, 'eva02_all_fp32.onnx')
-    bb_path = os.path.join(args.out_dir, 'eva02_all_backbone.onnx')
 
     with tempfile.TemporaryDirectory() as tmp:
         raw_fp32 = os.path.join(tmp, 'fp32_raw.onnx')
@@ -168,26 +132,18 @@ def main():
             os.replace(raw_fp32, fp32_path)
             print(f'[exported] {fp32_path} (raw, 未做 transformer 优化)')
         else:
-            finalize(raw_fp32, fp32_path, dummy, torch_logits, m)
-
-        raw_bb = os.path.join(tmp, 'bb_raw.onnx')
-        export_raw(BackboneExportWrapper(m['backbone']), input_size, raw_bb,
-                   ['image'], ['embedding'])
-        if args.no_tf_opt:
-            os.replace(raw_bb, bb_path)
-            print(f'[exported] {bb_path} (raw)')
-        else:
             try:
-                transformer_optimize(raw_bb, bb_path, m['num_heads'], m['hidden_size'])
-                print(f'[exported] {bb_path} (transformer 优化)')
+                transformer_optimize(raw_fp32, fp32_path, m['num_heads'], m['hidden_size'])
+                err = max_abs_err(run_logits(fp32_path, dummy), torch_logits)
+                print(f'[verify] tf-optimized vs torch max|Δlogits| = {err:.6f}')
+                if err < 1e-2:
+                    print(f'[exported] {fp32_path} (transformer 优化)')
+                else:
+                    print(f'[warn] transformer 优化后误差 {err:.4f} 超阈，回退原始导出')
+                    os.replace(raw_fp32, fp32_path)
             except Exception as e:
-                print(f'[warn] backbone transformer 优化失败({e})，用原始')
-                os.replace(raw_bb, bb_path)
-
-    # fp16 头权重
-    np.save(os.path.join(args.out_dir, 'arcface_weight_fp16.npy'),
-            m['weight_norm'].numpy().astype(np.float16))
-    print('[saved] arcface_weight_fp16.npy')
+                print(f'[warn] transformer 优化失败({e})，回退原始导出')
+                os.replace(raw_fp32, fp32_path)
 
     print('done.')
 

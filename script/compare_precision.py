@@ -1,11 +1,7 @@
-"""在验证集上对比 fp32 / hybrid 两档的 top-1 / top-3 识别率。
-
-两档：
-  fp32   整模型 fp32（eva02_all_fp32.onnx）
-  hybrid 主干 fp32 + 头 fp16 余弦（eva02_all_backbone.onnx + arcface_weight_fp16.npy）
+"""在验证集上评估 fp32 ONNX 的 top-1 / top-3 识别率（校验导出无损）。
 
 在训练机运行（需 torch/torchvision + onnxruntime；验证集 data/valid 与 train_map_enriched.csv 都在训练机）。
-预处理复用与训练一致的 torchvision v2 变换，保证对比公平。
+预处理复用与训练一致的 torchvision v2 变换。
 
 用法：
   python script/compare_precision.py --data-dir ./data/valid --map train_map_enriched.csv
@@ -41,17 +37,8 @@ def make_session(model_path, threads):
                                 providers=['CPUExecutionProvider'])
 
 
-def cosine_logits(emb, W, num_classes, sub, s, chunk=4096):
-    logits = np.empty(num_classes, dtype=np.float32)
-    for start in range(0, num_classes, chunk):
-        end = min(start + chunk, num_classes)
-        w = W[start * sub:end * sub].astype(np.float32)
-        logits[start:end] = (w @ emb).reshape(-1, sub).max(axis=1) * s
-    return logits
-
-
 def load_model_index_map(csv_path):
-    """返回 {species_id: model_index}，把验证集图片的 species_id 映射到模型类别序号(0..44268)。"""
+    """返回 {species_id: model_index}，把验证集图片的 species_id 映射到模型类别序号(0..num_classes-1)。"""
     mapping = {}
     with open(csv_path, 'r', encoding='utf-8') as f:
         reader = csv.reader(f)
@@ -75,9 +62,6 @@ def main():
     ap.add_argument('--map', default='train_map_enriched.csv')
     ap.add_argument('--onnx-dir', default='onnx')
     ap.add_argument('--input-size', type=int, default=448)
-    ap.add_argument('--num-classes', type=int, default=44269)
-    ap.add_argument('--arcface-s', type=float, default=64.0)
-    ap.add_argument('--sub-center', type=int, default=3)
     ap.add_argument('--threads', type=int, default=2)
     ap.add_argument('--batch-size', type=int, default=1)
     ap.add_argument('--limit', type=int, default=0, help='只测前 N 张；0=全部')
@@ -99,18 +83,11 @@ def main():
                             transform=transform)
     print(f'[data] 验证集 {len(ds)} 张图片')
 
-    fp32 = make_session(os.path.join(args.onnx_dir, 'eva02_all_fp32.onnx'), args.threads)
-    backbone = make_session(os.path.join(args.onnx_dir, 'eva02_all_backbone.onnx'), args.threads)
-    W = np.load(os.path.join(args.onnx_dir, 'arcface_weight_fp16.npy'))
+    session = make_session(os.path.join(args.onnx_dir, 'eva02_all_fp32.onnx'), args.threads)
+    in_name = session.get_inputs()[0].name
 
-    fp32_in = fp32.get_inputs()[0].name
-    bb_in = backbone.get_inputs()[0].name
-
-    stats = {m: {'top1': 0, 'top3': 0, 'agree': 0, 'time': 0.0}
-             for m in ('fp32', 'hybrid')}
-    total = 0
-    skipped = 0
-    examples = []
+    top1 = top3 = total = skipped = 0
+    t0 = time.time()
 
     dl = DataLoader(ds, batch_size=args.batch_size, shuffle=False, num_workers=0)
 
@@ -124,13 +101,7 @@ def main():
             labels.append(model_index.get(species_id, -1))
 
         x = images.numpy().astype(np.float32)  # [B,3,H,W]
-
-        t0 = time.time()
-        fp32_logits = fp32.run(None, {fp32_in: x})[0]
-        stats['fp32']['time'] += time.time() - t0
-        t0 = time.time()
-        emb = backbone.run(None, {bb_in: x})[0]
-        stats['hybrid']['time'] += time.time() - t0
+        logits = session.run(None, {in_name: x})[0]
 
         for b in range(images.shape[0]):
             label = labels[b]
@@ -138,37 +109,15 @@ def main():
                 skipped += 1
                 continue
             total += 1
+            top1 += int(np.argmax(logits[b]) == label)
+            top3 += int(label in set(np.argsort(logits[b])[::-1][:3].tolist()))
 
-            fp32_top1 = int(np.argmax(fp32_logits[b]))
-            fp32_top3 = set(np.argsort(fp32_logits[b])[::-1][:3].tolist())
-
-            h_logits = cosine_logits(emb[b], W, args.num_classes, args.sub_center, args.arcface_s)
-            h_top1 = int(np.argmax(h_logits))
-            h_top3 = set(np.argsort(h_logits)[::-1][:3].tolist())
-
-            stats['fp32']['top1'] += int(fp32_top1 == label)
-            stats['fp32']['top3'] += int(label in fp32_top3)
-            stats['fp32']['agree'] += 1
-
-            stats['hybrid']['top1'] += int(h_top1 == label)
-            stats['hybrid']['top3'] += int(label in h_top3)
-            stats['hybrid']['agree'] += int(h_top1 == fp32_top1)
-
-            if len(examples) < 10 and h_top1 != fp32_top1:
-                examples.append((label, fp32_top1, h_top1))
-
+    elapsed = time.time() - t0
     n = max(total, 1)
     print(f'\n===== 结果 total={total} skipped={skipped} threads={args.threads} =====')
-    print(f'{"method":<8}{"top1":>10}{"top3":>10}{"top1==fp32":>12}{"ms/img":>10}')
-    for m in ('fp32', 'hybrid'):
-        s = stats[m]
-        print(f'{m:<8}{s["top1"] / n:>10.4f}{s["top3"] / n:>10.4f}'
-              f'{s["agree"] / n:>12.4f}{s["time"] / n * 1000:>10.1f}')
-
-    if examples:
-        print('\n前若干 top-1 不一致样本 (label, fp32, hybrid):')
-        for e in examples:
-            print('  ', e)
+    print(f'top1 = {top1 / n:.4f}  ({top1}/{total})')
+    print(f'top3 = {top3 / n:.4f}  ({top3}/{total})')
+    print(f'平均 {elapsed / n * 1000:.1f} ms/图')
 
 
 if __name__ == '__main__':

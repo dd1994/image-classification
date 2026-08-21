@@ -1,19 +1,9 @@
-"""CPU 推理示例：用 onnxruntime 跑 EVA02 ONNX 模型，输出 top-K 预测。
+"""CPU 推理示例：用 onnxruntime 跑 EVA02 fp32 ONNX 模型，输出 top-K 预测。
 
 只依赖 onnxruntime + numpy + Pillow（不需要 torch），适合 4GB 双核 CPU 机器。
 
-两档精度（--precision）：
-  fp32   整模型 fp32（~766MB，无损）
-  hybrid 主干 fp32 + 头 fp16 余弦（~560MB，无损，4GB 机器推荐）
-
-（曾尝试主干动态 int8，但 onnxruntime 1.19.2 的动态量化会让 EVA02 主干产出近乎正交的
- embedding，严重破坏细粒度精度，故不提供 int8。）
-
 用法：
-  python script/infer_onnx.py --image <图片路径> --precision hybrid --map train_map_enriched.csv
-
-注意：--num-classes / --arcface-s / --sub-center 需与导出时的模型一致
-（默认 44269 / 64 / 3，即 config/large/eva02_all_part2.json）。
+  python script/infer_onnx.py --image <图片路径> --map train_map_enriched.csv
 """
 import argparse
 import csv
@@ -58,20 +48,6 @@ def preprocess(img_path, input_size=448):
     return x[None].astype(np.float32)                  # [1,C,H,W]
 
 
-def cosine_logits(emb, W, num_classes, sub=3, s=64.0, chunk=4096):
-    """hybrid 档：归一化 embedding 与 fp16 头权重分块做余弦，返回完整 logits。
-
-    emb: [768] float32 已归一；W: [num_classes*sub, 768] float16 已归一。
-    分块避免把 408MB 的 fp32 权重一次性载入内存。
-    """
-    logits = np.empty(num_classes, dtype=np.float32)
-    for start in range(0, num_classes, chunk):
-        end = min(start + chunk, num_classes)
-        w = W[start * sub:end * sub].astype(np.float32)   # [chunk*sub, 768]
-        logits[start:end] = (w @ emb).reshape(-1, sub).max(axis=1) * s
-    return logits
-
-
 def softmax(logits):
     logits = logits - logits.max()
     e = np.exp(logits)
@@ -114,33 +90,22 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument('--image', required=True)
     ap.add_argument('--onnx-dir', default='onnx')
-    ap.add_argument('--precision', choices=['fp32', 'hybrid'], default='hybrid')
     ap.add_argument('--map', default='train_map_enriched.csv', help='物种映射 CSV（可缺省）')
     ap.add_argument('--threads', type=int, default=2)
     ap.add_argument('--input-size', type=int, default=448)
-    ap.add_argument('--num-classes', type=int, default=44269)
-    ap.add_argument('--arcface-s', type=float, default=64.0)
-    ap.add_argument('--sub-center', type=int, default=3)
     ap.add_argument('--topk', type=int, default=3)
     args = ap.parse_args()
 
     x = preprocess(args.image, args.input_size)
 
+    session = make_session(os.path.join(args.onnx_dir, 'eva02_all_fp32.onnx'), args.threads)
     t0 = time.time()
-    if args.precision == 'fp32':
-        session = make_session(os.path.join(args.onnx_dir, 'eva02_all_fp32.onnx'), args.threads)
-        logits = session.run(None, {session.get_inputs()[0].name: x})[0][0]
-        results = topk_from_logits(logits, args.topk)
-    else:  # hybrid：主干 fp32 + 头 fp16 余弦
-        bb = make_session(os.path.join(args.onnx_dir, 'eva02_all_backbone.onnx'), args.threads)
-        emb = bb.run(None, {bb.get_inputs()[0].name: x})[0][0]  # [768] 已归一
-        W = np.load(os.path.join(args.onnx_dir, 'arcface_weight_fp16.npy'))
-        logits = cosine_logits(emb, W, args.num_classes, args.sub_center, args.arcface_s)
-        results = topk_from_logits(logits, args.topk)
+    logits = session.run(None, {session.get_inputs()[0].name: x})[0][0]
+    results = topk_from_logits(logits, args.topk)
     elapsed = (time.time() - t0) * 1000
 
     mapping = load_mapping(args.map) if os.path.exists(args.map) else {}
-    print(f'[{args.precision}] 推理耗时 {elapsed:.0f} ms')
+    print(f'[fp32] 推理耗时 {elapsed:.0f} ms')
     for i, (cls, prob) in enumerate(results, 1):
         name = mapping.get(cls, f'class_{cls}')
         print(f'  {i}. {name}  ({prob * 100:.2f}%)')

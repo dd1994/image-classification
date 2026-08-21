@@ -275,22 +275,19 @@ exec background: true
 ## ONNX 导出与 CPU 推理
 
 ### 脚本与产物
-- `script/export_onnx.py`：从 `last.ckpt` 直接重建 EVA02 主干并导出。**不要 import `script/model.py`**——
+- `script/export_onnx.py`：从 `last.ckpt` 直接重建 EVA02 主干并导出整模型。**不要 import `script/model.py`**——
   其顶部 `from aim.v2.utils import ...` / `from transformers import ...` 是训练机独有依赖（aim 不是 PyPI 的 aimstack）。
   直接用 `timm.create_model('eva02_base_patch14_448.mim_in22k_ft_in22k', num_classes=0)` 重建主干（已核实与
-  EVA02Model 零缺/零多 key）。产出 `onnx/`：
-  - `eva02_all_fp32.onnx` 整模型 → logits `[B,44269]`（~766MB）
-  - `eva02_all_backbone.onnx` 仅主干 → 归一化 embedding `[B,768]`（~358MB）
-  - `arcface_weight_fp16.npy` 归一化 ArcFace 头权重 `[44269*3,768]` fp16（~204MB）
-- `script/infer_onnx.py`：单图推理（torch-free），`--precision fp32|hybrid`
-- `script/compare_precision.py`：验证集对比 fp32 vs hybrid 的 top1/top3（需训练机的 `data/valid` + `train_map_enriched.csv`）
+  EVA02Model 零缺/零多 key）。产出 `onnx/eva02_all_fp32.onnx`（整模型 → logits `[B,44269]`，~766MB）。
+- `script/infer_onnx.py`：单图推理（torch-free），加载 `eva02_all_fp32.onnx` 输出 top-K。
+- `script/compare_precision.py`：验证集评估 fp32 ONNX 的 top1/top3（需训练机的 `data/valid` + `train_map_enriched.csv`）。
 
 ### transformer 专用优化
 - 用 `onnxruntime.transformers.optimizer.optimize_model(model_type='vit', num_heads=12, hidden_size=768, opt_level=1, use_gpu=False)` 做 Attention/LayerNorm/GELU 融合，opset 17 导原生 LayerNormalization 算子；优化后与 torch 前向校验误差 ~1e-5。
 - 注意：该优化会引入 com.microsoft 域融合算子，**不能再对其结果做动态量化**（shape 推断失败）。
 
-### 两档精度结论（已实测）
-- **hybrid（主干 fp32 + 头 fp16 余弦）无损**：fp16 存头权重、numpy fp32 算余弦，实测与 fp32 整模型 top-5 完全一致；总内存 ~562MB，4GB 双核机器首选。
+### 精度结论（已实测）
+- 统一用 fp32 整模型（`eva02_all_fp32.onnx`），不做 hybrid / 量化拆分。
 - **int8 不可用**：onnxruntime 1.19.2 的 `quantize_dynamic` 量化 EVA02 主干会让 embedding 严重失真（逐通道 cosine≈0.09、逐张量≈0.887），对 4.4 万类细粒度分类直接判错。**不要用动态 int8**。
 - FP16 运行时在 CPU 上无内核、不划算；只有上 GPU 才用 `convert_float_to_float16`。
 
