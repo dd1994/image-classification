@@ -82,7 +82,7 @@
             "re_scale_max": 0.2,
             "rebalance_last_epochs": 0,
             "rebalance_floor_count": 90,
-            "trivial_augment_prob": 1,
+            "trivial_augment_prob": 0.9,
             "random_rotation_degrees": 15,
             "random_rotation_prob": 0
         }
